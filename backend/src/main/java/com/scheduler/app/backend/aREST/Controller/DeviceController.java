@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.scheduler.Base.ControllerBase;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Service.DeviceService;
-
+import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 @RequestMapping(value = "/device")
 public class DeviceController extends ControllerBase {
@@ -29,10 +29,16 @@ public class DeviceController extends ControllerBase {
         return ResponseEntity.ok(saveDevice);
     }
     
-    @GetMapping(value="/get-all-devices")
-    public List<Device> getAllDevices(){
+    @GetMapping(value="/get-devices")
+    public List<Device> getAllDevices(@RequestParam(name="query", required = false)String query){
+        if(query!=null){
+            if(query=="device-routes"){
+                return service.getAllDevicesWithRoutes();
+            }
+        }
         return service.getAllDevice();
     }
+    
     @GetMapping(value="/get-device/{id}")
     public Device getDevice(@PathVariable long id){
         return service.getDevice(id);

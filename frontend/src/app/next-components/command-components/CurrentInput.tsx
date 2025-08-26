@@ -10,9 +10,19 @@ export default class CurrentInput extends Component<Props,State>{
                 value:0
             };
     }
-    
+    componentDidMount(): void {
+        //debugger;
+        //if(this.props.value){
+            this.setState({...this.state,value:this.props.value});
+        //}
+    }
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
         //debugger;
+        
+        if(this.props.value){
+            this.setState({...this.state,value:this.props.value});
+        }
+        
         console.log(prevState);
     }
     onChange(event:any){
@@ -35,7 +45,7 @@ export default class CurrentInput extends Component<Props,State>{
             <Form.Label>{this.props.label}</Form.Label>
             <div className="mb-3">
             <div>
-            <Form.Control readOnly={this.props.readOnly} disabled={this.props.disable} style={{width:this.props.size}} id={this.props.name+"Text"} required={this.props.required} onChange={(event:any)=>this.onChange(event)}  name={this.props.name} type={"number"} defaultValue={this.state.value}
+            <Form.Control readOnly={this.props.readOnly} disabled={this.props.disable} style={{width:this.props.size}} id={this.props.name+"Text"} required={this.props.required} onChange={(event:any)=>this.onChange(event)}  name={this.props.name} type={"number"} defaultValue={this.props.value}
             onKeyDown={(event:any)=>this.inputHandle(event.target.value)}    />
             </div>
             <div>

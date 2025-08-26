@@ -1,5 +1,8 @@
 package com.scheduler.Base.ModelBase;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -17,5 +20,13 @@ public class TaskModelBase {
 
     public void setId(long id) {
         this.id = id;
+    }
+    public long taskIdGenerate(long boardId){
+        LocalDate date=LocalDate.now();
+        LocalTime time=LocalTime.now();
+        String strId=""+boardId+date.getDayOfMonth()+date.getMonthValue()+date.getYear()+time.getNano();
+        long taskId=Long.parseLong(strId);
+        System.out.println("Task Id "+taskId);
+        return taskId;
     }
 }

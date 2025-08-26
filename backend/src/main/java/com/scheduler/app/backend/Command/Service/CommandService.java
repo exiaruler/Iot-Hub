@@ -45,11 +45,38 @@ public class CommandService extends Base {
     public Command getCommand(long id){
         return command.getReferenceById(id);
     }
+    private void initDataSystem(){
+        List<Command> jsonCom=new ArrayList<>();
+        try {
+            // Load the JSON file from resources
+            ClassPathResource resource = new ClassPathResource("json/commandsSystem.json");
+            // Deserialize JSON array into a List
+            jsonCom=objectMapper.readValue(resource.getInputStream(),new TypeReference<List<Command>>() {});
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        for(int i=0; i<jsonCom.size(); i++){
+            Command commandItem=jsonCom.get(i);
+            Command exist=command.findCommand(commandItem.getCommandType(),commandItem.getCommand(),commandItem.getSystemCommand());
+            if(exist==null) exist=new Command();
+            Optional<Command> rec=command.findById(exist.getId());
+            if(commandItem!=null&&!rec.isPresent()){
+                commandItem.setTotalParam(commandItem.getTotalParam());
+                if(commandItem.getCommandParameter().size()>0){
+                    commandItem.setParams(true);
+                }else commandItem.setParams(false);
+                Command save=command.save(commandItem);
+
+            }
+        }
+
+    }
     //@Bean(initMethod="init")
     @PostConstruct
     @Transactional
     public void initData(){
-         List<Command> jsonCom=new ArrayList<>();
+        initDataSystem();
+        List<Command> jsonCom=new ArrayList<>();
         try {
             // Load the JSON file from resources
             ClassPathResource resource = new ClassPathResource("json/commands.json");
@@ -60,7 +87,7 @@ public class CommandService extends Base {
         }
         for(int i=0; i<jsonCom.size(); i++){
                 Command commandItem=jsonCom.get(i);
-                Command exist=command.findCommand(commandItem.getCommandType(),commandItem.getCommand());
+                Command exist=command.findCommand(commandItem.getCommandType(),commandItem.getCommand(),commandItem.getSystemCommand());
                 if(exist==null) exist=new Command();
                 Optional<Command> rec=command.findById(exist.getId());
                 if(commandItem!=null&&!rec.isPresent()){
@@ -114,7 +141,18 @@ public class CommandService extends Base {
             
     }
     public List<Command> getCommands(){
-        return command.findAll();
+        return command.findCommandBySystem(false);
+    }
+    public Command getCommandByCommand(String comm,String type,boolean system){
+        Command com=command.findCommand(type, comm,system);
+        if(com!=null&&com.getBoardCommand()!=null){
+            BoardTask tsk=com.getBoardCommand();
+            if( com.getBoardCommand().getPins() instanceof List==true)tsk.setPins(new ArrayList<>());
+            if( com.getBoardCommand().getInput() instanceof List==true)tsk.setInput(new ArrayList<>());
+            if( com.getBoardCommand().getOutput() instanceof List==true)tsk.setOutput(new ArrayList<>());
+            com.setBoardCommand(tsk);
+        }
+        return com;
     }
     public void restartCommands(){
         command.deleteAll();

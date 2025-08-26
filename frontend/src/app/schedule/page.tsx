@@ -1,22 +1,20 @@
-import { Col, Row } from "react-bootstrap";
-import TableComponent from "../next-components/TableComponent";
-import TableComponentColumn from "@/components/Table/TableComponentColumn";
 import PageGroup from "../next-components/pageGroup";
-
-
-export default function page(){
+import { NextBase } from "@/NextBase";
+import Client from "./client";
+const base=new NextBase();
+async function getData(){
+    const fetchApis:any=await base.fetchGetApi([
+    {api: "/form-template/schedule",key: "newSchedule"},
+    {api: "/schedule/schedule",key: "schedule",result:[]},
+    {api: "/board/device/device-routes",key: "devices",result:[]}
+  ]);
+  return fetchApis;
+}
+export default async function page(){
+    const data=await getData();
     return(
         <PageGroup>
-        <Row>
-        <Col md={2}></Col>
-        <Col md={9}>
-        <TableComponent results={[]} idKey={"id"}>
-        <TableComponentColumn key={"name"} columnName={"Name"}/>
-        <TableComponentColumn key={"time"} columnName={"Schedule Time"}/>
-        </TableComponent>
-        </Col>
-        <Col md={4}></Col>
-        </Row>
+        <Client form={data.newSchedule} schedule={data.schedule} devices={data.devices}/>
         </PageGroup>
     );
 }

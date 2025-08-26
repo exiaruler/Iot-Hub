@@ -23,6 +23,8 @@ public class Command extends ModelBase{
     // type of command
     @Column
     private String commandType;
+    // display name
+    private String displayName="";
     // route or command name 
     @Column
     private String command;
@@ -38,9 +40,11 @@ public class Command extends ModelBase{
     // has motor or servo
     @Column
     private boolean hasMotor=false;
+    // is a system command
+    @Column boolean systemCommand=false;
     // list of routes that use command
-    @JsonManagedReference("command-route")
     //@JsonIgnore
+    @JsonManagedReference("command-route")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "command", cascade =CascadeType.ALL)
     private List<Route> commandUsedRoutes;
     // list of parameters used for this command
@@ -53,16 +57,19 @@ public class Command extends ModelBase{
     private BoardTask boardCommand;
 
 
+
     public Command() {
     }
 
-    public Command(String commandType, String command, String className, boolean params, int totalParam, boolean hasMotor, List<Route> commandUsedRoutes, List<CommandParameter> commandParameter, BoardTask boardCommand) {
+    public Command(String commandType, String displayName, String command, String className, boolean params, int totalParam, boolean hasMotor, boolean systemCommand, List<Route> commandUsedRoutes, List<CommandParameter> commandParameter, BoardTask boardCommand) {
         this.commandType = commandType;
+        this.displayName = displayName;
         this.command = command;
         this.className = className;
         this.params = params;
         this.totalParam = totalParam;
         this.hasMotor = hasMotor;
+        this.systemCommand = systemCommand;
         this.commandUsedRoutes = commandUsedRoutes;
         this.commandParameter = commandParameter;
         this.boardCommand = boardCommand;
@@ -74,6 +81,14 @@ public class Command extends ModelBase{
 
     public void setCommandType(String commandType) {
         this.commandType = commandType;
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getCommand() {
@@ -124,6 +139,18 @@ public class Command extends ModelBase{
         this.hasMotor = hasMotor;
     }
 
+    public boolean isSystemCommand() {
+        return this.systemCommand;
+    }
+
+    public boolean getSystemCommand() {
+        return this.systemCommand;
+    }
+
+    public void setSystemCommand(boolean systemCommand) {
+        this.systemCommand = systemCommand;
+    }
+
     public List<Route> getCommandUsedRoutes() {
         return this.commandUsedRoutes;
     }
@@ -153,6 +180,11 @@ public class Command extends ModelBase{
         return this;
     }
 
+    public Command displayName(String displayName) {
+        setDisplayName(displayName);
+        return this;
+    }
+
     public Command command(String command) {
         setCommand(command);
         return this;
@@ -175,6 +207,11 @@ public class Command extends ModelBase{
 
     public Command hasMotor(boolean hasMotor) {
         setHasMotor(hasMotor);
+        return this;
+    }
+
+    public Command systemCommand(boolean systemCommand) {
+        setSystemCommand(systemCommand);
         return this;
     }
 
@@ -201,23 +238,25 @@ public class Command extends ModelBase{
             return false;
         }
         Command command = (Command) o;
-        return Objects.equals(commandType, command.commandType) && Objects.equals(command, command.command) && Objects.equals(className, command.className) && params == command.params && totalParam == command.totalParam && hasMotor == command.hasMotor && Objects.equals(commandUsedRoutes, command.commandUsedRoutes) && Objects.equals(commandParameter, command.commandParameter) && Objects.equals(boardCommand, command.boardCommand);
+        return Objects.equals(commandType, command.commandType) && Objects.equals(displayName, command.displayName) && Objects.equals(command, command.command) && Objects.equals(className, command.className) && params == command.params && totalParam == command.totalParam && hasMotor == command.hasMotor && systemCommand == command.systemCommand && Objects.equals(commandUsedRoutes, command.commandUsedRoutes) && Objects.equals(commandParameter, command.commandParameter) && Objects.equals(boardCommand, command.boardCommand);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(commandType, command, className, params, totalParam, hasMotor, commandUsedRoutes, commandParameter, boardCommand);
+        return Objects.hash(commandType, displayName, command, className, params, totalParam, hasMotor, systemCommand, commandUsedRoutes, commandParameter, boardCommand);
     }
 
     @Override
     public String toString() {
         return "{" +
             " commandType='" + getCommandType() + "'" +
+            ", displayName='" + getDisplayName() + "'" +
             ", command='" + getCommand() + "'" +
             ", className='" + getClassName() + "'" +
             ", params='" + isParams() + "'" +
             ", totalParam='" + getTotalParam() + "'" +
             ", hasMotor='" + isHasMotor() + "'" +
+            ", systemCommand='" + isSystemCommand() + "'" +
             ", commandUsedRoutes='" + getCommandUsedRoutes() + "'" +
             ", commandParameter='" + getCommandParameter() + "'" +
             ", boardCommand='" + getBoardCommand() + "'" +

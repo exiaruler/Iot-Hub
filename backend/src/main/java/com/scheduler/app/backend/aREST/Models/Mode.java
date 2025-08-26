@@ -37,8 +37,13 @@ public class Mode extends ModelBase{
     // Board Task
     @JsonManagedReference("boardtask-mode")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "mode", cascade = CascadeType.ALL)
+    // schedule mode
     private BoardTask boardAction;
-    
+    //
+    @JsonManagedReference("schedule-mode")
+    @OneToMany(fetch = FetchType.LAZY,mappedBy = "mode",cascade =CascadeType.ALL)
+    private List<Schedule> scheduledModes;    
+
 
     public Mode() {
     }

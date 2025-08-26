@@ -112,6 +112,9 @@ public class DeviceService extends Base {
     public List<Device> getAllDevice(){
         return deviceRepo.findAll();
     }
+    public List<Device> getAllDevicesWithRoutes(){
+        return deviceRepo.getDevicesByRoutes();
+    }
     public long [] getDevicesById(long id){
         return deviceRepo.findDevicesByBoard(id);
     }

@@ -16,7 +16,7 @@ export default class ElectrodeSelect extends FormGenSelect{
             }
             {
                 this.state.options.map((opt:any,num:number)=>(
-                    <option value={opt}>{opt}</option>
+                    <option key={opt} value={opt}>{opt}</option>
                 ))
             }
             </Form.Select>

@@ -20,14 +20,17 @@ public class BoardPin extends TaskModelBase {
     private BoardTask boardTask;
     @Column
     private int pin;
+    @Column
+    private int pinOrder;
 
 
     public BoardPin() {
     }
 
-    public BoardPin(BoardTask boardTask, int pin) {
+    public BoardPin(BoardTask boardTask, int pin, int pinOrder) {
         this.boardTask = boardTask;
         this.pin = pin;
+        this.pinOrder = pinOrder;
     }
 
     public BoardTask getBoardTask() {
@@ -46,6 +49,14 @@ public class BoardPin extends TaskModelBase {
         this.pin = pin;
     }
 
+    public int getPinOrder() {
+        return this.pinOrder;
+    }
+
+    public void setPinOrder(int pinOrder) {
+        this.pinOrder = pinOrder;
+    }
+
     public BoardPin boardTask(BoardTask boardTask) {
         setBoardTask(boardTask);
         return this;
@@ -53,6 +64,11 @@ public class BoardPin extends TaskModelBase {
 
     public BoardPin pin(int pin) {
         setPin(pin);
+        return this;
+    }
+
+    public BoardPin pinOrder(int pinOrder) {
+        setPinOrder(pinOrder);
         return this;
     }
 
@@ -64,12 +80,12 @@ public class BoardPin extends TaskModelBase {
             return false;
         }
         BoardPin boardPin = (BoardPin) o;
-        return Objects.equals(boardTask, boardPin.boardTask) && pin == boardPin.pin;
+        return Objects.equals(boardTask, boardPin.boardTask) && pin == boardPin.pin && pinOrder == boardPin.pinOrder;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(boardTask, pin);
+        return Objects.hash(boardTask, pin, pinOrder);
     }
 
     @Override
@@ -77,8 +93,10 @@ public class BoardPin extends TaskModelBase {
         return "{" +
             " boardTask='" + getBoardTask() + "'" +
             ", pin='" + getPin() + "'" +
+            ", pinOrder='" + getPinOrder() + "'" +
             "}";
     }
+
     
     
 }

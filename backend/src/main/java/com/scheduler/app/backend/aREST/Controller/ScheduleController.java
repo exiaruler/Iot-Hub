@@ -3,6 +3,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,41 +28,36 @@ public class ScheduleController extends ControllerBase {
     private ScheduleService service;
 
     public ScheduleController() {
-        this.objectClass=this.pathBase+".InterfaceModels.Input.ScheduleInput";
+        this.objectClass="com.scheduler.app.backend.aREST.Models.Schedule";
     }
 
-    @PostMapping(value="/add-http-schedule")
-    public Schedule addHttpScheduleTest(@RequestBody ScheduleInput payload){
-        //MapCast cast=mapCast.mapJson(payload);
-        return service.addSchedule(payload.getName(),payload.getTime(),payload.getRepeatTask(),payload.getStartup(),payload.getUrl(),payload.getDeviceId(),payload.getRouteId(),payload.getModeId());
-    }
-    @PostMapping(value="/test")
-    public ScheduleInput test(@RequestBody ScheduleInput test){
-        return test;
-    }
-    public String postMethodName(@RequestBody String entity) {
+    @PostMapping("/add-schedule-socket")
+    public ResponseEntity<Schedule> addSchedule(@RequestBody Schedule payload) {
         //TODO: process POST request
-        
-        return entity;
+        Schedule add=service.addScheduleSocket(payload);
+        return ResponseEntity.ok(add);
     }
     
     @PutMapping("update-schedule/{id}")
-    public Schedule updateSchedule(@PathVariable long id, @RequestBody ScheduleInput payload) {
-        //TODO: process PUT request
-        
-        return null;
+    public ResponseEntity<Schedule>  updateSchedule(@PathVariable long id, @RequestBody Schedule payload) {
+        Schedule update=service.updatScheduleSocket(id, payload);
+        return ResponseEntity.ok(update);
     }
     @GetMapping("/get-schedules")
     public List<Schedule> getAllSchedule() {
         return service.getAllSchedule();
     }
     @GetMapping("/get-schedule/{id}")
-    public Schedule getSchedule(@RequestParam long param) {
-        return service.getSchedule(param);
+    public ResponseEntity<Schedule> getSchedule(@PathVariable long id) {
+        Schedule schedule=service.getSchedule(id);
+        return ResponseEntity.ok(schedule);
     }
-    @DeleteMapping("/delete-schedule")
-    public void deleteSchedule(@RequestParam long id){
-
+    @DeleteMapping("/delete-schedule/{id}")
+    public ResponseEntity<String> deleteSchedule(@PathVariable long id){
+        boolean del=service.deleteSchedule(id);
+        if(del){
+        }
+        return ResponseEntity.ok("deleted");
     }
     
     @PostMapping("/startup")

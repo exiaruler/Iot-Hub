@@ -15,10 +15,10 @@ async function getBoard(id:any) {
 }
 export default async function Page({params}:any){
     const { id } = await params
-    var board=await getBoard(id);
+    const board=await getBoard(id);
     return (
         <PageGroup url={'/board/'}>
-        <Client data={board}/>
+        <Client data={board} board={board.board} deviceForm={board.deviceForm}/>
         </PageGroup>
     )
 }

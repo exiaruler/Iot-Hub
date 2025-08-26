@@ -30,6 +30,9 @@ public class Task extends ModelBase {
     // command id
     @Column
     private long commandId;
+    // boardTask id
+    @Column
+    private long boardTaskId=0;
     // url
     @Column
     private String url;
@@ -72,13 +75,14 @@ public class Task extends ModelBase {
     public Task() {
     }
 
-    public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, String url, String payload, String section, int priority, boolean motor, LocalDateTime scheduledTime, boolean oneTimeJob, boolean updateDevice, boolean active, boolean httpTask, int retry, Schedule schedule) {
+    public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, long boardTaskId, String url, String payload, String section, int priority, boolean motor, LocalDateTime scheduledTime, boolean oneTimeJob, boolean updateDevice, boolean active, boolean httpTask, int retry, Schedule schedule) {
         this.application = application;
         this.deviceId = deviceId;
         this.board = board;
         this.routeId = routeId;
         this.modeId = modeId;
         this.commandId = commandId;
+        this.boardTaskId = boardTaskId;
         this.url = url;
         this.payload = payload;
         this.section = section;
@@ -139,6 +143,14 @@ public class Task extends ModelBase {
 
     public void setCommandId(long commandId) {
         this.commandId = commandId;
+    }
+
+    public long getBoardTaskId() {
+        return this.boardTaskId;
+    }
+
+    public void setBoardTaskId(long boardTaskId) {
+        this.boardTaskId = boardTaskId;
     }
 
     public String getUrl() {
@@ -287,6 +299,11 @@ public class Task extends ModelBase {
         return this;
     }
 
+    public Task boardTaskId(long boardTaskId) {
+        setBoardTaskId(boardTaskId);
+        return this;
+    }
+
     public Task url(String url) {
         setUrl(url);
         return this;
@@ -355,12 +372,12 @@ public class Task extends ModelBase {
             return false;
         }
         Task task = (Task) o;
-        return Objects.equals(application, task.application) && deviceId == task.deviceId && board == task.board && routeId == task.routeId && modeId == task.modeId && commandId == task.commandId && Objects.equals(url, task.url) && Objects.equals(payload, task.payload) && Objects.equals(section, task.section) && priority == task.priority && motor == task.motor && Objects.equals(scheduledTime, task.scheduledTime) && oneTimeJob == task.oneTimeJob && updateDevice == task.updateDevice && active == task.active && httpTask == task.httpTask && retry == task.retry && Objects.equals(schedule, task.schedule);
+        return Objects.equals(application, task.application) && deviceId == task.deviceId && board == task.board && routeId == task.routeId && modeId == task.modeId && commandId == task.commandId && boardTaskId == task.boardTaskId && Objects.equals(url, task.url) && Objects.equals(payload, task.payload) && Objects.equals(section, task.section) && priority == task.priority && motor == task.motor && Objects.equals(scheduledTime, task.scheduledTime) && oneTimeJob == task.oneTimeJob && updateDevice == task.updateDevice && active == task.active && httpTask == task.httpTask && retry == task.retry && Objects.equals(schedule, task.schedule);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(application, deviceId, board, routeId, modeId, commandId, url, payload, section, priority, motor, scheduledTime, oneTimeJob, updateDevice, active, httpTask, retry, schedule);
+        return Objects.hash(application, deviceId, board, routeId, modeId, commandId, boardTaskId, url, payload, section, priority, motor, scheduledTime, oneTimeJob, updateDevice, active, httpTask, retry, schedule);
     }
 
     @Override
@@ -372,6 +389,7 @@ public class Task extends ModelBase {
             ", routeId='" + getRouteId() + "'" +
             ", modeId='" + getModeId() + "'" +
             ", commandId='" + getCommandId() + "'" +
+            ", boardTaskId='" + getBoardTaskId() + "'" +
             ", url='" + getUrl() + "'" +
             ", payload='" + getPayload() + "'" +
             ", section='" + getSection() + "'" +
@@ -387,4 +405,5 @@ public class Task extends ModelBase {
             "}";
     }
 
+    
 }

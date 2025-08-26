@@ -12,6 +12,8 @@ import org.springframework.validation.Validator;
 
 import com.scheduler.Base.JsonObject.JsonObject;
 import com.scheduler.app.backend.HTTPHandle.HttpUtil;
+import com.scheduler.app.backend.Messaging.Models.InputCurrent;
+import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
 
 // template class 
 public class Base{
@@ -192,6 +194,34 @@ public class Base{
     }
     public String returnDataString(List<String> list){
         return "{"+String.join(",", list)+"}";
+    }
+    public List<InputCurrent> inputCurrentCalculate(List<InputCurrent> inputs,String electrode){
+        boolean anode=false;
+        if(electrode=="anode"){
+            anode=true;
+        }
+        for(int i=0; i<inputs.size(); i++){
+            InputCurrent in=inputs.get(i);
+            if(anode){
+                in.setCurrent(currentAnodeCalculate(in.getCurrent()));
+            }
+            inputs.set(i,in);
+        }
+        return inputs;
+    }
+    public List<OutputCurrent> outputCurrentCalculate(List<OutputCurrent> inputs,String electrode){
+        boolean anode=false;
+        if(electrode=="anode"){
+            anode=true;
+        }
+        for(int i=0; i<inputs.size(); i++){
+            OutputCurrent in=inputs.get(i);
+            if(anode){
+                in.setCurrent(currentAnodeCalculate(in.getCurrent()));
+            }
+            inputs.set(i,in);
+        }
+        return inputs;
     }
     public int currentAnodeCalculate(int value){
         return 255-value;

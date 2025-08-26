@@ -18,7 +18,7 @@ import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 // device functions
-//@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 public class Route extends ModelBase{
     @JsonBackReference("device-routes")
@@ -39,6 +39,8 @@ public class Route extends ModelBase{
     @ManyToOne
     @JoinColumn(name="command_id")
     private Command command;
+    // command id
+    private long commandId;
     // switch device type
     @Column
     private boolean switchDevice=false;
@@ -56,15 +58,17 @@ public class Route extends ModelBase{
     private List<Schedule> scheduledRoutes;
 
 
+
     public Route() {
     }
 
-    public Route(Device device, String route, boolean modes, String electrode, Command command, boolean switchDevice, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes) {
+    public Route(Device device, String route, boolean modes, String electrode, Command command, long commandId, boolean switchDevice, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes) {
         this.device = device;
         this.route = route;
         this.modes = modes;
         this.electrode = electrode;
         this.command = command;
+        this.commandId = commandId;
         this.switchDevice = switchDevice;
         this.mode = mode;
         this.boardAction = boardAction;
@@ -113,6 +117,14 @@ public class Route extends ModelBase{
 
     public void setCommand(Command command) {
         this.command = command;
+    }
+
+    public long getCommandId() {
+        return this.commandId;
+    }
+
+    public void setCommandId(long commandId) {
+        this.commandId = commandId;
     }
 
     public boolean isSwitchDevice() {
@@ -176,6 +188,11 @@ public class Route extends ModelBase{
         return this;
     }
 
+    public Route commandId(long commandId) {
+        setCommandId(commandId);
+        return this;
+    }
+
     public Route switchDevice(boolean switchDevice) {
         setSwitchDevice(switchDevice);
         return this;
@@ -204,12 +221,12 @@ public class Route extends ModelBase{
             return false;
         }
         Route route = (Route) o;
-        return Objects.equals(device, route.device) && Objects.equals(route, route.route) && modes == route.modes && Objects.equals(electrode, route.electrode) && Objects.equals(command, route.command) && switchDevice == route.switchDevice && Objects.equals(mode, route.mode) && Objects.equals(boardAction, route.boardAction) && Objects.equals(scheduledRoutes, route.scheduledRoutes);
+        return Objects.equals(device, route.device) && Objects.equals(route, route.route) && modes == route.modes && Objects.equals(electrode, route.electrode) && Objects.equals(command, route.command) && commandId == route.commandId && switchDevice == route.switchDevice && Objects.equals(mode, route.mode) && Objects.equals(boardAction, route.boardAction) && Objects.equals(scheduledRoutes, route.scheduledRoutes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(device, route, modes, electrode, command, switchDevice, mode, boardAction, scheduledRoutes);
+        return Objects.hash(device, route, modes, electrode, command, commandId, switchDevice, mode, boardAction, scheduledRoutes);
     }
 
     @Override
@@ -220,11 +237,12 @@ public class Route extends ModelBase{
             ", modes='" + isModes() + "'" +
             ", electrode='" + getElectrode() + "'" +
             ", command='" + getCommand() + "'" +
+            ", commandId='" + getCommandId() + "'" +
             ", switchDevice='" + isSwitchDevice() + "'" +
             ", mode='" + getMode() + "'" +
             ", boardAction='" + getBoardAction() + "'" +
             ", scheduledRoutes='" + getScheduledRoutes() + "'" +
             "}";
     }
-
+    
 }

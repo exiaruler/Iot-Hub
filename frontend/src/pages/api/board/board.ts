@@ -3,6 +3,9 @@ import { NextUtil } from "@/pages/NextUtil";
 const base=new NextUtil();
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     var response=base.responseFormat();
+    var encrypt=base.getProperties(req);
+    req=base.getRequest(req);
+    console.log('encrypt key '+encrypt);
     if(req.method=='GET'){
         const request=await base.fetchRequest('/board/getboards','GET',null,base.baseUrlIo);
         if(request.ok){

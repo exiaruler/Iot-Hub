@@ -31,7 +31,7 @@ public class Device extends ModelBase{
     // name of device
     @Column
     private String name;
-    // state which the device is in
+    // state which the device is in (redundent)
     @Column
     private String state;
     // error from device
@@ -63,12 +63,6 @@ public class Device extends ModelBase{
     @JsonManagedReference("device-schedules")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "device", cascade =CascadeType.ALL)
     private List<Schedule> schedules;
-    // list of routes used for schedule
-    /* 
-    @JsonManagedReference("device-routes-schedule")
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "device",cascade =CascadeType.ALL)
-    private List<Route> routesSchedule;
-    */
     // list of components that device uses. mapping purpose
     @JsonManagedReference("device-components")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "device",cascade =CascadeType.ALL)

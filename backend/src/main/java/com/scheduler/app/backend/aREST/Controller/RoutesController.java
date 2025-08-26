@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,9 +19,6 @@ import com.scheduler.Base.MapCast.MapCast;
 import com.scheduler.app.backend.aREST.Models.Mode;
 import com.scheduler.app.backend.aREST.Models.Route;
 import com.scheduler.app.backend.aREST.Service.RoutesService;
-import org.springframework.web.bind.annotation.RequestParam;
-
-
 
 @RestController
 @RequestMapping(value = "/route")
@@ -56,15 +54,16 @@ public class RoutesController extends ControllerBase {
         MapCast cast=mapCast.mapJson(payload); 
         return service.addRouteCommand(id,cast.getKeyString("route"),cast.getKeyInteger("command"),cast.getKeyArrayListString("pins"));
     }
-    @PostMapping("/add-route-socket/{deviceId}")
-    public Route addRouteSocket(@PathVariable String deviceId,@RequestBody Route entity) {
+    @PostMapping("/add-route-socket/{deviceId}/{commandId}")
+    public ResponseEntity<Route> addRouteSocket(@PathVariable Long commandId,@PathVariable String deviceId,@RequestBody Route entity) {
         //TODO: process POST request
-        return service.addRouteandModes(entity, deviceId);
+        Route add=service.addRouteandModes(entity, deviceId,commandId);
+        return ResponseEntity.ok(add);
     }
-    @PutMapping("/update-route/{id}")
-    public String updateRouteSocket(@PathVariable long id, @RequestBody Route entity) {
-        //TODO: process PUT request
-        return "";
+    @PutMapping("/update-route-socket/{id}/{commandId}")
+    public ResponseEntity<Route> updateRouteSocket(@PathVariable long id,@PathVariable Long commandId,@RequestBody Route entity) {
+        Route update=service.updateRoute(entity, id, commandId);
+        return ResponseEntity.ok(update);
     }
     @DeleteMapping("/delete-route/{id}")
     public void deleteRoute(@PathVariable long id){

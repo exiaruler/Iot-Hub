@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
+import java.util.List;
 import com.scheduler.app.backend.aREST.Models.Device;
 public interface DeviceRepo  extends JpaRepository<Device, Long> {
     @Modifying
@@ -21,4 +21,8 @@ public interface DeviceRepo  extends JpaRepository<Device, Long> {
 
     @Query(value = "SELECT id FROM scheduler.device where board_id= :id",nativeQuery =true)
     long [] findDevicesByBoard(@Param("id") long id);
+
+    //SELECT distinct dev.* FROM scheduler.device dev, scheduler.route rou,scheduler.board bo where dev.board_id=bo.id and bo.activated=trueand rou.device_id=dev.id;
+    @Query(value = "SELECT distinct dev.* FROM scheduler.device dev, scheduler.route rou,scheduler.board bo where dev.board_id=bo.id and bo.activated=true and rou.device_id=dev.id",nativeQuery =true)
+    List<Device> getDevicesByRoutes();
 }

@@ -28,14 +28,14 @@ export class Util extends Base {
     }
     return result;
    }
-   public addMillsToCurrent(milliseconds:number){
+   public addMillsToCurrent(milliseconds:number):Date{
     // Get the current date and time
     let currentDate = new Date();
     // Add the specified milliseconds
     currentDate.setMilliseconds(currentDate.getMilliseconds() + milliseconds);
     return currentDate;
    }
-   public checkAuthorise(code:number){
+   public checkAuthorise(code:number):boolean{
     var result=false;
     if(code===401||code===403) result=true;
     return result;
@@ -45,7 +45,7 @@ export class Util extends Base {
       currentJson[key]=value;
       return currentJson;
     }
-   public createRoute(base:string,route:string,param:string=""){
+   public createRoute(base:string,route:string,param:string=""):string{
       var url=this.getApiUrl()+base+route;
       if(param!==""){
         url=url+"/"+param
@@ -102,9 +102,9 @@ export class Util extends Base {
         return data;
     }
 
-    public async fetchRequest(api:string,method:string="GET",body:any=null,externalUrl:string=""){
+    public async fetchRequest(api:string,method:string="GET",body:any=null,externalUrl:string=""):Promise<Response>{
       var config=this.apiCallConfig(method.toUpperCase(),body);
-      var request:any;
+      var request:any=null;
       var baseUrl=this.getApiUrl();
       if(externalUrl!=="") baseUrl=externalUrl;
       try{

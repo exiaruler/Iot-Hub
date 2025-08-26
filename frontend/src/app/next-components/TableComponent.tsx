@@ -4,19 +4,7 @@ import Table from 'react-bootstrap/Table';
 import checked from '../../components/assets/checked.png';
 import Image from 'next/image';
 import TableComponentClass from "@/components/Table/TableComponentClass";
-/*
-type Props={
-    id?:string;
-    width?:any,
-    rowSelect?:boolean;
-    children?:Array<ReactNode>;
-    results:Array<Object>;
-    others?:any;
-    idKey:string;
-    onClick?:CallableFunction;
-    onDoubleClick?:CallableFunction;
-}
-*/
+
 export default class TableComponent extends TableComponentClass{
 
     print(json:any,key:string,indexKey:number,size?:any){

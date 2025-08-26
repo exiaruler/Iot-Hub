@@ -1,5 +1,4 @@
 package com.scheduler.Base.MapCast.StoreValue;
-import java.util.Objects;
 
 public class BooleanStore extends StoreBase {
     boolean value;

@@ -35,17 +35,17 @@ export default function Client(props:any){
         var input=form;
         input.hardwareModel=JSON.parse(form.hardwareModel);
         const postForm=await uiBase.util.fetchClient('/board/board','POST',form);
-        const status=await postForm?.status;
-        if(postForm.ok){
-            var addedBoard=await postForm?.json();
+        const status=postForm.status
+        if(postForm.ok&&status===200){
+            var addedBoard=postForm.json;
             /*
             if(addedBoard!=null){
                 setBoards(boards.push(addedBoard));
                 modalRef.close();
             }
-                */
+            */
             window.location.reload();
-        }else console.log( await postForm?.json());
+        }else console.log(postForm?.json());
     }
 
     const addHandle=(event:any)=>{

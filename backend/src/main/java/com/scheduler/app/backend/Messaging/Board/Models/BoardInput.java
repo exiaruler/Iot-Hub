@@ -1,38 +1,37 @@
 package com.scheduler.app.backend.Messaging.Board.Models;
 import java.util.Objects;
-// board message after executed commands
+// board message after executed of command 
 public class BoardInput {
     // board 
     private long board;
     // message type
-    private String messageType;
-    // command exection sucess
-    private boolean success;
-    // data sent back
-    private String data;
-    // position of task in array
-    private int taskPosition;
-    // system queue
-    private boolean systemQueue;
-    // normal queue
-    private boolean queue;
+    private String action;
     // RAM space left on board
     private int ramSpace;
+    // queue size
+    private int queueSize;
+    // system queue size
+    private int systemQueueSize;
+    // ip address
+    private String ip;
     // milliseconds took to process message
     //private int responseTime;
+    // executed task
+    private BoardInputTask task;
+    
+
 
     public BoardInput() {
     }
 
-    public BoardInput(long board, String messageType, boolean success, String data, int taskPosition, boolean systemQueue, boolean queue, int ramSpace) {
+    public BoardInput(long board, String action, int ramSpace, int queueSize, int systemQueueSize, String ip, BoardInputTask task) {
         this.board = board;
-        this.messageType = messageType;
-        this.success = success;
-        this.data = data;
-        this.taskPosition = taskPosition;
-        this.systemQueue = systemQueue;
-        this.queue = queue;
+        this.action = action;
         this.ramSpace = ramSpace;
+        this.queueSize = queueSize;
+        this.systemQueueSize = systemQueueSize;
+        this.ip = ip;
+        this.task = task;
     }
 
     public long getBoard() {
@@ -43,64 +42,12 @@ public class BoardInput {
         this.board = board;
     }
 
-    public String getMessageType() {
-        return this.messageType;
+    public String getAction() {
+        return this.action;
     }
 
-    public void setMessageType(String messageType) {
-        this.messageType = messageType;
-    }
-
-    public boolean isSuccess() {
-        return this.success;
-    }
-
-    public boolean getSuccess() {
-        return this.success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public String getData() {
-        return this.data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public int getTaskPosition() {
-        return this.taskPosition;
-    }
-
-    public void setTaskPosition(int taskPosition) {
-        this.taskPosition = taskPosition;
-    }
-
-    public boolean isSystemQueue() {
-        return this.systemQueue;
-    }
-
-    public boolean getSystemQueue() {
-        return this.systemQueue;
-    }
-
-    public void setSystemQueue(boolean systemQueue) {
-        this.systemQueue = systemQueue;
-    }
-
-    public boolean isQueue() {
-        return this.queue;
-    }
-
-    public boolean getQueue() {
-        return this.queue;
-    }
-
-    public void setQueue(boolean queue) {
-        this.queue = queue;
+    public void setAction(String action) {
+        this.action = action;
     }
 
     public int getRamSpace() {
@@ -111,43 +58,70 @@ public class BoardInput {
         this.ramSpace = ramSpace;
     }
 
+    public int getQueueSize() {
+        return this.queueSize;
+    }
+
+    public void setQueueSize(int queueSize) {
+        this.queueSize = queueSize;
+    }
+
+    public int getSystemQueueSize() {
+        return this.systemQueueSize;
+    }
+
+    public void setSystemQueueSize(int systemQueueSize) {
+        this.systemQueueSize = systemQueueSize;
+    }
+
+    public String getIp() {
+        return this.ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public BoardInputTask getTask() {
+        return this.task;
+    }
+
+    public void setTask(BoardInputTask task) {
+        this.task = task;
+    }
+
     public BoardInput board(long board) {
         setBoard(board);
         return this;
     }
 
-    public BoardInput messageType(String messageType) {
-        setMessageType(messageType);
-        return this;
-    }
-
-    public BoardInput success(boolean success) {
-        setSuccess(success);
-        return this;
-    }
-
-    public BoardInput data(String data) {
-        setData(data);
-        return this;
-    }
-
-    public BoardInput taskPosition(int taskPosition) {
-        setTaskPosition(taskPosition);
-        return this;
-    }
-
-    public BoardInput systemQueue(boolean systemQueue) {
-        setSystemQueue(systemQueue);
-        return this;
-    }
-
-    public BoardInput queue(boolean queue) {
-        setQueue(queue);
+    public BoardInput action(String action) {
+        setAction(action);
         return this;
     }
 
     public BoardInput ramSpace(int ramSpace) {
         setRamSpace(ramSpace);
+        return this;
+    }
+
+    public BoardInput queueSize(int queueSize) {
+        setQueueSize(queueSize);
+        return this;
+    }
+
+    public BoardInput systemQueueSize(int systemQueueSize) {
+        setSystemQueueSize(systemQueueSize);
+        return this;
+    }
+
+    public BoardInput ip(String ip) {
+        setIp(ip);
+        return this;
+    }
+
+    public BoardInput task(BoardInputTask task) {
+        setTask(task);
         return this;
     }
 
@@ -159,25 +133,24 @@ public class BoardInput {
             return false;
         }
         BoardInput boardInput = (BoardInput) o;
-        return board == boardInput.board && Objects.equals(messageType, boardInput.messageType) && success == boardInput.success && Objects.equals(data, boardInput.data) && taskPosition == boardInput.taskPosition && systemQueue == boardInput.systemQueue && queue == boardInput.queue && ramSpace == boardInput.ramSpace;
+        return board == boardInput.board && Objects.equals(action, boardInput.action) && ramSpace == boardInput.ramSpace && queueSize == boardInput.queueSize && systemQueueSize == boardInput.systemQueueSize && Objects.equals(ip, boardInput.ip) && Objects.equals(task, boardInput.task);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(board, messageType, success, data, taskPosition, systemQueue, queue, ramSpace);
+        return Objects.hash(board, action, ramSpace, queueSize, systemQueueSize, ip, task);
     }
 
     @Override
     public String toString() {
         return "{" +
             " board='" + getBoard() + "'" +
-            ", messageType='" + getMessageType() + "'" +
-            ", success='" + isSuccess() + "'" +
-            ", data='" + getData() + "'" +
-            ", taskPosition='" + getTaskPosition() + "'" +
-            ", systemQueue='" + isSystemQueue() + "'" +
-            ", queue='" + isQueue() + "'" +
+            ", action='" + getAction() + "'" +
             ", ramSpace='" + getRamSpace() + "'" +
+            ", queueSize='" + getQueueSize() + "'" +
+            ", systemQueueSize='" + getSystemQueueSize() + "'" +
+            ", ip='" + getIp() + "'" +
+            ", task='" + getTask() + "'" +
             "}";
     }
     

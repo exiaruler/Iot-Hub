@@ -1,4 +1,6 @@
-export interface Props{
+import FormHandle from "@/components/form/FormHandle";
+
+export type Props={
     label:string;
     type:string;
     name?:string;
@@ -8,10 +10,11 @@ export interface Props{
     disable?:boolean;
     onChange?:any;
     warning?:string;
-    value:string;
+    value?:string|number;
     size?:any;
     md?:number;
     xs?:number;
+    formRef?:FormHandle|any;
 }
 export interface State{
     value:any

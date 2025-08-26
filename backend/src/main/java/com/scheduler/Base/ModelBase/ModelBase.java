@@ -1,11 +1,12 @@
 package com.scheduler.Base.ModelBase;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 // Base class for models 
 @MappedSuperclass
 public class ModelBase{
@@ -18,8 +19,9 @@ public class ModelBase{
     @Column
     private LocalDateTime updatedDate=LocalDateTime.now(ZoneId.of("Australia/Sydney"));
 
-    // record entry
-    
+    public ModelBase(){
+        this.setUpdatedDate(LocalDateTime.now());
+    }    
     public LocalDateTime getUpdatedDate() {
         return this.updatedDate;
     }

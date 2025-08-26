@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scheduler.Base.ControllerBase;
+import com.scheduler.app.backend.aREST.Models.Route;
 import com.scheduler.app.backend.aREST.Models.Task;
 import com.scheduler.app.backend.aREST.Service.TaskService;
 
@@ -38,6 +39,13 @@ public class TaskController extends ControllerBase{
         task.setSection(section);
         return service.addTask(task);
     }
+    @PostMapping("/test-function")
+    public Task testRouteFunction(@RequestBody Route entity) {
+        //TODO: process POST request
+        
+        return null;
+    }
+    
     @GetMapping(value="/get-task/{id}")
     public Optional<Task> getTask(@PathVariable long id){
         return service.getTask(id);

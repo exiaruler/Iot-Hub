@@ -22,6 +22,9 @@ interface State{
 export default class TableComponentClass extends Component<Props,State>{
     width='';
     idKey='';
+    selectRowRec=null;
+    selectedRow=-1;
+    sameRow=false;
     others=this.props.others||'';
     constructor(props:Props) {
             super(props);
@@ -55,15 +58,31 @@ export default class TableComponentClass extends Component<Props,State>{
               </td>;
         }
         return element;
-        
     }
+
     selectRow(rec:any,key:number){
         if(this.state.rowSelect){
-            this.setState({...this.state,selectedRow:key,selectRowRec:rec})
+            if(key==this.state.selectedRow){
+                this.setState({...this.state,selectedRow:-1,selectRowRec:null});
+                this.selectRowRec=null;
+                this.selectedRow=-1;
+                this.sameRow=true;
+            }else {
+                this.setState({...this.state,selectedRow:key,selectRowRec:rec});
+                this.selectRowRec=rec;
+                this.selectedRow=key;
+                this.sameRow=false;
+            }
             if(this.props.onClick){
                 this.props.onClick(rec);
             }
         }
+    }
+    clearRowSelect(){
+        this.setState({...this.state,selectedRow:-1,selectRowRec:null});
+        this.selectRowRec=null;
+        this.selectedRow=-1;
+        this.sameRow=true;
     }
     returnRow(){
         return this.state.selectRowRec;

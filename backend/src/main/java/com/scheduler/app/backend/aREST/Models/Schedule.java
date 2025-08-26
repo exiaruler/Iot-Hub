@@ -11,16 +11,18 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 // schedule http request and device tasks
 @Entity
+//@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Schedule extends ModelBase {
     // name
     @Column
     private String name="";
     // time interval
     @Column
-    private String time="00:00";
+    private long time;
     // if repeating
     @Column
     private boolean repeatTask;
@@ -32,45 +34,69 @@ public class Schedule extends ModelBase {
     private long nextTask;
     // mode
     @Column 
-    private String mode="";
+    private String modeValue="";
     // retry connection
     @Column
     private int retries=3;
+    // schedule task enabled
+    private boolean status=true;
     // url
     @Column
     private String url="";
+    // http request body
+    @Column
+    private String body="";
     // link to task
-    @JsonBackReference("schedule-task")
-    @OneToOne(fetch = FetchType.LAZY,mappedBy = "schedule", cascade = { CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.DETACH, CascadeType.REFRESH})
+    @JsonManagedReference("schedule-task")
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "schedule", cascade = CascadeType.ALL)
     private Task task;
     // link to device
     @JsonBackReference("device-schedules")
     @ManyToOne
     @JoinColumn(name="device_id")
     private Device device;
+    // device id
+    @Column
+    private long deviceId;
     // link route from device
     @JsonBackReference("route-schedule")
     @ManyToOne
     @JoinColumn(name="route_id")
     private Route route;
+    // route id
+    @Column
+    private long routeId;
+    // link mode
+    @JsonBackReference("schedule-mode")
+    @ManyToOne
+    @JoinColumn(name="mode_id")
+    private Mode mode;
+    // mode id
+    @Column
+    private long modeId;
     
 
     public Schedule() {
     }
 
-    public Schedule(String name, String time, boolean repeatTask, boolean startup, long nextTask, String mode, int retries, String url, Task task, Device device, Route route) {
+    public Schedule(String name, long time, boolean repeatTask, boolean startup, long nextTask, String modeValue, int retries, boolean status, String url, String body, Task task, Device device, long deviceId, Route route, long routeId, Mode mode, long modeId) {
         this.name = name;
         this.time = time;
         this.repeatTask = repeatTask;
         this.startup = startup;
         this.nextTask = nextTask;
-        this.mode = mode;
+        this.modeValue = modeValue;
         this.retries = retries;
+        this.status = status;
         this.url = url;
+        this.body = body;
         this.task = task;
         this.device = device;
+        this.deviceId = deviceId;
         this.route = route;
+        this.routeId = routeId;
+        this.mode = mode;
+        this.modeId = modeId;
     }
 
     public String getName() {
@@ -81,11 +107,11 @@ public class Schedule extends ModelBase {
         this.name = name;
     }
 
-    public String getTime() {
+    public long getTime() {
         return this.time;
     }
 
-    public void setTime(String time) {
+    public void setTime(long time) {
         this.time = time;
     }
 
@@ -121,12 +147,12 @@ public class Schedule extends ModelBase {
         this.nextTask = nextTask;
     }
 
-    public String getMode() {
-        return this.mode;
+    public String getModeValue() {
+        return this.modeValue;
     }
 
-    public void setMode(String mode) {
-        this.mode = mode;
+    public void setModeValue(String modeValue) {
+        this.modeValue = modeValue;
     }
 
     public int getRetries() {
@@ -137,12 +163,32 @@ public class Schedule extends ModelBase {
         this.retries = retries;
     }
 
+    public boolean isStatus() {
+        return this.status;
+    }
+
+    public boolean getStatus() {
+        return this.status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
     public String getUrl() {
         return this.url;
     }
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getBody() {
+        return this.body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 
     public Task getTask() {
@@ -161,6 +207,14 @@ public class Schedule extends ModelBase {
         this.device = device;
     }
 
+    public long getDeviceId() {
+        return this.deviceId;
+    }
+
+    public void setDeviceId(long deviceId) {
+        this.deviceId = deviceId;
+    }
+
     public Route getRoute() {
         return this.route;
     }
@@ -169,12 +223,36 @@ public class Schedule extends ModelBase {
         this.route = route;
     }
 
+    public long getRouteId() {
+        return this.routeId;
+    }
+
+    public void setRouteId(long routeId) {
+        this.routeId = routeId;
+    }
+
+    public Mode getMode() {
+        return this.mode;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
+
+    public long getModeId() {
+        return this.modeId;
+    }
+
+    public void setModeId(long modeId) {
+        this.modeId = modeId;
+    }
+
     public Schedule name(String name) {
         setName(name);
         return this;
     }
 
-    public Schedule time(String time) {
+    public Schedule time(long time) {
         setTime(time);
         return this;
     }
@@ -194,8 +272,8 @@ public class Schedule extends ModelBase {
         return this;
     }
 
-    public Schedule mode(String mode) {
-        setMode(mode);
+    public Schedule modeValue(String modeValue) {
+        setModeValue(modeValue);
         return this;
     }
 
@@ -204,8 +282,18 @@ public class Schedule extends ModelBase {
         return this;
     }
 
+    public Schedule status(boolean status) {
+        setStatus(status);
+        return this;
+    }
+
     public Schedule url(String url) {
         setUrl(url);
+        return this;
+    }
+
+    public Schedule body(String body) {
+        setBody(body);
         return this;
     }
 
@@ -219,8 +307,28 @@ public class Schedule extends ModelBase {
         return this;
     }
 
+    public Schedule deviceId(long deviceId) {
+        setDeviceId(deviceId);
+        return this;
+    }
+
     public Schedule route(Route route) {
         setRoute(route);
+        return this;
+    }
+
+    public Schedule routeId(long routeId) {
+        setRouteId(routeId);
+        return this;
+    }
+
+    public Schedule mode(Mode mode) {
+        setMode(mode);
+        return this;
+    }
+
+    public Schedule modeId(long modeId) {
+        setModeId(modeId);
         return this;
     }
 
@@ -232,12 +340,12 @@ public class Schedule extends ModelBase {
             return false;
         }
         Schedule schedule = (Schedule) o;
-        return Objects.equals(name, schedule.name) && Objects.equals(time, schedule.time) && repeatTask == schedule.repeatTask && startup == schedule.startup && nextTask == schedule.nextTask && Objects.equals(mode, schedule.mode) && retries == schedule.retries && Objects.equals(url, schedule.url) && Objects.equals(task, schedule.task) && Objects.equals(device, schedule.device) && Objects.equals(route, schedule.route);
+        return Objects.equals(name, schedule.name) && time == schedule.time && repeatTask == schedule.repeatTask && startup == schedule.startup && nextTask == schedule.nextTask && Objects.equals(modeValue, schedule.modeValue) && retries == schedule.retries && status == schedule.status && Objects.equals(url, schedule.url) && Objects.equals(body, schedule.body) && Objects.equals(task, schedule.task) && Objects.equals(device, schedule.device) && deviceId == schedule.deviceId && Objects.equals(route, schedule.route) && routeId == schedule.routeId && Objects.equals(mode, schedule.mode) && modeId == schedule.modeId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, time, repeatTask, startup, nextTask, mode, retries, url, task, device, route);
+        return Objects.hash(name, time, repeatTask, startup, nextTask, modeValue, retries, status, url, body, task, device, deviceId, route, routeId, mode, modeId);
     }
 
     @Override
@@ -248,13 +356,20 @@ public class Schedule extends ModelBase {
             ", repeatTask='" + isRepeatTask() + "'" +
             ", startup='" + isStartup() + "'" +
             ", nextTask='" + getNextTask() + "'" +
-            ", mode='" + getMode() + "'" +
+            ", modeValue='" + getModeValue() + "'" +
             ", retries='" + getRetries() + "'" +
+            ", status='" + isStatus() + "'" +
             ", url='" + getUrl() + "'" +
+            ", body='" + getBody() + "'" +
             ", task='" + getTask() + "'" +
             ", device='" + getDevice() + "'" +
+            ", deviceId='" + getDeviceId() + "'" +
             ", route='" + getRoute() + "'" +
+            ", routeId='" + getRouteId() + "'" +
+            ", mode='" + getMode() + "'" +
+            ", modeId='" + getModeId() + "'" +
             "}";
     }
+    
 
 }

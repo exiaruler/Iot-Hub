@@ -1,6 +1,10 @@
 package com.scheduler.app.backend.aREST.Service;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,10 +64,11 @@ public class BoardService extends Base {
     }
     private String genereateBoardId(){
         int totalBoards=board.findAll().size();
+        long lastIdPo=board.findAll().get(totalBoards-1).getId()+1;
         if(totalBoards==0){
             totalBoards=1;
         }else totalBoards++;
-        String boardId=generateRandString(4)+totalBoards;
+        String boardId=generateRandString(4)+lastIdPo;
         return boardId;
     }
     // socket board add
@@ -103,6 +108,14 @@ public class BoardService extends Base {
         DeviceCheck check=null;
         Board boardExist=board.getReferenceById(id);
         if(boardExist!=null){
+            /* 
+            LocalDate date=LocalDate.now();
+            LocalTime time=LocalTime.now();
+            LocalDateTime dt=LocalDateTime.now();
+            boardExist.setLastConnectDate(date);
+            boardExist.setLastConnectTime(time);
+            boardExist.setLastConnectDateTime(dt);
+            */
             boardExist.setRamUsage(ram);
             if(boardExist.getIp()!=ip&&ip!="") boardExist.setIp(ip);
             check=createDeviceCheck(boardExist);
@@ -194,11 +207,22 @@ public class BoardService extends Base {
         return board;
     }
     // save ws session id into database for use
-    public Board setWsConnection(long id,String sessionId,int ram){
+    public Board setWsConnection(long id,String sessionId,int ram,boolean updateLastConnect){
         Board boardRec=board.findById(id).get();
         if(boardRec!=null){
             boardRec.setWebsocketId(sessionId);
-            boardRec.setRamUsage(ram);
+            LocalDate date=LocalDate.now();
+            LocalTime time=LocalTime.now();
+            LocalDateTime dt=LocalDateTime.now();
+            if(updateLastConnect){
+                boardRec.setLastConnectDate(date);
+                boardRec.setLastConnectTime(time);
+                boardRec.setLastConnectDateTime(dt);
+            }
+            if(ram>0){
+                boardRec.setRamUsage(ram);
+            }
+            
             boardRec=board.save(boardRec);
         }
         return boardRec;
@@ -224,22 +248,6 @@ public class BoardService extends Base {
         String output="Does not exist";
         if(board.existsById(id)){
             Board item=board.getReferenceById(id);
-            // delete children
-            /* *
-            for(int i=0; i<item.getDevice().size(); i++){
-                if(item.getDevice().get(i).getRoutes().size()>0){
-                    for(int x=0; x<item.getDevice().get(i).getRoutes().size(); x++){
-                        if(item.getDevice().get(i).getRoutes().get(x).getMode().size()>0){
-                            for(int y=0; y<item.getDevice().get(i).getRoutes().get(x).getMode().size(); y++){
-                                item.getDevice().get(i).getRoutes().get(x).getMode().remove(y);
-                            }
-                        }
-                        item.getDevice().get(i).getRoutes().remove(x);
-                    }
-                }
-                item.getDevice().remove(i);
-            }
-                */
             board.deleteById(id);
             output="board remove "+item.getName();
         }

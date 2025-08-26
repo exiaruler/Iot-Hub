@@ -1,18 +1,21 @@
 'use client'
 import { Component, MouseEventHandler } from "react";
 import { Button, ButtonGroup } from "react-bootstrap";
-type props={
-    id?:any,
-    caption:string,
-    variant?:string,
-    onClick?:MouseEventHandler,
-    size:any,
-    active?:boolean,
-    disabled?:boolean,
-    type:any,
-    tabIndex?:number
+export type Props={
+    id?:any;
+    caption:string;
+    variant?:string;
+    onClick?:MouseEventHandler;
+    size:any;
+    active?:boolean;
+    disabled?:boolean;
+    type:any;
+    tabIndex?:number;
 }
-export class ButtonComponent extends Component<props>{
+export class ButtonComponent extends Component<Props>{
+    constructor(props:Props) {
+        super(props);
+    }
     render(){
         return(
         <ButtonGroup className="Button-Regular">

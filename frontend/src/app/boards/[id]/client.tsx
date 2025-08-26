@@ -15,14 +15,15 @@ import FormLayout from "@/components/formGenComponents/layout/formComponent"
 import { useRouter } from 'next/navigation';
 import TableComponent from "@/app/next-components/TableComponent"
 import TableComponentColumn from "@/components/Table/TableComponentColumn"
-import { FormGenCombo } from "@/components/formGenComponents/FormGenCombo"
 import TableComponentClass from "@/components/Table/TableComponentClass"
+import DeleteButton from "@/app/next-components/buttons/DeleteButton"
 // board page
 export default function Client(props:any){
     const passwordModalRef:any=useRef(null);
     const deleteModalRef:any=useRef(null);
     const functionRef:any=useRef(null);
     const tabGrpRef:any=useRef(null);
+    const functionTblRef:any=useRef(null);
     const [modeTabShow,setTabShow]=useState(true);
     const formRefs:any=useRef([]);
     const [activated,setActivated]=useState(true);
@@ -63,7 +64,12 @@ export default function Client(props:any){
         return show;
     }
     const openFunction=()=>{
-        router.push('/device/function/'+board.boardId+'/'+device.deviceId);
+        var id=0;
+        const funcRec=functionTblRef.current.state.selectRowRec;
+        if(funcRec!=null){
+            id=funcRec.id;
+        }
+        router.push('/device/function/'+board.boardId+'/'+device.deviceId+'/'+id);
     }
     const deletehandle=()=>{
         router.push('/boards');
@@ -95,13 +101,16 @@ export default function Client(props:any){
         </Col>
         <Col md={3} xs={9}>
         <FormGenText label={"Routine Check"} type={""} rows={0} value={board?.periodicCheck} readOnly={true}/>
+        <FormGenText label={"Last Connection Date"} type={""} rows={0} value={board?.lastConnectDate} readOnly={true}/>
+        <FormGenText label={"Last Connection Time"} type={""} rows={0} value={board?.lastConnectTime} readOnly={true}/>
         </Col>
         </Row>
         <Row>
         <Col>
         <RegularButton caption={"Change Password"} onClick={openChangePass} size={undefined} type={undefined}/>
         <RegularButton caption={"Configurations"} size={undefined} type={undefined}/>
-        <RegularButton caption={"Reset"} size={undefined} type={undefined}/>
+        <RegularButton disabled={!activated} caption={"Reset"} size={undefined} type={undefined}/>
+        <RegularButton disabled={!activated} caption={"Reset Board Configuration"} size={undefined} type={undefined}/>
         <RegularButton caption={"Delete Board"} size={undefined} type={undefined} onClick={openDelete}/>
         </Col>    
         </Row>
@@ -122,15 +131,17 @@ export default function Client(props:any){
                 <TabComponent title={"Functions"} eventKey={"functions"}>
                 <Row>
                 <Col>
-                <TableComponent results={dev?.routes} idKey={"id"} rowSelect={true}>
-                <TableComponentColumn key={"route"} columnName={"Function"}/>
-                <TableComponentColumn key={"modes"} columnName={"Modes"}/>
+                <TableComponent ref={functionTblRef} results={dev?.routes} idKey={"id"} rowSelect={true} onDoubleClick={openFunction}>
+                <TableComponentColumn key={"route"} columnName={"Function"} />
+                <TableComponentColumn columnName={"Startup"} key={""} size={5}/>
+                <TableComponentColumn key={"modes"} columnName={"Modes"} size={5}/>
                 </TableComponent>
                 </Col>
                 </Row>
                 <Row>
                 <Col>
                 <RegularButton caption={"Add Function"} size={undefined} type={undefined} onClick={openFunction}/>
+                <DeleteButton caption={"Delete Function"} size={undefined} type={undefined}/>
                 </Col>
                 </Row>
                 </TabComponent>
@@ -149,6 +160,13 @@ export default function Client(props:any){
         <Col md={7}>
         <FormGenText label={"New Password"} type={"password"} rows={0} value={""}/>
         <FormGenText label={"Confirm New Password"} type={"password"} rows={0} value={""}/>
+        </Col>
+        </Row>
+        </ModalBox>
+        <ModalBox title={"Reset Board Configuration"}>
+        <Row>
+        <Col md={7}>
+        <p>Resetting Board Configuration will remove board local WIFI authentication and board detail and deactivate board until reactivated</p>
         </Col>
         </Row>
         </ModalBox>

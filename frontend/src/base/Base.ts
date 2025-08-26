@@ -10,32 +10,41 @@ class Base{
   // encryption key
   public encryptKey:string=process.env.REACT_APP_API_ENCRYPTKEY||"";
   // js vanilla fetch
-  public apiCallConfig(method:string,body:any=null){
+  public apiCallConfig(method:string,body:any=null,encrypt:boolean=false){
       let date=new Date();
+      var encryptGen="";
+      if(encrypt) encryptGen=this.genereateEncrypt(10);
       var config:any={
-        method:method,
+        method:method.toUpperCase(),
         credentials: 'include',
         headers:{
           'Content-Type': 'application/json',
           "apikey":this.getApiKey(),
           "datetime":date,
           "datestring":date.toDateString(),
-          "timestring":date.toTimeString()
+          "timestring":date.toTimeString(),
+          "encrypt":encryptGen
         },
       };
       if(body!=null){
         if(typeof body!='string'){
           body=JSON.stringify(body);
         }
+        body=this.encryptValueByKey(body,encryptGen);
+        if(encrypt){
+          var data={data:body};
+          body=JSON.stringify(data);
+        }
         config={
-          method:method,
+          method:method.toUpperCase(),
           credentials: 'include',
           headers:{
             'Content-Type': 'application/json',
             "apikey":this.getApiKey(),
             "datetime":date,
             "date":date.toDateString(),
-            "time":date.toTimeString()
+            "time":date.toTimeString(),
+            "encrypt":encryptGen
           },
           body:body
         };
@@ -51,7 +60,7 @@ class Base{
       const request=await fetch(url,config);
       return request;
     }
-    public getOriginUrl(){
+    public getOriginUrl():string{
       var url='http://localhost:3000';
       if(typeof window !== 'undefined'){
         url=window.location.origin;
@@ -59,7 +68,7 @@ class Base{
       return url;
     }
 
-    public checkEnv(){
+    public checkEnv():boolean{
       var result=false;
       if(this.apiURlBase==="http://localhost:8000/api"&&this.apikey==="S7fgxFOTKTK8aCjq") result=true;
       return result;
@@ -103,6 +112,30 @@ class Base{
         result += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return result;
+    }
+
+    public genereateEncrypt(length:number){
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let result = "";
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+    public encryptValueByKey(value:Object|string,key:string){
+      var encryption=value;
+      if(key!=""){
+        encryption=CryptoJS.AES.encrypt(JSON.stringify(value),key).toString();
+      }
+      return encryption;
+    }
+    public decryptValueToStringByKey(value:string,key:string){
+      var convert=value;
+      if(key!=""){
+        const bytes=CryptoJS.AES.decrypt(value,key);
+        convert = bytes.toString(CryptoJS.enc.Utf8);
+      }
+      return convert;
     }
       
 }

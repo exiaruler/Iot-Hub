@@ -1,5 +1,6 @@
 package com.scheduler.app.backend.Messaging.Models;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,9 +23,9 @@ import com.scheduler.app.backend.aREST.Models.Route;
 @Entity
 @Table(name="board_task")
 public class BoardTask extends TaskModelBase {
-    // task id (taskId|deviceId|date(day,month,year)|time(hour,minute))
+    // task id (taskId|deviceId|date(day,month,year)|time(hour,minute,second))
     @Column
-    private String taskId;
+    private long taskId;
     // type of task and name of task
     @Column
     private String task="";
@@ -40,18 +41,18 @@ public class BoardTask extends TaskModelBase {
     // GPIO pins array (max is 10)
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "boardTask", cascade =CascadeType.ALL)
     @JsonManagedReference("boardtask-pins")
-    private List<BoardPin> pins;
+    private List<BoardPin> pins=new ArrayList<>();
     // pins used
     @Column
     private int pinsUsed; 
     // current input
     @OneToMany(mappedBy = "boardTaskInput", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference("boardvariable-input")
-    private List<InputCurrent> input;
+    private List<InputCurrent> input=new ArrayList<>();
     //current output
     @OneToMany(mappedBy = "boardTaskOutput", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference("boardvariable-output")
-    private List<OutputCurrent> output;
+    private List<OutputCurrent> output=new ArrayList<>();
     // RGB used in task
     @Column
     private boolean rgb=false;
@@ -109,7 +110,6 @@ public class BoardTask extends TaskModelBase {
     @JsonManagedReference("boardtask-variable")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "task", cascade = CascadeType.ALL)
     private BoardVariable variable;
-
     // route
     @JsonBackReference("boardtask-route")
     @OneToOne(cascade = CascadeType.ALL)
@@ -126,48 +126,58 @@ public class BoardTask extends TaskModelBase {
     @JoinColumn(name = "command_id",referencedColumnName = "id")
     private Command command;
 
-
+    public void initTaskId(long id){
+        this.setTaskId(taskIdGenerate(id));
+    }
     public BoardTask() {
+        long deviceId=0;
+        if(this.getMode()!=null){
+            deviceId=this.getMode().getRoute().getDevice().getBoard().getId();
+        }
+        if(this.getRoute()!=null){
+            deviceId=this.getRoute().getDevice().getBoard().getId();
+        }
+        this.setTaskId(taskIdGenerate(deviceId));
     }
 
-    public BoardTask(String taskId, String task, String method, String param, int pin, List<BoardPin> pins, int pinsUsed, List<InputCurrent> input, List<OutputCurrent> output, boolean rgb, int startAngle, int moveAngle, int loops, int beginDelay, long delayInterval, int rgbRed, int rgbGreen, int rgbBlue, String rgbType, int deduction, int runTarget, int targetAngle, boolean status, int nextTask, boolean requestNext, boolean systemTask, BoardVariable variable, Route route, Mode mode, Command command) {
-        this.taskId = taskId;
-        this.task = task;
-        this.method = method;
-        this.param = param;
-        this.pin = pin;
-        this.pins = pins;
-        this.pinsUsed = pinsUsed;
-        this.input = input;
-        this.output = output;
-        this.rgb = rgb;
-        this.startAngle = startAngle;
-        this.moveAngle = moveAngle;
-        this.loops = loops;
-        this.beginDelay = beginDelay;
-        this.delayInterval = delayInterval;
-        this.rgbRed = rgbRed;
-        this.rgbGreen = rgbGreen;
-        this.rgbBlue = rgbBlue;
-        this.rgbType = rgbType;
-        this.deduction = deduction;
-        this.runTarget = runTarget;
-        this.targetAngle = targetAngle;
-        this.status = status;
-        this.nextTask = nextTask;
-        this.requestNext = requestNext;
-        this.systemTask = systemTask;
-        this.variable = variable;
-        this.route = route;
-        this.mode = mode;
-        this.command = command;
+    public BoardTask(BoardTask boardTask) {
+        this.taskId = boardTask.taskId;
+        this.task = boardTask.task;
+        this.method = boardTask.method;
+        this.param = boardTask.param;
+        this.pin = boardTask.pin;
+        this.pins = boardTask.pins;
+        this.pinsUsed = boardTask.pinsUsed;
+        this.input = boardTask.input;
+        this.output = boardTask.output;
+        this.rgb = boardTask.rgb;
+        this.startAngle = boardTask.startAngle;
+        this.moveAngle = boardTask.moveAngle;
+        this.loops = boardTask.loops;
+        this.beginDelay = boardTask.beginDelay;
+        this.delayInterval = boardTask.delayInterval;
+        this.rgbRed = boardTask.rgbRed;
+        this.rgbGreen = boardTask.rgbGreen;
+        this.rgbBlue = boardTask.rgbBlue;
+        this.rgbType = boardTask.rgbType;
+        this.deduction = boardTask.deduction;
+        this.runTarget = boardTask.runTarget;
+        this.targetAngle = boardTask.targetAngle;
+        this.status = boardTask.status;
+        this.nextTask = boardTask.nextTask;
+        this.requestNext = boardTask.requestNext;
+        this.systemTask = boardTask.systemTask;
+        this.variable = boardTask.variable;
+        this.route = boardTask.route;
+        this.mode = boardTask.mode;
+        this.command = boardTask.command;
     }
 
-    public String getTaskId() {
+    public long getTaskId() {
         return this.taskId;
     }
 
-    public void setTaskId(String taskId) {
+    public void setTaskId(long taskId) {
         this.taskId = taskId;
     }
 
@@ -419,7 +429,7 @@ public class BoardTask extends TaskModelBase {
         this.command = command;
     }
 
-    public BoardTask taskId(String taskId) {
+    public BoardTask taskId(long taskId) {
         setTaskId(taskId);
         return this;
     }
@@ -577,7 +587,7 @@ public class BoardTask extends TaskModelBase {
             return false;
         }
         BoardTask boardTask = (BoardTask) o;
-        return Objects.equals(taskId, boardTask.taskId) && Objects.equals(task, boardTask.task) && Objects.equals(method, boardTask.method) && Objects.equals(param, boardTask.param) && pin == boardTask.pin && Objects.equals(pins, boardTask.pins) && pinsUsed == boardTask.pinsUsed && Objects.equals(input, boardTask.input) && Objects.equals(output, boardTask.output) && rgb == boardTask.rgb && startAngle == boardTask.startAngle && moveAngle == boardTask.moveAngle && loops == boardTask.loops && beginDelay == boardTask.beginDelay && delayInterval == boardTask.delayInterval && rgbRed == boardTask.rgbRed && rgbGreen == boardTask.rgbGreen && rgbBlue == boardTask.rgbBlue && Objects.equals(rgbType, boardTask.rgbType) && deduction == boardTask.deduction && runTarget == boardTask.runTarget && targetAngle == boardTask.targetAngle && status == boardTask.status && nextTask == boardTask.nextTask && requestNext == boardTask.requestNext && systemTask == boardTask.systemTask && Objects.equals(variable, boardTask.variable) && Objects.equals(route, boardTask.route) && Objects.equals(mode, boardTask.mode) && Objects.equals(command, boardTask.command);
+        return taskId == boardTask.taskId && Objects.equals(task, boardTask.task) && Objects.equals(method, boardTask.method) && Objects.equals(param, boardTask.param) && pin == boardTask.pin && Objects.equals(pins, boardTask.pins) && pinsUsed == boardTask.pinsUsed && Objects.equals(input, boardTask.input) && Objects.equals(output, boardTask.output) && rgb == boardTask.rgb && startAngle == boardTask.startAngle && moveAngle == boardTask.moveAngle && loops == boardTask.loops && beginDelay == boardTask.beginDelay && delayInterval == boardTask.delayInterval && rgbRed == boardTask.rgbRed && rgbGreen == boardTask.rgbGreen && rgbBlue == boardTask.rgbBlue && Objects.equals(rgbType, boardTask.rgbType) && deduction == boardTask.deduction && runTarget == boardTask.runTarget && targetAngle == boardTask.targetAngle && status == boardTask.status && nextTask == boardTask.nextTask && requestNext == boardTask.requestNext && systemTask == boardTask.systemTask && Objects.equals(variable, boardTask.variable) && Objects.equals(route, boardTask.route) && Objects.equals(mode, boardTask.mode) && Objects.equals(command, boardTask.command);
     }
 
     @Override
@@ -620,7 +630,5 @@ public class BoardTask extends TaskModelBase {
             ", command='" + getCommand() + "'" +
             "}";
     }
-   
-    
     
 }
