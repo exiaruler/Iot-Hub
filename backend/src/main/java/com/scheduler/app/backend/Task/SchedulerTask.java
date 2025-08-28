@@ -52,6 +52,8 @@ public class SchedulerTask{
 
     // task queue
     private static List<Task> queue=new ArrayList<Task>();
+    // modifed tasks incoming
+    private static List<Task> modifiedTasks=new ArrayList<Task>();
     // task running 
     private static List<Task> runningQueue=new ArrayList<Task>();
     // task finished processing 
@@ -86,26 +88,18 @@ public class SchedulerTask{
                             route=routeService.getRouteById(task.getRouteId());
                             mode=routeService.getMode(task.getModeId());
                         } catch (Exception e) {
-                            // TODO: handle exception
+                            
                         }
                         paramsArr=parameterService.getParamsArray(task.getModeId());
-                        if(device.getBoard().getArestCommand()){
-                            updateQueue(task);
-                            runningQueue.add(task);
-                            queue.remove(x);
-                            HttpSchedule thread=new HttpSchedule(task,device,route,mode,paramsArr);
-                            thread.start();
-                        }
                         if(device.getBoard().getSocket()){
-                            //updateQueue(task);
-                            queue.remove(x);
-                            // if it server side command that uses a motor or servo add to running queue
-                            runningQueue.add(task);
-                            try {
-                                sendSocketMessageTest(task, device, route, mode, paramsArr);
-                            } catch (InstantiationException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
+                            boolean removed=queue.remove(task);
+                            if(removed){
+                                try {
+                                    sendSocketMessageTest(task, device, route, mode);
+                                } catch (InstantiationException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }
@@ -170,7 +164,12 @@ public class SchedulerTask{
         String tsection=task.getSection();
         boolean tmotor=task.getMotor();
         boolean synchronous=false;
-        runningQueue.stream().filter(rec->rec.getBoard()==task.getBoard()&&rec.getId()==task.getId()).toList();
+        queue.stream().filter(rec->rec.getId()==task.getId()).findFirst();
+        List<Task> query=runningQueue.stream().filter(rec->rec.getBoard()==task.getBoard()&&rec.getDeviceId()==task.getDeviceId()||rec.getId()==task.getId()).toList();
+        if(query.size()>0){
+            result=true;
+        }
+        /* 
         if(!synchronous){
             for(int i=0; i<runningQueue.size(); i++){
                 Task running=runningQueue.get(i);
@@ -197,6 +196,7 @@ public class SchedulerTask{
                 
             }
         }
+            */
         return result;
     }
     // get priority task 
@@ -272,13 +272,36 @@ public class SchedulerTask{
         */
         queue.add(task);
     }
-    
     public void updateQueue(Task task){
         task.setActive(false);
         taskService.saveTask(task);
     }
+    public void updateTaskProcess(Task task){
+        task.setActive(false);
+    }
     public void requeueTask(Task task){
-        queue.add(task);
+        if(task.getActive()&&task!=null&&!queue.contains(task)){
+            queue.add(task);
+        }
+    }
+    public boolean removeTasksByBoardId(long id){
+        boolean deleteAll=false;
+        List<Task> queryList=queue.stream().filter(rec->rec.getBoard()==id).toList();
+        int delCount=0;
+        if(queryList.size()>0){
+            for(int i=0; i<queryList.size(); i++){
+                Task tsk=queryList.get(i);
+                int qIndex=queue.indexOf(tsk);
+                if(qIndex>-1){
+                    while(queue.indexOf(tsk)!=-1){
+                        queue.remove(qIndex);
+                        delCount++;
+                    }
+                }
+            }
+        }
+        if(queryList.size()==delCount) deleteAll=true;
+        return deleteAll;
     }
     private boolean batchRequeTasks(List<Task> batch){
         return queue.addAll(batch);
@@ -292,25 +315,13 @@ public class SchedulerTask{
     public void removeRunningTask(Task task){
         runningQueue.remove(task);
     }
+    
     @Async
     @Transactional
-    public void sendSocketMessage(Task task){
-        Device device=deviceService.getDevice(task.getDeviceId());
-        Route route=routeService.getRouteById(task.getRouteId());
-        if(route.getModes()){
-            Mode mode=routeService.getMode(task.getModeId());
-        }
-    }
-    @Async
-    @Transactional
-    public void sendSocketMessageTest(Task task,Device device,Route route,Mode mode,String[] params) throws InstantiationException{
+    public void sendSocketMessageTest(Task task,Device device,Route route,Mode mode) throws InstantiationException{
         long startTime = System.nanoTime();
-        boolean sucess=false;
-        String state="";
-        String warning="";
-        boolean complete=false;
-        if(device!=null){
-            if(device.getBoard().getSocket()){
+        LocalDateTime currDt=LocalDateTime.now();
+        if(device!=null&&device.getBoard().getSocket()&&task.getScheduledTime().isBefore(currDt)){
                 long boardId=device.getBoard().getId();
                 String wsId=device.getBoard().getWebsocketId();
                 BoardTask commandInput=null; 
@@ -333,13 +344,13 @@ public class SchedulerTask{
                 commandInput.setPins(pins);
                 commandInput.setOutput(output);
                 commandInput.setInput(input);
-                if(commandInput!=null){
+                if(commandInput!=null&&wsId!=""){
                     try {
                         SentToClientResponse sent=websocketHandler.sendToClient(wsId, commandInput,boardId,task,device,route,mode);
                         if(sent.getSent()){
                             batchRequeTasks(sent.getNextTasks());
                         } else if(!sent.getSent()){
-                            Task retTask=taskService.taskFailed(task);
+                            Task retTask=taskService.taskFailed(task,device);
                             if(retTask!=null){
                                 requeueTask(retTask);
                             }
@@ -350,20 +361,16 @@ public class SchedulerTask{
                         //addToComplete(device, sucess, state, warning,complete,task);
                     } catch (IOException e) {
                         // requeue task
-                        taskService.taskFailed(task);
+                        taskService.taskFailed(task,device);
                         e.printStackTrace();
                     }
+                }else{
+                    requeueTask(task);
                 }
                 long endTime = System.nanoTime();
-            }else {
-                Task retTask=taskService.taskFailed(task);
-                if(retTask!=null){
-                    requeueTask(retTask);
-                }
-            }
         }else
         {
-            Task retTask=taskService.taskFailed(task);
+            Task retTask=taskService.taskFailed(task,device);
             if(retTask!=null){
                 requeueTask(retTask);
             }

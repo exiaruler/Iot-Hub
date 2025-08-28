@@ -15,7 +15,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 // schedule http request and device tasks
 @Entity
-//@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Schedule extends ModelBase {
     // name
     @Column
@@ -29,6 +28,9 @@ public class Schedule extends ModelBase {
     // task for startup
     @Column
     private boolean startup;
+    // mode randomise enable
+    @Column
+    private boolean modeRandom=false;
     // next task after schedule task is completed
     @Column
     private long nextTask;
@@ -79,11 +81,12 @@ public class Schedule extends ModelBase {
     public Schedule() {
     }
 
-    public Schedule(String name, long time, boolean repeatTask, boolean startup, long nextTask, String modeValue, int retries, boolean status, String url, String body, Task task, Device device, long deviceId, Route route, long routeId, Mode mode, long modeId) {
+    public Schedule(String name, long time, boolean repeatTask, boolean startup, boolean modeRandom, long nextTask, String modeValue, int retries, boolean status, String url, String body, Task task, Device device, long deviceId, Route route, long routeId, Mode mode, long modeId) {
         this.name = name;
         this.time = time;
         this.repeatTask = repeatTask;
         this.startup = startup;
+        this.modeRandom = modeRandom;
         this.nextTask = nextTask;
         this.modeValue = modeValue;
         this.retries = retries;
@@ -137,6 +140,18 @@ public class Schedule extends ModelBase {
 
     public void setStartup(boolean startup) {
         this.startup = startup;
+    }
+
+    public boolean isModeRandom() {
+        return this.modeRandom;
+    }
+
+    public boolean getModeRandom() {
+        return this.modeRandom;
+    }
+
+    public void setModeRandom(boolean modeRandom) {
+        this.modeRandom = modeRandom;
     }
 
     public long getNextTask() {
@@ -267,6 +282,11 @@ public class Schedule extends ModelBase {
         return this;
     }
 
+    public Schedule modeRandom(boolean modeRandom) {
+        setModeRandom(modeRandom);
+        return this;
+    }
+
     public Schedule nextTask(long nextTask) {
         setNextTask(nextTask);
         return this;
@@ -340,12 +360,12 @@ public class Schedule extends ModelBase {
             return false;
         }
         Schedule schedule = (Schedule) o;
-        return Objects.equals(name, schedule.name) && time == schedule.time && repeatTask == schedule.repeatTask && startup == schedule.startup && nextTask == schedule.nextTask && Objects.equals(modeValue, schedule.modeValue) && retries == schedule.retries && status == schedule.status && Objects.equals(url, schedule.url) && Objects.equals(body, schedule.body) && Objects.equals(task, schedule.task) && Objects.equals(device, schedule.device) && deviceId == schedule.deviceId && Objects.equals(route, schedule.route) && routeId == schedule.routeId && Objects.equals(mode, schedule.mode) && modeId == schedule.modeId;
+        return Objects.equals(name, schedule.name) && time == schedule.time && repeatTask == schedule.repeatTask && startup == schedule.startup && modeRandom == schedule.modeRandom && nextTask == schedule.nextTask && Objects.equals(modeValue, schedule.modeValue) && retries == schedule.retries && status == schedule.status && Objects.equals(url, schedule.url) && Objects.equals(body, schedule.body) && Objects.equals(task, schedule.task) && Objects.equals(device, schedule.device) && deviceId == schedule.deviceId && Objects.equals(route, schedule.route) && routeId == schedule.routeId && Objects.equals(mode, schedule.mode) && modeId == schedule.modeId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, time, repeatTask, startup, nextTask, modeValue, retries, status, url, body, task, device, deviceId, route, routeId, mode, modeId);
+        return Objects.hash(name, time, repeatTask, startup, modeRandom, nextTask, modeValue, retries, status, url, body, task, device, deviceId, route, routeId, mode, modeId);
     }
 
     @Override
@@ -355,6 +375,7 @@ public class Schedule extends ModelBase {
             ", time='" + getTime() + "'" +
             ", repeatTask='" + isRepeatTask() + "'" +
             ", startup='" + isStartup() + "'" +
+            ", modeRandom='" + isModeRandom() + "'" +
             ", nextTask='" + getNextTask() + "'" +
             ", modeValue='" + getModeValue() + "'" +
             ", retries='" + getRetries() + "'" +
@@ -370,6 +391,6 @@ public class Schedule extends ModelBase {
             ", modeId='" + getModeId() + "'" +
             "}";
     }
-    
+
 
 }

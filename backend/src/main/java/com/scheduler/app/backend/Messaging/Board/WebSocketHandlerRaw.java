@@ -18,6 +18,7 @@ import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInput;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInputTask;
 import com.scheduler.app.backend.Messaging.Models.*;
+import com.scheduler.app.backend.Task.SchedulerTask;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
@@ -35,6 +36,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     public final CommandService commandService;
     public final ScheduleService scheduleService;
     public final TaskService taskService;
+    //public final SchedulerTask scheduler;
     // board Id and boardTask
     public static HashMap<Long,BoardTask> sentMessages=new HashMap<>();
     //public SchedulerTask scheduler;
@@ -80,6 +82,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String sessionId=session.getId();
+        BoardSession boarSess=new BoardSession();
         LocalDate date=LocalDate.now();
         LocalTime time=LocalTime.now();
         LocalDateTime dt=LocalDateTime.now();
@@ -95,8 +98,9 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
         if(boardIdStr!=""){
             sessions.put(session.getId(),session);
             long boardId=Long.parseLong(boardIdStr);
-            System.out.println("board ID "+boardId);
-            System.out.println(dt);
+            boarSess.setSession(session);
+            boarSess.setSessionId(sessionId);
+            boarSess.setBoardId(boardId);
             Board board=boardService.setWsConnection(boardId,sessionId,0,false);
             // if time out reset enabled check if it meets the requirement
             if(board.getRestartTimeout()){
@@ -105,6 +109,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                 long sec=timeDura.getNano();
                 long dtSec=dateDura.getNano();
                 // if requirement is met send restart command and immediately disconnect
+                /* 
                 if(sec>board.getTimeout()&&dtSec>board.getTimeout()){
                     Command resetCom=commandService.getCommandByCommand("reset", "action",true);
                     BoardTask restTsk=resetCom.getBoardCommand();
@@ -113,6 +118,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                     session.sendMessage(new TextMessage(restMsg));
                     session.close();
                 }
+                */
             }
             board=boardService.setWsConnection(boardId,sessionId,0,true);
             String status=uponConnect(board);
@@ -122,7 +128,9 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
             }
             // board startup/power up
             if(action.equals("startup")){
+                // set a state in the board to stop processing message when board starting up
                 taskService.purgeOldTasks(boardId);
+                //taskService.addToScheduler();
                 // system route
                 Command command=commandService.getCommandByCommand("wsconnectopen", "schedule",true);
                 BoardTask routinewsConn=command.getBoardCommand();
@@ -216,6 +224,9 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                 task.initTaskId(boardId);
                 String message=objectToJson(task);
                 if(message!=""){
+                    System.out.println("task sent "+taskObj.getApplication());
+                    System.out.println("schedule time "+taskObj.getScheduledTime());
+                    System.out.println("schedule time formatted "+taskObj.getScheduledTime().getHour()+":"+taskObj.getScheduledTime().getMinute()+":"+taskObj.getScheduledTime().getSecond());
                     session.sendMessage(new TextMessage(message));
                     sentMessages.put(boardId, task);
                     List<Task> nextTasks=taskService.taskComplete(taskObj, device, route, mode);

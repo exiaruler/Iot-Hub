@@ -1,5 +1,8 @@
 package com.scheduler.app.backend.aREST.Models;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import javax.persistence.CascadeType;
@@ -7,6 +10,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.scheduler.Base.ModelBase.ModelBase;
@@ -54,6 +58,12 @@ public class Task extends ModelBase {
     // task to repeat once
     @Column 
     private boolean oneTimeJob=true;
+    // system task
+    @Column
+    private boolean systemTask=false;
+    // parent task or associated task, associated by existing automated tasks
+    @Column 
+    private long parentTask=0;
     // update device status in database
     @Column
     private boolean updateDevice=false;
@@ -70,12 +80,15 @@ public class Task extends ModelBase {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "schedule_id",referencedColumnName = "id")
     private Schedule schedule;
+    // list of modes when random is enabled
+    @Transient 
+    List<Mode> randomModes=new ArrayList<>();
 
 
     public Task() {
     }
 
-    public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, long boardTaskId, String url, String payload, String section, int priority, boolean motor, LocalDateTime scheduledTime, boolean oneTimeJob, boolean updateDevice, boolean active, boolean httpTask, int retry, Schedule schedule) {
+    public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, long boardTaskId, String url, String payload, String section, int priority, boolean motor, LocalDateTime scheduledTime, boolean oneTimeJob, boolean systemTask, long parentTask, boolean updateDevice, boolean active, boolean httpTask, int retry, Schedule schedule) {
         this.application = application;
         this.deviceId = deviceId;
         this.board = board;
@@ -90,6 +103,8 @@ public class Task extends ModelBase {
         this.motor = motor;
         this.scheduledTime = scheduledTime;
         this.oneTimeJob = oneTimeJob;
+        this.systemTask = systemTask;
+        this.parentTask = parentTask;
         this.updateDevice = updateDevice;
         this.active = active;
         this.httpTask = httpTask;
@@ -217,6 +232,26 @@ public class Task extends ModelBase {
         this.oneTimeJob = oneTimeJob;
     }
 
+    public boolean isSystemTask() {
+        return this.systemTask;
+    }
+
+    public boolean getSystemTask() {
+        return this.systemTask;
+    }
+
+    public void setSystemTask(boolean systemTask) {
+        this.systemTask = systemTask;
+    }
+
+    public long getParentTask() {
+        return this.parentTask;
+    }
+
+    public void setParentTask(long parentTask) {
+        this.parentTask = parentTask;
+    }
+
     public boolean isUpdateDevice() {
         return this.updateDevice;
     }
@@ -339,6 +374,16 @@ public class Task extends ModelBase {
         return this;
     }
 
+    public Task systemTask(boolean systemTask) {
+        setSystemTask(systemTask);
+        return this;
+    }
+
+    public Task parentTask(long parentTask) {
+        setParentTask(parentTask);
+        return this;
+    }
+
     public Task updateDevice(boolean updateDevice) {
         setUpdateDevice(updateDevice);
         return this;
@@ -364,6 +409,16 @@ public class Task extends ModelBase {
         return this;
     }
 
+
+    public List<Mode> getRandomModes() {
+        return this.randomModes;
+    }
+
+    public void setRandomModes(List<Mode> randomModes) {
+        this.randomModes = randomModes;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -372,12 +427,12 @@ public class Task extends ModelBase {
             return false;
         }
         Task task = (Task) o;
-        return Objects.equals(application, task.application) && deviceId == task.deviceId && board == task.board && routeId == task.routeId && modeId == task.modeId && commandId == task.commandId && boardTaskId == task.boardTaskId && Objects.equals(url, task.url) && Objects.equals(payload, task.payload) && Objects.equals(section, task.section) && priority == task.priority && motor == task.motor && Objects.equals(scheduledTime, task.scheduledTime) && oneTimeJob == task.oneTimeJob && updateDevice == task.updateDevice && active == task.active && httpTask == task.httpTask && retry == task.retry && Objects.equals(schedule, task.schedule);
+        return Objects.equals(application, task.application) && deviceId == task.deviceId && board == task.board && routeId == task.routeId && modeId == task.modeId && commandId == task.commandId && boardTaskId == task.boardTaskId && Objects.equals(url, task.url) && Objects.equals(payload, task.payload) && Objects.equals(section, task.section) && priority == task.priority && motor == task.motor && Objects.equals(scheduledTime, task.scheduledTime) && oneTimeJob == task.oneTimeJob && systemTask == task.systemTask && parentTask == task.parentTask && updateDevice == task.updateDevice && active == task.active && httpTask == task.httpTask && retry == task.retry && Objects.equals(schedule, task.schedule);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(application, deviceId, board, routeId, modeId, commandId, boardTaskId, url, payload, section, priority, motor, scheduledTime, oneTimeJob, updateDevice, active, httpTask, retry, schedule);
+        return Objects.hash(application, deviceId, board, routeId, modeId, commandId, boardTaskId, url, payload, section, priority, motor, scheduledTime, oneTimeJob, systemTask, parentTask, updateDevice, active, httpTask, retry, schedule);
     }
 
     @Override
@@ -397,6 +452,8 @@ public class Task extends ModelBase {
             ", motor='" + isMotor() + "'" +
             ", scheduledTime='" + getScheduledTime() + "'" +
             ", oneTimeJob='" + isOneTimeJob() + "'" +
+            ", systemTask='" + isSystemTask() + "'" +
+            ", parentTask='" + getParentTask() + "'" +
             ", updateDevice='" + isUpdateDevice() + "'" +
             ", active='" + isActive() + "'" +
             ", httpTask='" + isHttpTask() + "'" +

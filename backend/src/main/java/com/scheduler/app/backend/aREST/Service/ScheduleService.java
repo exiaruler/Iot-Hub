@@ -96,14 +96,26 @@ public class ScheduleService extends Base{
                 if(routeQuery.isPresent()){
                     Route rou=routeQuery.get();
                     schedule.setRoute(rou);
-                    Optional<Mode> mode=rou.getMode().stream().filter(rec->rec.getId()==schedule.getModeId()).findFirst();
-                    if(mode.isPresent()){
-                        schedule.setMode(mode.get());
-                        Task tsk=createTask(0,schedule.getName(),"",rou.getId(),mode.get().getId(),hasMotor,schedule,device,rou);
+                    if(!schedule.getModeRandom()){
+                        Optional<Mode> mode=rou.getMode().stream().filter(rec->rec.getId()==schedule.getModeId()).findFirst();
+                        if(mode.isPresent()){
+                            schedule.setMode(mode.get());
+                            Task tsk=createTask(0,schedule.getName(),"",rou.getId(),mode.get().getId(),hasMotor,schedule,device,rou);
+                            schedule.setTask(tsk);
+                        }
+                    }else
+                    {
+                        // if random mode is enabled select random mode
+                        Mode mode=taskService.randomMode(rou.getMode());
+                        Task tsk=createTask(0,schedule.getName(),"",rou.getId(),mode.getId(),hasMotor,schedule,device,rou);
+                        schedule.setMode(null);
                         schedule.setTask(tsk);
-                        scheRepo.save(schedule);
+
                     }
-                    
+                    scheRepo.save(schedule);
+                    if(schedule.getRepeatTask()){
+                        taskService.setTaskSchedule(schedule.getTask(),true);
+                    }
                 }
 
             }
@@ -118,6 +130,7 @@ public class ScheduleService extends Base{
             existRec.setName(schedule.getName());
             Device device=deviceService.getDevice(schedule.getDeviceId());
             existRec.setDevice(device);
+            existRec.setModeRandom(schedule.getModeRandom());
             existRec.setStatus(schedule.getStatus());
             if(schedule.getStartup()&&schedule.getRepeatTask()) new ResourceNotFoundException("Schedule task cannot have startup and status enabled");
             existRec.setStartup(schedule.getStartup());
@@ -126,20 +139,37 @@ public class ScheduleService extends Base{
             if(routeQuery.isPresent()){
                     Route rou=routeQuery.get();
                     existRec.setRoute(rou);
-                    Optional<Mode> mode=rou.getMode().stream().filter(rec->rec.getId()==schedule.getModeId()).findFirst();
-                    if(mode.isPresent()){
-                        existRec.setMode(mode.get());
+                    if(!schedule.getModeRandom()){
+                        Optional<Mode> mode=rou.getMode().stream().filter(rec->rec.getId()==schedule.getModeId()).findFirst();
+                        if(mode.isPresent()){
+                            existRec.setMode(mode.get());
+                            existRec.setModeId(schedule.getModeId());
+                            Task tsk=existRec.getTask();
+                            tsk.setActive(false);
+                            tsk.setApplication(schedule.getName());
+                            tsk.setRouteId(schedule.getRouteId());
+                            tsk.setModeId(schedule.getModeId());
+                            tsk.setMotor(hasMotor);
+                            existRec.setTask(tsk);
+                            //taskService.addToScheduler();
+                        }
+                    }else
+                    {
+                        Mode mode=taskService.randomMode(rou.getMode());
                         Task tsk=existRec.getTask();
                         tsk.setActive(false);
                         tsk.setApplication(schedule.getName());
                         tsk.setRouteId(schedule.getRouteId());
-                        tsk.setModeId(schedule.getModeId());
+                        tsk.setModeId(mode.getId());
                         tsk.setMotor(hasMotor);
                         existRec.setTask(tsk);
-                        scheRepo.save(existRec);
-                        taskService.addToScheduler();
+                        existRec.setModeId(0);
+                        existRec.setMode(null);
                     }
-                    
+                scheRepo.save(existRec);
+                if(schedule.getRepeatTask()){
+                    taskService.setTaskSchedule(existRec.getTask(),true);
+                }  
             }
         }else new ResourceNotFoundException("Schedule Record does not exist");
         return existRec;
@@ -222,14 +252,6 @@ public class ScheduleService extends Base{
                 exist=true;
             }
             taskService.addToScheduler();
-            // startup automated tasks
-            /* 
-            for(int i=0; i<activeRoutine.size(); i++){
-                Long scheId=activeRoutine.get(i);
-                startupTask(scheId);
-                exist=true;
-            }
-                */
         }
         return exist;
     }
@@ -247,6 +269,7 @@ public class ScheduleService extends Base{
         Schedule schedule=scheRepo.findById(id).get();
         if(schedule!=null){
             Task task=schedule.getTask();
+            
             taskService.setTaskSchedule(task,false);
             success=true;
         }

@@ -345,6 +345,9 @@ public class RoutesService extends Base {
     public List<Mode> getAllModes(){
         return modeService.findAll();
     }
+    public List<Mode> getModesRouteId(long id){
+        return modeService.getModesByRouteId(id);
+    }
     @Async
     @Transactional
     public Mode getMode(long id){

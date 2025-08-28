@@ -26,7 +26,6 @@ public class TaskModelBase {
         LocalTime time=LocalTime.now();
         String strId=""+boardId+date.getDayOfMonth()+date.getMonthValue()+date.getYear()+time.getNano();
         long taskId=Long.parseLong(strId);
-        System.out.println("Task Id "+taskId);
         return taskId;
     }
 }
