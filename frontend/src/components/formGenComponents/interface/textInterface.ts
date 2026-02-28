@@ -1,4 +1,4 @@
-import FormHandle from "@/components/form/FormHandle";
+import FormHandle from "../../form/FormHandle";
 
 export type Props={
     label:string;
@@ -10,12 +10,13 @@ export type Props={
     disable?:boolean;
     onChange?:any;
     warning?:string;
-    value?:string|number;
+    value?:any;
     size?:any;
     md?:number;
     xs?:number;
     formRef?:FormHandle|any;
 }
+
 export interface State{
     value:any
 }

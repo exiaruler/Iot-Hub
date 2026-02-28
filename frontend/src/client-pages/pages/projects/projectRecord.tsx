@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { ButtonGroup, Col, Container, Nav, Row } from "react-bootstrap";
+import { Button, ButtonGroup, Col, Container, Nav, Row } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import ProjectAPI from "../../api/ProjectsAPI";
 import GitHubLogo from "../../assets/github-mark.png";
 import BackButton from "../../components/Buttons/BackButton";
 import ParagraphBody from "../../components/ParagraphBody";
 import Group from "../../components/Group";
+import Toolbar from "../../components/Toolbar/Toolbar";
+import LinkIcon from "../../components/Link/LinkIcon";
 export default function ProjectRecord(props:any){
     const {id}=useParams();
     const api=new ProjectAPI();
@@ -50,25 +52,25 @@ export default function ProjectRecord(props:any){
         <div>
         <Group>
         <Row>
-        <Col id="BackSection">
+        <Col id="BackSection" xs={5} md={2}>
         <div className="">
         {load?
         <BackButton url={"/projects"}/>
         :null}
         </div>
         </Col>
-        <Col xs={8} md={8}>
+        <Col xs={12} md={8}>
         <div className="ProjectTitle">
         <h1>{project.name}</h1>
+        {showLinks?
+        <Toolbar backgroundColor={'#F0FFFF'}>
+        <LinkIcon>
+        <a href={project.url} onClick={repositoryHandle}><img src={GitHubLogo} width={25} height={25} alt="GitRepo"/></a>
+        </LinkIcon>
+        </Toolbar>
+        :null}
         </div>
         <ParagraphBody value={project.description}/>
-        </Col>
-        <Col>
-        {showLinks?
-        <div id="LinksDiv" className="CentreText">
-        <a href={project.url} onClick={repositoryHandle}><img src={GitHubLogo} width={30} height={30} alt="GitRepo"/></a>
-        </div>
-        :null}
         </Col>
         </Row>
         </Group>

@@ -1,7 +1,9 @@
 import { Col, Form, Row } from "react-bootstrap";
 import { FormGenText } from "./FormGenText";
+import InputBase from "../input/InputBase";
+import Warning from "./Warning";
 
-export class FormGenTextArea extends FormGenText{
+export class FormGenTextArea extends InputBase{
     private rows=this.props.rows;
     render(){
         return(
@@ -9,8 +11,8 @@ export class FormGenTextArea extends FormGenText{
             <Col md={this.props.md} xs={this.props.xs}>
             <Form.Group>
             <Form.Label>{this.props.label}</Form.Label>
-            <Form.Control spellCheck={true} id={this.props.name+"Text"} required={this.props.required} name={this.props.name} as="textarea" rows={this.rows} defaultValue={this.props.value}/>
-            <Form.Text id={this.props.name+"Warning"}></Form.Text>
+            <Form.Control onChange={(event:React.ChangeEvent<HTMLInputElement>)=>this.onChange(event)}  spellCheck={true} id={this.props.name+"Text"} required={this.props.required} name={this.props.name} as="textarea" rows={this.rows} value={this.getStateValue()}/>
+            <Warning name={this.name} warning={this.getWarning()}/>
             </Form.Group>
             </Col>
             </Row>

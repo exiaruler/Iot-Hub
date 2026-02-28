@@ -8,7 +8,7 @@ import {page} from './interfaces/page';
 export default class UiBase {
     // common util tools
     public util=new Util();
-  
+    
     // user api calls
     public userApi=new UserAPI();
     public commonApi=new CommonAPI();
@@ -48,10 +48,16 @@ export default class UiBase {
         return show;
     }
     // form on change handler
-    public onChange(key:any,value:any,setForm:any,form:any){
+    public onChange(key:string,value:any,setForm:any,form:any){
         setForm({...form,[key]:value});
     }
     public onChangeObject(key:any,value:any,setForm:any,form:any){
         setForm({...form,[key]:JSON.parse(value)});
+    }
+    public isFormGen(object:Record<string,any>):boolean{
+        return (typeof object.code==='number'&&typeof object.error==='string'&&typeof object.fields==='object');
+    }
+    public isResponse(object:Record<string,any>):boolean{
+        return (typeof object.success==='boolean'&&typeof object.statusCode==='number'&&typeof object.messageResponse==='string'&&typeof object.object==='object');
     }
 }

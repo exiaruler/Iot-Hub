@@ -37,5 +37,5 @@ export const loginSlice=createSlice({
 export const{setTimeout,setUsername,setUser,clearUser}=loginSlice.actions;
 
 export const getUser = (state:any) => state.login;
-export const getLoginState=(state:any)=>state.login.login;
+export const getLoginState=(state:Record<string,any>)=>state.login.login;
 export default loginSlice.reducer;

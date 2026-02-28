@@ -70,8 +70,8 @@ export default function Login(){
         </Col>
         <Col xs={9} md={3}>
         <Form onSubmit={submit}>
-        <FormGenText label={"Username"} type={"string"} name={"username"} rows={0} required={false} onChange={(event: any) => base.onChange(event.target.name, event.target.value, setForm, form)} warning={formWarning.username} value={""} size={'60%'} />
-        <FormGenText label={"Password"} type={"password"} name={"password"} rows={0} required={false} onChange={(event: any) => base.onChange(event.target.name, event.target.value, setForm, form)} warning={formWarning.password} value={""} size={'60%'} />
+        <FormGenText label={"Username"} type={"string"} name={"username"} rows={0} required={false} onChange={(event: any) => base.onChange(event.target.name, event.target.value, setForm, form)} warning={formWarning.username}  size={'60%'} />
+        <FormGenText label={"Password"} type={"password"} name={"password"} rows={0} required={false} onChange={(event: any) => base.onChange(event.target.name, event.target.value, setForm, form)} warning={formWarning.password}  size={'60%'} />
         <Alert variant='warning' key='warning' hidden={formErrorMsg.hide}>
         {formErrorMsg.error}
         </Alert>

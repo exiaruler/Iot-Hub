@@ -16,7 +16,7 @@ export default class SaveButton extends RegularButton{
     render(){
         return(
         <ButtonGroup className="Button-Regular">
-        <Button variant={this.props.variant||"light"} onClick={this.props.onClick} type={"submit"} size={this.props.size} disabled={this.props.disabled}>
+        <Button hidden={this.props.hidden} variant={this.props.variant||"light"} onClick={this.props.onClick} type={"submit"} size={this.props.size} disabled={this.props.disabled}>
         {this.props.caption} 
         </Button> 
         </ButtonGroup>  

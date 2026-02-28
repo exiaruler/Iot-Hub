@@ -2,6 +2,7 @@ import { Component, ReactNode } from "react";
 import Table from 'react-bootstrap/Table';
 import checked from "../assets/checked.png";
 import { Image } from "react-bootstrap";
+import TableBase from "./TableBase";
 type Props={
     id?:string;
     width?:any,
@@ -12,6 +13,7 @@ type Props={
     idKey:string;
     onClick?:CallableFunction;
     onDoubleClick?:CallableFunction;
+    unRowSelect?:CallableFunction;
 }
 interface State{
     selectedRow:number;
@@ -19,7 +21,7 @@ interface State{
     rowSelect:boolean;
 }
 
-export default class TableComponentClass extends Component<Props,State>{
+export default class TableComponentClass extends TableBase{
     width='';
     idKey='';
     selectRowRec=null;
@@ -67,6 +69,9 @@ export default class TableComponentClass extends Component<Props,State>{
                 this.selectRowRec=null;
                 this.selectedRow=-1;
                 this.sameRow=true;
+                if(this.props.unRowSelect){
+                    this.props.unRowSelect();
+                }
             }else {
                 this.setState({...this.state,selectedRow:key,selectRowRec:rec});
                 this.selectRowRec=rec;

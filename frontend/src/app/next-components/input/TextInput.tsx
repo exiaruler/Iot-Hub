@@ -1,19 +1,21 @@
 'use client'
 
 import { FormGenText } from "@/components/formGenComponents/FormGenText";
+import Warning from "@/components/formGenComponents/Warning";
+import InputBase from "@/components/input/InputBase";
 import { Row, Col, Form } from "react-bootstrap";
 
-export default class TextInput extends FormGenText{
+export default class TextInput extends InputBase{
     render(){
         return(
             <Row>
             <Col xs={this.props.xs} md={this.props.md}>
-            <Form.Group>
+            <Form.Group hidden={this.props.hidden}>
             <Form.Label>{this.props.label}</Form.Label>
             <div className="mb-3">
-            <Form.Control readOnly={this.props.readOnly} disabled={this.props.disable} style={{width:this.props.size}} id={this.props.name+"Text"} required={this.props.required} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>this.onChange(event)}  name={this.props.name} type={this.props.type} value={this.props.value} />
+            <Form.Control readOnly={this.props.readOnly} disabled={this.props.disable} style={{width:this.props.size}} id={this.props.name+"Text"} required={this.props.required} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>this.onChange(event)}  name={this.props.name} type={this.type} value={this.getStateValue()||this.props.value} />
             </div>
-            <Form.Text id={this.props.name+"Warning"} >{this.props.warning} </Form.Text>
+            <Warning name={this.name} warning={this.getWarning()} ref={this.warningComponent}/>
             </Form.Group>
             </Col>
             </Row>

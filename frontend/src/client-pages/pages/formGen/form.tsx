@@ -1,7 +1,7 @@
 import { useParams } from "react-router";
 import FormGenLibary from "../../components/formGenComponents/FormGenLibary";
-import { Alert, Button, Col, Form, ProgressBar, Row, Spinner } from "react-bootstrap";
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Alert, Button, Col, Form, ProgressBar, Row, Spinner, Stack } from "react-bootstrap";
+import React, { forwardRef, ReactNode, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useNavigate,useLocation } from "react-router-dom";
 import { Component } from "../../base/interfaces/component";
 import BackButton from '../../components/Buttons/BackButton';
@@ -10,10 +10,14 @@ import { ButtonComponent } from "../../components/Buttons/ButtonComponent";
 import { FormAPI } from "../../api/FormAPI";
 import UiBase from "../../base/UiBase";
 import Group from "../../components/Group";
+import FormHandle from "../../components/form/FormHandle";
+import { ErrorGenOutput } from "../../base/interfaces/Response/ErrorGen";
+import { ResponseOutput } from "../../base/interfaces/Response/Response";
+import FormLayout from "../../components/formGenComponents/layout/formComponent";
 interface Props{
   form?:any;
   externalUrl?:string,
-  record?:any;
+  record?:Record<string,any>|null;
   entry?:Boolean;
   clearHandle?:CallableFunction;
   submitHandle?:CallableFunction;
@@ -37,22 +41,23 @@ const form=forwardRef (function FormPage(props:Props,ref){
     redirect:"",
     retrieveApi:"",
     settingOverride:false,
-    form:null
+    form:{}
   });
   const currentForm=location.pathname;
   // form used in entry record page
   let entryUsed=false;
-  // used for settings
-  const [recordSetId,setRecordSetId]=useState("");
-  let stateModel:any=useRef({});
+  let stateModel:any=useRef(null);
   let errorClearRef:any=useRef([]);
   const api=new FormAPI();
   const [formError,setFormError]=useState<any>({});
   const {formId}=useParams();
   let {id}=useParams();
-  let record:any=useRef({});
+  let record:any=useRef(null);
   let formUpdate=useRef(false);
-  const [formArr,setFormArr]=useState<Component[]>([]);
+  const [formArr,setFormArr]=useState<any[]>([]);
+  const formCompRef=useRef<Array<any>>([]);
+  const formHandleRef=useRef<FormHandle|any>(null);
+  const [submitBtn,setSubmitBtn]=useState(false);
   const [load,setLoad]=useState(true);
   const [loadSate,setLoadState]=useState(0);
   const [error,setError]=useState(true);
@@ -64,14 +69,7 @@ const form=forwardRef (function FormPage(props:Props,ref){
   const nav=useNavigate();
   const base=new UiBase();
   const formLib= new FormGenLibary();
-  
-  const createApiUrl=(api:string)=>{
-    let url="";
-    if(api!=""&&api!=undefined){
-      url=base.util.getApiUrl()+api;
-    }
-    return url;
-  }
+
   // set prop from the guardwrapper if possible
   const setFormProp=()=>{
     errorClearRef.current=[];
@@ -82,9 +80,9 @@ const form=forwardRef (function FormPage(props:Props,ref){
         setFormLay({
           urlLocation:location.pathname,
           formName:formJson.name,
-          postapi:base.util.getApiUrl()+formJson.postApi,
-          updateapi:base.util.getApiUrl()+formJson.updateApi,
-          deleteapi:createApiUrl(formJson.deleteApi),
+          postapi:formJson.postApi,
+          updateapi:formJson.updateApi,
+          deleteapi:formJson.deleteApi,
           headers:formJson.headers,
           redirect:formJson.redirect,
           retrieveApi:base.util.getApiUrl()+formJson.retrieveApi,
@@ -111,18 +109,19 @@ const form=forwardRef (function FormPage(props:Props,ref){
       renderForm(form);
     }else{
       try {
-        const request=await fetch(base.util.getApiUrl()+"/form/get-form/"+formId,base.util.apiCallConfig("GET"));
+        const request=await base.util.fetchRequest("/form/get-form/"+formId,'GET');
         const response=await request.json();
         if(id!=="0"){
           if(props.record===null){
             const recordRequest=await api.getRecord(base.util.getApiUrl()+response.retrieveApi,id);
             record.current=recordRequest;
-          }else if(props.record!=null) record.current=props.record;
+          }else if(props.record!=null){
+            record.current=props.record;
+          }
         }
         if(response.setting){
           const recordRequest=await api.getRecordSingle(base.util.getApiUrl()+response.retrieveApi);
           record.current=recordRequest;
-          setRecordSetId(record.current._id);
         }
         renderForm(response);
       } catch (error) {
@@ -138,9 +137,9 @@ const form=forwardRef (function FormPage(props:Props,ref){
         setFormLay({
           urlLocation:location.pathname,
           formName:formObj.name,
-          postapi:base.util.getApiUrl()+formObj.postApi,
-          updateapi:base.util.getApiUrl()+formObj.updateApi,
-          deleteapi:createApiUrl(formObj.deleteApi),
+          postapi:formObj.postApi,
+          updateapi:formObj.updateApi,
+          deleteapi:formObj.deleteApi,
           headers:formObj.headers,
           redirect:formObj.redirect,
           retrieveApi:base.util.getApiUrl()+formObj.retrieveApi,
@@ -172,47 +171,47 @@ const form=forwardRef (function FormPage(props:Props,ref){
       }
     );
   }
-  const originalFormSet=(stateModel:Array<any>)=>{
+  const originalFormSet=(stateModel:Array<Record<string,any>>)=>{
     let clear:any={};
-    for(let i=0; i<stateModel.length; i++){
-      let part=stateModel[i];
-      let key=part.key;
-      let error:any={};
-      error[key]='';
-      errorClearRef.current.push(error);
-      clear[part.key]=part.value;
+    if(stateModel.length>0){
+      for(let i=0; i<stateModel.length; i++){
+        let part=stateModel[i];
+        let key=part.key;
+        let error:any={};
+        error[key]='';
+        errorClearRef.current.push(error);
+        let value=part.value;
+        if(value==='true'){
+          value=true;
+        }else if(value==='false') value=false;
+        clear[part.key]=value;
+      }
     }
     return clear;
   }
-  const clearForm=(update:boolean=false)=>{
+  const clearForm=(update:boolean=false):void=>{
+    record.current={};
+    const handle=formHandleRef.current;
+    handle.newRecord();
     id="0";
     formUpdate.current=false;
-    record.current={};
-    insertValuesEntry(stateModel.current);
     setFormErrorMsg({
         hide:true,
         error:""
     });
     if(!entryUsed)nav("/form/"+formId+"/0",{ state:{ login:true} });
-    writeError(errorClearRef.current);
     if(props.entry&&props.clearHandle){
       props.clearHandle(update);
     }
   }
+
   const clearError=()=>{
-    writeError(errorClearRef.current);
+    //writeError(errorClearRef.current);
   }
   const deleteRecord=async()=>{
     if(id!="0"){
       try{
-        const request=await fetch(formLay.deleteapi+id,{
-          method:'DELETE',
-          credentials: 'include',
-          headers:{
-            'Content-Type': 'application/json',
-            apikey:formLay.headers
-          }
-        });
+        const request=await base.util.fetchRequest(formLay.deleteapi+id,"DELETE");
         if(await request.ok){
           clearForm(true);
         }
@@ -221,12 +220,15 @@ const form=forwardRef (function FormPage(props:Props,ref){
       }
     }
   }
-  const renderFormFields=(fieldArr:any,keyArr:any,settingOverride:boolean)=>{
+  const renderFormFields=(fieldArr:Array<any>,keyArr:Array<string>,settingOverride:boolean)=>{
     let fields: any[]=[];
+    var fieldForArr:any[]=[];
     const renderFields=new Promise<void>((resolve,reject)=>{
       const fieldsTotal=fieldArr.length;
       let count=0;
       let loadAdd=50/fieldsTotal;
+      let newCompArr=new Array(fieldArr.length);
+      formCompRef.current=newCompArr;
       for(let i=0; i<fieldArr.length; i++){
         let field=fieldArr[i];
         let comp=formLib.findComponent(field.component);
@@ -239,7 +241,8 @@ const form=forwardRef (function FormPage(props:Props,ref){
         if(id!="0"||settingOverride){
           setValue=record.current[keyArr[count]];
         }
-        let compAtt={
+        if(comp!=null){
+        var compAtt={
           // field props for component
           field:field,
           // warning state
@@ -249,11 +252,16 @@ const form=forwardRef (function FormPage(props:Props,ref){
           // name
           name:keyArr[count],
           //value
-          value:setValue
+          value:setValue,
+          // form ref handle
+          formRef:formHandleRef
         };
+        let fieldElement=React.createElement(comp.name,{label:field,name:keyArr[count],value:setValue,formRef:formHandleRef,ref:(ele)=>formCompRef.current[i]=ele});
+        fieldForArr.push(fieldElement);
         fields.push(compAtt);
         setLoadState(loadSate+loadAdd);
         count++;
+        }
       }
       if(fieldsTotal===count){
         setFormArr(fields);
@@ -264,8 +272,7 @@ const form=forwardRef (function FormPage(props:Props,ref){
       function(){
         //loadData();
         setLoad(false);
-        let btn=document.getElementById('SubmitBtn') as HTMLElement;
-        btn.hidden=false;
+        setSubmitBtn(false);
       },
       function(){
         setError(false);
@@ -274,47 +281,6 @@ const form=forwardRef (function FormPage(props:Props,ref){
     )
   }
 
-  const insertValuesEntry=(entry:any)=>{
-    let form=document.getElementById('FormField') as HTMLFormElement;
-    let elementArr=form.elements;
-    for(let i=0; i<elementArr.length; i++){
-      let field=elementArr[i] as HTMLFormElement;
-      let key=field.name;
-      let value=entry[key];
-      if(field.type!="submit"){
-        if(field.type==="checkbox"){
-          field.checked=value;
-        }else{
-          field.value=value;
-        }
-      }
-    }
-  }
-  const getValuesFromFields=()=>{
-    let form=document.getElementById('FormField') as HTMLFormElement;
-    let inputArr=[];
-    let elementArr=form.elements;
-    for(let i=0; i<elementArr.length; i++){
-      let field=elementArr[i] as HTMLFormElement;
-      if(field.type!="submit"&&field.type!="button"){
-        let value;
-        let key=field.name;
-        if(field.type==="checkbox"){
-          value=field.checked;
-        }else{
-          value=field.value;
-        }
-        let input={[key]:value};
-        record.current[key]=value;
-        inputArr.push(input);
-      }
-    }
-    return inputArr;
-  }
-  const createDataJson=(array:any)=>{
-    const jsonObject = Object.assign({}, ...array);
-    return jsonObject
-  }
   const writeError=async(errorArr:any)=>{
     for(let i=0; i<errorArr.length; i++){
       let value=errorArr[i];
@@ -327,96 +293,71 @@ const form=forwardRef (function FormPage(props:Props,ref){
       }
     }
   }
-  const submitForm=async (event:any)=>{
-    // get values from input and turn into json for data
-    event.preventDefault();
-    const arr=getValuesFromFields();
-    const json=createDataJson(arr);
-    // update forms that are setting enabled
-    if(formLay.settingOverride){
-      try{
-        const request=await fetch(formLay.updateapi+recordSetId,{
-          method:'PUT',
-          credentials: 'include',
-          headers:{
-            'Content-Type': 'application/json',
-            apikey:formLay.headers
-          },
-          body:JSON.stringify(json)
-        });
-        submissionDirect(request);
-      }catch(err){
-        base.util.unauthorisedAccess();
-      }
-    // non setting enbale process
-    }else if(id!=="0"){
-      try{
-        const request=await fetch(formLay.updateapi+id,{
-          method:'PUT',
-          credentials: 'include',
-          headers:{
-            'Content-Type': 'application/json',
-            apikey:formLay.headers
-          },
-          body:JSON.stringify(json)
-        });
-        submissionDirect(request);
-      }catch(err){
-        base.util.unauthorisedAccess();
-      }
-    }else
-    // submit new record
-    {
-      try{
-        const request=await fetch(formLay.postapi,
-          {
-            method:'POST',
-            credentials: 'include',
-            headers:{
-              'Content-Type': 'application/json',
-              apikey:formLay.headers
-            },
-            body:JSON.stringify(json)
-          });
-          submissionDirect(request);
-      }catch(err){
-        base.util.unauthorisedAccess();
-      }
-    }
+  const submitFormHandle=async()=>{
+    const formHandle=formHandleRef.current;
+    const response=formHandle.response;
+    submissionDirect(response);
   }
-
+  
   const submissionDirect=async (request:any)=>{
-    if(request.ok){
-      id="0";
-      if(entryUsed)clearForm(true);
-      if(!entryUsed){
-        nav(formLay.redirect,{ state:{ login:true} });
-      }else if(props.submitHandle) {
-        props.submitHandle();
-      }
-      writeError(errorClearRef.current);
-      setFormErrorMsg({
-        hide:true,
-        error:""
-      });
-    }else
-    {
-      if(entryUsed)formUpdate.current=true;
-      const response=await request.json();
-      writeError(response.fields);
-      if(response.error!==""){
-        setFormErrorMsg({
-          hide:false,
-          error:response.error
-        });
-      }else{
+      if(request.ok){
+        id="0";
+        if(entryUsed)clearForm(true);
+        if(!entryUsed){
+          nav(formLay.redirect,{ state:{ login:true} });
+        }else if(props.submitHandle) {
+          props.submitHandle();
+        }
+        writeError(errorClearRef.current);
         setFormErrorMsg({
           hide:true,
-          error:response.error
+          error:""
         });
+      }else
+      {
+        const formHandle=formHandleRef.current;
+        if(entryUsed)formUpdate.current=true;
+        const response=await request.json();
+        // show errors base on form object
+        if(base.isFormGen(response)){
+          const err:ErrorGenOutput=response;
+          for(let x in err.fields){
+            let errorJson=err.fields[x];
+            if(errorJson){
+              let name=Object.keys(errorJson)[0];
+              let error=errorJson[name];
+              formHandle.setWarning(name,error);
+            }
+          }
+          if(err.error!==""){
+            setFormErrorMsg({
+              hide:false,
+              error:err.error
+            });
+          }else if(err.error==""){
+            setFormErrorMsg({
+              hide:true,
+              error:""
+            });
+          }
+        }else if(base.isResponse(response)){
+          const err:ResponseOutput=response;
+          if(err.messageResponse!==""){
+            setFormErrorMsg({
+              hide:false,
+              error:err.messageResponse
+            });
+  
+          }else{
+            setFormErrorMsg({
+              hide:true,
+              error:err.messageResponse
+            });
+          }
+        }
       }
     }
-  }
+
   const changeForm=()=>{
     let result=false;
     if(formLay.urlLocation!=currentForm&&formLay.urlLocation!=""){
@@ -424,7 +365,23 @@ const form=forwardRef (function FormPage(props:Props,ref){
     }
     return result;
   }
-  
+  const entryHandle=()=>{
+    if(props.entry){
+      entryUsed=true;
+      if(props.record&&props.record!=null&&!props.clearAction){
+        let rec=props.record;
+        if(!formUpdate.current||rec!=null){
+          //clearForm();
+          //record.current=rec;
+          id=props.id;
+        }
+      }else id="0";
+    }
+  }
+
+  const setEntry=()=>{
+    if(props.entry) entryUsed=true;
+  }
   
   useImperativeHandle(ref,()=>{
     return {
@@ -432,19 +389,11 @@ const form=forwardRef (function FormPage(props:Props,ref){
       clearError
     }
   },[]);
+  
   if(changeForm()){
-    const form:any=document.getElementById('FormRender') as HTMLElement;
-    //form.innerHTML=""
     setFormProp();
   }
-  if(props.entry){
-    entryUsed=true;
-    if(props.record&&props.record!=null&&!props.clearAction){
-      id=props.id;
-      if(!formUpdate.current||id!=record.current[props.valueKey])record.current=props.record;
-      insertValuesEntry(record.current);
-    }else id="0";
-  }
+  entryHandle();
   
   useEffect(() => {
      setFormProp();
@@ -466,35 +415,40 @@ const form=forwardRef (function FormPage(props:Props,ref){
     :null}
     </div>
     <Group>
-    <Form id={"FormField"} onSubmit={submitForm} >
+    <div id="ErrorDiv2" hidden={error}>
+    <h2>Something went wrong please try again</h2> 
+    </div>
+    <FormHandle streamOverride={true} ref={formHandleRef} recordLayout={stateModel.current} idKey={"_id"} record={record.current} post={formLay.postapi} put={formLay.updateapi} onSubmit={submitFormHandle}>
     {load ?
       <div className='CentreText'>
       <ProgressBar now={loadSate} />
       </div>
       :null}
-    <div id="FormRender">
     {
       // writes form fields
-      formArr.map(form=>(
-        React.createElement(form.component,
-          {label:form.field.label,type:form.field.type,name:form.name,required:form.field.required,rows:form.field.rows,warning:form.error,value:form.value})
+      formArr.map((formComp,key:number)=>(
+        React.createElement(formComp.component,
+          {label:formComp.field.label,type:formComp.field.type,name:formComp.name,required:formComp.field.required,rows:formComp.field.rows,warning:formComp.error,value:formComp.value,formRef:formComp.formRef,ref:(ele:any)=>formCompRef.current[key]=ele})
       ))
     }
-    </div>
     <div id="ErrorDiv" hidden={error}>
     <h2>Something went wrong please try again</h2> 
     </div>
     <Alert variant='warning' key='warning' hidden={formErrorMsg.hide}>
     {formErrorMsg.error}
     </Alert>
+    <Stack direction="horizontal" gap={1}>
     {!formLay.settingOverride?
     <Button id="ClearBtn" variant="primary" size="lg" onClick={()=>clearForm(false)} >Clear</Button>
     :null}
     {formLay.deleteapi!==""? 
     <Button id="DeleteBtn" variant={'danger'} onClick={deleteRecord} size="lg" >Delete</Button>
     :null}
-    <Button id="SubmitBtn" variant="primary" size="lg" hidden={true} type="submit">Save</Button>
-    </Form>
+    {!submitBtn?
+    <SaveButton id="SubmitBtn" caption={""} size={"lg"} type={undefined}/>
+    :null}
+    </Stack>
+    </FormHandle>
     </Group>
     </div>
     </Col>

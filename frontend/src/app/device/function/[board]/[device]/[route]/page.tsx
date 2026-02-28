@@ -2,7 +2,7 @@ import PageGroup from "@/app/next-components/pageGroup";
 import Client from "./client";
 import { NextBase } from "@/NextBase";
 async function getData(boardId:string,deviceId:string,route:string) {
-  var dataResp={
+  let dataResp={
     board:null,
     device:null,
     commands:[],
@@ -12,7 +12,7 @@ async function getData(boardId:string,deviceId:string,route:string) {
     functionRecord:null
   };
   const base=new NextBase();
-  var fetchApis:any=await base.fetchGetApi([
+  let fetchApis:any=await base.fetchGetApi([
     {api:'/board/uni-board/'+boardId,key:'board'},
     {api:'/command/command',key:'commands',result:[]},
     {api:'/command/core/core',key:'electrodes',result:[]},
@@ -31,7 +31,7 @@ async function getData(boardId:string,deviceId:string,route:string) {
 }
 export default async function page({params}:any){
     const { board,device,route } = await params;
-    var data=await getData(board,device,route);
+    let data=await getData(board,device,route);
     return(
         <PageGroup url="/device/function/">
         <Client electrodes={data.electrodes} device={data.device} record={data.functionRecord} board={data.board} commands={data.commands} newFunction={data.newFunction} newMode={data.newMode}/>

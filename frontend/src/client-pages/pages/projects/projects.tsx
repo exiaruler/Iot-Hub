@@ -9,13 +9,13 @@ import { useSelector} from 'react-redux';
 import {getLoginState} from "../../redux/slice/loginSlice";
 import UiBase from '../../base/UiBase';
 import Group from '../../components/Group';
+import ContentEditor from '../../components/content/ContentEditor';
 // route links
 export default function Projects(){
   const api=new ProjectAPI();
   const base=new UiBase();
   const { state } = useLocation();
-  var login=useSelector(getLoginState);
-  //login=base.util.checkLogCookie();
+  let login=useSelector(getLoginState);
   const [projects,setProject]=useState<Project[]>([]);
   const [loading,setloading]=useState(true);
   const getProjects=async()=>{
@@ -49,9 +49,6 @@ export default function Projects(){
       <Col>
       </Col>
       <Col xs={12} lg={6}>
-      <div className=''>
-        <p hidden={true} >Here a list of projects which I have worked on in my spare time. Some will have links to GitHub Repository links other not because of it sensitive nature.</p>
-      </div>
       <ListGroup variant="flush">
       {loading ?
       <div className='CentreText'>
@@ -63,7 +60,7 @@ export default function Projects(){
         projects.map((project,key)=>(
         
         <Col xs={13} md={6}>
-        <ListGroup.Item>
+        <ListGroup.Item style={{backgroundColor:'	#FFFAFA'}}>
         <ProjectCard repositoryClicks={project.repositoryClicks} views={project.views} name={project.name} description={project.description} url={project.url} key={project._id} id={project._id} project={project} login={login}/>
         </ListGroup.Item>
         </Col>

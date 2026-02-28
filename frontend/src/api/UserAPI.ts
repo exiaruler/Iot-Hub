@@ -1,5 +1,4 @@
 import Util from "../base/Util";
-import axios from "axios";
 export default class UserAPI extends Util{
     private base="/user/";
     private header={
@@ -27,7 +26,7 @@ export default class UserAPI extends Util{
     }
 
     public async checkLogin(){
-        var login=false;
+        let login=false;
         const request=await this.fetchRequest(this.base+"auth","GET");
         const response=request.status;
         if(response===200){
@@ -36,7 +35,7 @@ export default class UserAPI extends Util{
         return login;
     }
     public async userDetails(){
-        var data=null;
+        let data=null;
         const request =await this.fetchRequest(this.base+"user-details","GET");
         if(request.ok){
             data= await request.json();

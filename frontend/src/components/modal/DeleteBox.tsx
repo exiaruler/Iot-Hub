@@ -14,7 +14,7 @@ type modalContent={
     onClose?:any,
     deleteApi:string,
     baseUrl?:string,
-    param:string
+    param:string|number
 }
 // modal box
 const DeleteBox=forwardRef(function ModalBox(props:modalContent,ref){

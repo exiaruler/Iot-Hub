@@ -39,7 +39,7 @@ export default class MultiCheckBoxes extends Component<Props>{
         }
         
         if(this.props.onChange){
-            this.props.onChange
+            this.props.onChange()
         }
     }
     render(){

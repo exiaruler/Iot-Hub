@@ -14,6 +14,6 @@ export interface Board{
     ramUsage:number;
     activated:boolean;
     devMode:boolean;
-    device:Array<any>;
-    scanDeviceVersion:boolean;
+    device:Array<Record<string,any>>;
+    //scanDeviceVersion:boolean;
 }

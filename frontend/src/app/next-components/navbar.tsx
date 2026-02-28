@@ -7,61 +7,58 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { setPages } from '@/redux/slice/pageSlice';
-import { useDispatch } from 'react-redux';
-import logo from '../assets/samuel logo.png';
-//import Logout from '../components/Logout';
+import { useDispatch, useSelector } from 'react-redux';
+import { setApp } from '@/redux/slice/appSlice';
+import { getLoginState, setUser } from '@/redux/slice/loginSlice';
+import Logout from './user/logout';
   
 export default function NavBar(){
     const dispatch = useDispatch();
     const uiBase=new NextUIBase();
     const [login,setLogin]=useState(false);
-    //const login=false;
-    // dev routes
+    const loginState=useSelector(getLoginState);
+    const [pageArr,setPageArr]:any=useState([]);
     //const navigation = new Navigation();
-    var protectedRoutes:any=[
+    let protectedRoutes:any=[
         
     ];
-    var formsUser:any=[
+    let formsUser:any=[
         
     ];
-    //uiBase.generateKeyClient();
-    var routes=uiBase.getPagesSection('navbar');
-    //routes=navigation.routes.filter((route)=>route.show===true);
-    //const home=routes[0];
-    
-    let loginProp=false;
-    /*
-    if(props.login){
-      loginProp=props.login;
-    }
-      */
-    // user links
-    //formsUser=navigation.formLinks.filter((link)=>link.show===true);
-    //protectedRoutes=navigation.protectedRoutes.filter((link)=>link.show===true);
-    const checkLogin=()=>{
-      /*
-      if(loginProp===true){
-        setLogin(true);
-      }
-        */
-    }
-    // load pages into redux and session
-    const loadPages=async()=>{
-      var pages=[];
-      var sessionPage=uiBase.util.getPagesSession();
-      if(sessionPage.length>0){
-        dispatch(setPages(sessionPage));
+   
+    const routes=uiBase.getPagesSection('navbar');
+
+    const checkLogin= async()=>{
+      const userDet=await uiBase.userApi.userDetails();
+      if(userDet!=null&&uiBase.util.checkLogCookie()){
+        dispatch(setUser(Object(userDet)));
       }else{
-        const request=await fetch(uiBase.util.baseURL+'/api/app/page',{method:'GET'});
-        if(request.ok){
-          pages=await request.json();
-          const decrypt=JSON.parse(uiBase.util.decryptValueToString(pages));
-          console.log(decrypt);
-          uiBase.util.pageSession(decrypt);
-          dispatch(setPages(decrypt));
+        uiBase.util.removeLogCookie();
+      }
+      setLogin(loginState);
+    }
+    
+    const loadApp=async()=>{
+      const getAppSes=await uiBase.util.sessionGet('app');
+      const sessionPages=uiBase.getPagesSession();
+      if(sessionPages.length>0){
+        dispatch(setPages(sessionPages));
+      }
+      if(getAppSes!=null){
+        dispatch(setApp(getAppSes));
+      }else
+      {
+        const getApp=await uiBase.util.getApp();
+        if(getApp!=null){
+          dispatch(setApp(getApp));
+          const pages=getApp.pages;
+          // set pages
+          dispatch(setPages(pages));
+          uiBase.util.pageSession(pages);
+          setPageArr(pages);
         }
       }
-    }
+  }
     const renderUserDrop=()=>{
       return <NavDropdown title="Tools" id="basic-nav-dropdown" >
           {
@@ -79,11 +76,20 @@ export default function NavBar(){
          
           </NavDropdown>
     }
+    const renderLink=(route:Record<string,any>,key:number)=>{
+      if(route.url!='/login'){
+        const ele=<Nav.Link key={key}><Link key={key} href={route.url}>{route.name}</Link></Nav.Link>
+        return ele;
+      }else{ 
+        const ele=<Nav.Link key={key}><Link key={key} href={route.url}>{route.name}</Link></Nav.Link>
+        if(!loginState) return ele;
+      
+      }
+    }
     
     useEffect(() => {
-      loadPages();
+      loadApp();
       checkLogin();
-      //test();
    },[]);
    
     return (
@@ -95,10 +101,13 @@ export default function NavBar(){
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             {
-                routes.map((route:any,key:number)=>(
-                    <Nav.Link key={key}><Link href={route.url}>{route.name}</Link></Nav.Link>
+                routes.map((route:Record<string,any>,key:number)=>(
+                   renderLink(route,key)
                 ))
             }
+            {loginState?
+            <Logout/>    
+            :null}
           {login?
             renderUserDrop()
           :null}
@@ -107,6 +116,6 @@ export default function NavBar(){
       </Container>
     </Navbar>
     </nav>
-        </div>
+    </div>
     )
 }

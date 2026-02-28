@@ -9,6 +9,10 @@ class Base{
   private apikey=process.env.REACT_APP_API_KEY||"S7fgxFOTKTK8aCjq";
   // encryption key
   public encryptKey:string=process.env.REACT_APP_API_ENCRYPTKEY||"";
+  // tinymce API kye
+  public tinyKey:string=process.env.REACT_APP_TINY_KEY||process.env.NEXT_PUBLIC_API_TINY_KEY||"";
+  // app
+  public app=process.env.REACT_APP_APPLICATION||process.env.NEXT_PUBLIC_API_APPLICATION||"";
   // js vanilla fetch
   public apiCallConfig(method:string,body:any=null,encrypt:boolean=false){
       let date=new Date();

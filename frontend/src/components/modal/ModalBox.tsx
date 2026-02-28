@@ -1,17 +1,17 @@
 'use client'
-import { Component, forwardRef, useImperativeHandle, useState } from "react"
+import { Component, forwardRef, ReactNode, useImperativeHandle, useState } from "react"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "react-bootstrap";
 import { ButtonComponent } from "../Buttons/ButtonComponent";
-type modalContent={
+interface modalContent{
     title:string,
-    children?:any,
-    buttonChildren?:any,
+    children?:ReactNode,
+    buttonChildren?:ReactNode,
     submitCaption?:string,
     hideSubmit?:boolean,
-    submit?:any,
-    onClose?:any,
+    submit?:CallableFunction,
+    onClose?:CallableFunction,
 }
-type State={
+interface State{
     show:boolean,
     showSubmit:boolean,
     caption:string
@@ -34,17 +34,16 @@ export default class ModalBox extends Component<modalContent,State>{
             this.setState({...this.state,showSubmit:this.props.hideSubmit});
         }
     }
-    open(){
+    public open():void{
         this.setState({...this.state,show:true});
     }
-    close=()=>{
+    public close=():void=>{
         if(this.props.onClose){
             this.props.onClose();
         }
         this.setState({...this.state,show:false});
     }
-    async submitHandle(event:any){
-        event.preventDefault();
+    public async submitHandle(event:any){
         if(this.props.submit){
             this.props.submit();
         }
@@ -52,7 +51,6 @@ export default class ModalBox extends Component<modalContent,State>{
     render(){
         return (
         <Modal show={this.state.show} onHide={()=>this.close()}>
-        <form onSubmit={(event)=>this.submitHandle(event)}>
         <ModalHeader>
         {this.props.title}
         </ModalHeader>
@@ -66,72 +64,11 @@ export default class ModalBox extends Component<modalContent,State>{
             this.props.buttonChildren
         }
         <ButtonComponent caption={"Close"} size={undefined} type={'button'} onClick={()=>this.close()}/>
-        {!this.state.showSubmit?
-        <ButtonComponent caption={this.state.caption} size={undefined} type={'submit'}/>
+        {!this.props.hideSubmit?
+        <ButtonComponent caption={this.state.caption} size={undefined} type={'button'} onClick={(event:any)=>this.submitHandle(event)}/>
         :null}
         </ModalFooter>
-        </form>
         </Modal>
         )
     }
 }
-
-/*
-const ModalBox=forwardRef(function ModalBox(props:modalContent,ref){
-    const [show,setShow]=useState(false);
-    const [showSubmit,setShowSubmit]=useState(false);
-    var saveCaption='Save';
-
-    const open=()=>{
-        setShow(true);
-    }
-    const close=()=>{
-        if(props.onClose){
-            props.onClose();
-        }
-        setShow(false);
-    }
-    const submitHandle=async(event:any)=>{
-        event.preventDefault();
-        if(props.submit){
-            props.submit();
-        }
-    }
-    if(props.submitCaption){
-        saveCaption=props.submitCaption;
-    }
-    if(props.hideSubmit){
-        setShowSubmit(props.hideSubmit);
-    }
-    useImperativeHandle(ref,()=>{
-        return {
-            open,
-            close
-        }
-    },[]);
-    return (
-        <Modal show={show} onHide={close}>
-        <form onSubmit={submitHandle}>
-        <ModalHeader>
-        {props.title}
-        </ModalHeader>
-        <ModalBody>
-        {
-            props.children
-        }
-        </ModalBody>
-        <ModalFooter>
-        {
-            props.buttonChildren
-        }
-        <ButtonComponent caption={"Close"} size={undefined} type={'button'} onClick={close}/>
-        {!showSubmit?
-        <ButtonComponent caption={saveCaption} size={undefined} type={'submit'}/>
-        :null}
-        </ModalFooter>
-        </form>
-        </Modal>
-    )
-});
-export default ModalBox;
-*/

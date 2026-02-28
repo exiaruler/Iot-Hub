@@ -1,5 +1,8 @@
+import TimeInput from "../input/TimeInput";
+import AngleInput from "./AngleInput";
 import CurrentInput from "./CurrentInput";
 import ElectrodeSelect from "./ElectrodeSelect";
+import NumberInput from "./NumberInput";
 import PinSelect from "./PinSelect";
 export interface Component{
     component:any,
@@ -20,7 +23,19 @@ const functionLibrary:Array<Component>=[
 const modeLibrary:Array<Component>=[
     {
         component:CurrentInput,
-        name:"OutputText"
+        name:"CurrentInput"
+    },
+    {
+        component:AngleInput,
+        name:"AngleInput"
+    },
+    {
+        component:NumberInput,
+        name:"NumberInput"
+    },
+    {
+        component:TimeInput,
+        name:"TimeInput"
     }
 ];
 export function findComponentFunction(name:string){

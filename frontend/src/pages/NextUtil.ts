@@ -17,27 +17,27 @@ export class NextUtil extends NextBase{
         headers: { 'Content-Type': 'application/json' }
     });
     }
-    public responseFormat(){
-        var response:ResponseFormat={
+    public responseFormat():ResponseFormat{
+        let response:ResponseFormat={
             status: 200,
             data: null
         }
         return response;
     }
     public getProperties(request: NextApiRequest):string{
-        var encryptKey:string|any="";
+        let encryptKey:string|any="";
         if(request.headers){
-            var headers=request.headers;
+            let headers=request.headers;
             encryptKey=headers.encrypt;
         }
         return encryptKey;
     }
     public getRequest(request:NextApiRequest):NextApiRequest{
-        var enc=this.getProperties(request);
+        let enc=this.getProperties(request);
         if(request.body&&enc!=""){
-            var data=request.body?.data;
+            let data=request.body?.data;
             if(data!==""){
-                var convert=this.decryptValueToStringByKey(data,enc);
+                let convert=this.decryptValueToStringByKey(data,enc);
                 request.body=convert;
             }
         }

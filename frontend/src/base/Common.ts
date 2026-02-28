@@ -3,9 +3,7 @@ import UserAPI from "../api/UserAPI";
 export class Common{
     //public user=new UserAPI();
     public removeLogCookie(){
-        let currentDate = new Date();
-        let timeout=currentDate.setMilliseconds(currentDate.getMilliseconds() - 10000);
-        document.cookie="id= ; expires="+timeout;
+        document.cookie = "id=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax";
       }
       /*
       public checkLogCookie(){

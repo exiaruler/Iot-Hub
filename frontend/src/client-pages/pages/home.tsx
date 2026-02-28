@@ -1,24 +1,24 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import '../App.css';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import ParagraphBody from '../components/ParagraphBody';
-export default function home(){
-  
+import { useSelector} from 'react-redux';
+import { getLoginState } from '../redux/slice/loginSlice';
+import ContentEditor from '../components/content/ContentEditor';
+export default function Home(){
+  let login=useSelector(getLoginState);
+
+
     return (
         <div className="App">
           <Row>
-          <Col id="Col1"></Col>
-            <Col id="Col2" md={6}>
-            <div className='CentreText'>
-            <h1>Welcome to my world!</h1>
-            <p>This is my portfolio of my current projects that I am working on and completed projects</p>
-            </div>
-            
-            </Col>
-            <Col id="Col3"></Col>
+          <Col md={3} xs={3}>
+          </Col>
+          <Col  md={6} xs={12}>
+          <ContentEditor/> 
+          </Col>
           </Row>
         </div>
       );

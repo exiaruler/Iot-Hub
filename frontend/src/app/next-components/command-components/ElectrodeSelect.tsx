@@ -1,7 +1,7 @@
-import FormGenSelect from "@/components/formGenComponents/FormGenSelect";
 import { Col, Form, Row } from "react-bootstrap";
+import SelectInput from "../input/SelectInput";
 
-export default class ElectrodeSelect extends FormGenSelect{
+export default class ElectrodeSelect extends SelectInput{
     
     render(){
         return(
@@ -16,7 +16,7 @@ export default class ElectrodeSelect extends FormGenSelect{
             }
             {
                 this.state.options.map((opt:any,num:number)=>(
-                    <option key={opt} value={opt}>{opt}</option>
+                    <option key={num} value={opt}>{opt}</option>
                 ))
             }
             </Form.Select>

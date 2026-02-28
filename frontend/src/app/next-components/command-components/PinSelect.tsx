@@ -1,6 +1,5 @@
 'use client'
-import FormGenSelect from "@/components/formGenComponents/FormGenSelect";
-import { ChangeEventHandler } from "react";
+import SelectInput from "../input/SelectInput";
 type Props={
     label:string,
     name?:string,
@@ -19,6 +18,6 @@ type Props={
     xs?:number,
     pinIndex:number
 }
-export default class PinSelect extends FormGenSelect{
+export default class PinSelect extends SelectInput{
 
 }

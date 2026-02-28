@@ -1,9 +1,9 @@
 import { ReactNode } from "react";
 
-export default interface Props{
-    title:any;
-    eventKey:any;
-    childen?:Array<any>;
-    hidden?:boolean;
-    disabled?:boolean;
+export default interface Props {
+    title: string;
+    eventKey:  any | undefined;
+    children?: React.ReactNode;
+    disabled?: boolean;
+    // ...other props
 }

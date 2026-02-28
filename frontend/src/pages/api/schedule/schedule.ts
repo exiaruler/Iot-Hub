@@ -16,7 +16,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if(req.method=='POST'){
         const request=await base.fetchRequest('/schedule/add-schedule-socket','POST',req.body,base.baseUrlIo);
         var json=await request.json;
-        console.log(json);
         response.status=await request.status;
         response.data=await base.encryptValueByKey(json,encrypt);
         

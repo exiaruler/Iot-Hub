@@ -1,4 +1,4 @@
-import { Col, Row, Tab, Table, Tabs } from "react-bootstrap";
+import { Col, Row, Stack, Tab, Table, Tabs } from "react-bootstrap";
 import { useParams } from "react-router";
 import Form from "../formGen/form";
 import { useEffect, useRef, useState } from "react";
@@ -10,6 +10,7 @@ import TabGroup from "../../components/Tab/TabGroup";
 import TabComponent from "../../components/Tab/TabComponent";
 import Group from "../../components/Group";
 import TableComponentClass from "../../components/Table/TableComponentClass";
+import FormLayout from "../../components/formGenComponents/layout/formComponent";
 type Props={
   entryRecord?:any
 }
@@ -107,10 +108,15 @@ export default function EntryRecord(props:Props){
     const selectRecord=(rec:any)=>{
       if(rec!=null){
         setRecordRef(rec);
-        var idValue=rec[setup.valueKey];
+        let idValue=rec[setup.valueKey];
         setRecordIdRef(idValue);
-        formCompRef.current.clearError();
+        let form=formCompRef.current;
+        form.clearError();
       }
+    }
+    const unSelectRecord=()=>{
+      clearHandle();
+      formCompRef.current.clearError();
     }
     const addRecord=()=>{
       setRecordRef(null);
@@ -162,15 +168,17 @@ export default function EntryRecord(props:Props){
           ))
         }
         </TableComponentClass>
+        <Stack direction="horizontal" gap={1}>
         <ButtonComponent id={""} caption={'Add'} variant={''} onClick={addRecord} size={''} active={false} disabled={false} type={undefined} />
         {!showDeleteBtn?
         <ButtonComponent id={""} caption={'Delete'} variant={'danger'} onClick={deleteHandle} size={''} active={false} disabled={false} type={undefined} />
         :null}
+        </Stack>
         </Tab>
         {!showFormTab?
         <Tab eventKey="record" title={setup.name+" Record"}>
         {
-        <Form ref={formCompRef} form={setup.form} entry={true} valueKey={setup.valueKey} id={recordIdRef} record={recordRef} onClick={() => handleTabSwitch("records")} submitHandle={submitHandle} clearHandle={clearHandle} formId={""}/>
+        <FormLayout ref={formCompRef} form={setup.form} entry={true} valueKey={setup.valueKey} id={recordIdRef} record={recordRef} onClick={() => handleTabSwitch("records")} submitHandle={submitHandle} clearHandle={clearHandle} formId={""}/>
         }
         </Tab>
         :null}

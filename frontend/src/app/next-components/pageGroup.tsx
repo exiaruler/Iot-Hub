@@ -11,11 +11,10 @@ export default function PageGroup(props:Props){
     var url='';
     var exPage=null;
     if(props.url){
-        var url=props.url;
+        url=props.url;
     }
     exPage=util.getPageUrl(url);
     var show=true;
-    
     if(util.checkPageUrl(pathname)||exPage!=null){
         show=false;
     }

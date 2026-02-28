@@ -2,6 +2,7 @@ import { Url } from 'url';
 import Base from './Base';
 import { CommonAPI } from '../api/CommonAPI';
 import { page } from './interfaces/page';
+export type dataobject=Record<string,any>;
 export class Util extends Base {
 
     // converts date to show month style
@@ -66,9 +67,7 @@ export class Util extends Base {
       window.location.href='/';
     }
     public removeLogCookie(){
-      let currentDate = new Date();
-      let timeout=currentDate.setMilliseconds(currentDate.getMilliseconds() - 10000);
-      document.cookie="id= ; expires="+timeout;
+      document.cookie = "id=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax";
     }
     public checkLogCookie(){
       var login=false;
@@ -91,6 +90,19 @@ export class Util extends Base {
     public pageSession(pages:Array<page>){
         let toString=this.encryptValue(JSON.stringify(pages));
         sessionStorage.setItem(this.originUrl,toString);
+    }
+    public sessionSet(key:string,data:Record<string,any>|Array<Record<string,any>>){
+      var toString=this.encryptValue(JSON.stringify(data));
+      sessionStorage.setItem(key,toString);
+    }
+    public sessionGet(key:string){
+      var data=null;
+      let storage=sessionStorage.getItem(key);
+      if(storage!==""&&typeof storage=='string'){
+          let json=JSON.parse(this.decryptValueToString(storage));
+          data=json;
+      }
+      return data;
     }
     public getPagesSession(){
         let data:Array<page>=[];
@@ -138,6 +150,20 @@ export class Util extends Base {
         }else this.throwError(err);
       }
       return request;
+    }
+    public async getApp(){
+      var result=null;
+      if(this.app!==""){
+        try {
+          const request=await this.fetchRequest('/app/get-app/'+this.app);
+          if(request.ok){
+            result=await request.json();
+          }
+        } catch (error) {
+          
+        }
+      }
+      return result;
     }
     public async requestHandler(request:any){
       try{

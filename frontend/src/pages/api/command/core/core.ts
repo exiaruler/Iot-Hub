@@ -7,7 +7,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const request=await base.fetchRequest('/command-parameter/get-electodes','GET',null,base.baseUrlIo);
         if(request.ok){
             var data=await request.json();
-            console.log(data);
             response.data=data;
         }
     }

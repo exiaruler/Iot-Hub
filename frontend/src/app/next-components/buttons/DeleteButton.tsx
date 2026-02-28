@@ -1,6 +1,7 @@
 'use client'
 import { Button, ButtonGroup } from "react-bootstrap";
 import { RegularButton } from "./RegularButton";
+
 export default class DeleteButton extends RegularButton{
     render(){
         return(

@@ -1,168 +1,238 @@
 'use client'
 import ModalBox from "@/components/modal/ModalBox"
 import { RegularButton } from "@/app/next-components/buttons/RegularButton"
-import { FormGenText } from "@/components/formGenComponents/FormGenText"
+import TextInput from "@/app/next-components/input/TextInput"
 import TabComponent from "@/components/Tab/TabComponent"
 import TabGroup from "@/components/Tab/TabGroup"
-import { Row, Col } from "react-bootstrap"
+import { Row, Col, Stack } from "react-bootstrap"
 import { useEffect, useRef, useState } from "react"
 import DeleteBox from "@/components/modal/DeleteBox"
-import { Board } from "@/interface/boardInterface"
-import { Hardware } from "@/interface/hardwareInterface"
 import { NextUIBase } from "@/NextUIBase"
-import FormComponent from "@/components/formGenComponents/layout/formComponent"
-import FormLayout from "@/components/formGenComponents/layout/formComponent"
 import { useRouter } from 'next/navigation';
 import TableComponent from "@/app/next-components/TableComponent"
 import TableComponentColumn from "@/components/Table/TableComponentColumn"
-import TableComponentClass from "@/components/Table/TableComponentClass"
 import DeleteButton from "@/app/next-components/buttons/DeleteButton"
+import ConfirmButton from "@/components/Buttons/ConfirmButton"
+import AddForm from "./add-form"
+import FormModal from "@/app/next-components/modal/FormModal"
+import ModalButton from "@/components/Buttons/ModalButton"
+import ConfigForm from "./config-form"
+import Content, { ObjectArray, ObjectRecord } from "@/app/next-components/layout/Content"
+type JsonRecord ={
+    key:string,
+    value:any
+}
+interface Props{
+    deviceForm:ObjectRecord;
+    board:ObjectRecord;
+    hardware:ObjectRecord;
+}
 // board page
 export default function Client(props:any){
-    const passwordModalRef:any=useRef(null);
+    const contentRef=useRef<any>(null);
+    const passwordModalRef=useRef<any>(null);
     const deleteModalRef:any=useRef(null);
-    const functionRef:any=useRef(null);
-    const tabGrpRef:any=useRef(null);
-    const functionTblRef:any=useRef(null);
-    const [modeTabShow,setTabShow]=useState(true);
+    const updateModalRef=useRef<ModalButton>(null);
+    const tabGrpRef=useRef<TabGroup>(null);
+    const functionTblRef=useRef<TableComponent>(null);
     const formRefs:any=useRef([]);
     const [activated,setActivated]=useState(true);
-    const [board,setBoard]:Board=useState(null);
-    const [devices,setDevices]:any=useState([]);
-    const [device,setDevice]:any=useState(null);
-    const [hardware,setHardware]:Hardware=useState(null);
+    const [board,setBoard]=useState<ObjectRecord>(props.data.board.board||null);
+    const [devices,setDevices]=useState<ObjectArray>(props.data.board.board?.device||[]);
+    const [device,setDevice]=useState<ObjectRecord>(null);
+    const [hardware,setHardware]=useState<ObjectRecord>(props.data.board.hardware||null);
     const router = useRouter();
     const uiBase=new NextUIBase();
+    
     const openChangePass=()=>{
         passwordModalRef.current.open();
     }
     const openDelete=()=>{
         deleteModalRef.current.open();
     }
-    const loadBoard=(board:Board)=>{
-        setActivated(board.activated);
-        setBoard(board);
-        if(board.device.length>0){
-            setDevices(board.device);
-        }
-    }
-    const loadHardware=(hardware:Hardware)=>{
-        setHardware(hardware);
-    }
-    const loadForms=(forms:any)=>{
+    
+    const loadForms=(forms:Record<string,any>)=>{
         formRefs.current.push(forms);
     }
-    const handleTabSelect=(key:any)=>{
+    const boardActive=()=>{
+        if(board!=null&&!board.activated){
+            setActivated(false);
+        }
+    }
+    
+    const handleTabSelect=(key:string):void=>{
         if(key!=="board"&&key!=="add"){
-            var index=parseInt(key);
+            let index=parseInt(key);
             setDevice(devices[index]);
         }
     }
-    const status=(bool:boolean)=>{
-        var show="Inactive";
-        if(!bool) show="Active";
+    const status=(bool:boolean):string=>{
+        let show="Inactive";
+        if(bool) show="Active";
         return show;
     }
     const openFunction=()=>{
-        var id=0;
-        const funcRec=functionTblRef.current.state.selectRowRec;
+        let id=0;
+        const funcRec=functionTblRef.current?.state.selectRowRec;
         if(funcRec!=null){
             id=funcRec.id;
         }
-        router.push('/device/function/'+board.boardId+'/'+device.deviceId+'/'+id);
+        router.push('/device/function/'+board?.boardId+'/'+device?.deviceId+'/'+id);
     }
     const deletehandle=()=>{
         router.push('/boards');
     }
+    const deviceDeleteHandle=async (index:number)=>{
+        const request=await uiBase.util.fetchClientQuery('/device/delete-device/'+devices[index]?.id,'DELETE');
+        if(request.status==200){
+            const arr=[...devices];
+            arr.splice(index,1);
+            setDevices(arr);
+        }
+    }
+    const deleteFunctionHandle=async (deviceIndex:number)=>{
+        const table=functionTblRef.current;
+        const selectedRow=table?.returnRow();
+        if(selectedRow!=null){
+            const id=selectedRow.id;
+            const request=await uiBase.util.fetchClientQuery('/route/delete-route/'+id,'DELETE');
+            if(request.status==200){
+                const arr=[...devices];
+                const funcArr=arr[deviceIndex]?.routes;
+                funcArr.splice(funcArr.findIndex((func:Record<string,any>)=>func.id==id),1);
+                setDevices(arr);
+            }
+        }
+    }
+    const boardCommand=async(command:string)=>{
+        const request=await uiBase.util.fetchClient('/task/'+command+'/'+board?.boardId,'POST',null);
+        if(request.ok){
+            let result=await request.json();
+        }
+    }
+    const handleUpdate=(boardRec:Record<string,any>|null)=>{
+       setBoard(boardRec);
+    }
+    const handleAddDevice=(record:ObjectRecord)=>{
+        const dev=devices;
+        const tab=tabGrpRef.current;
+        dev.push(record);
+        setDevices(devices);
+    }
+    const showDate=(dateTime:Date)=>{
+        return new Date(dateTime).toDateString();
+    }
+    const showTime=(dateTime:Date)=>{
+        const dt= new Date(dateTime);
+        const time=dt.toLocaleTimeString();
+        return time;
+    }
+ 
     useEffect(()=>{
-        loadBoard(props.data.board.board);
-        loadHardware(props.data.board.hardware);
         loadForms(props.data.deviceForm);
-        console.log(props.data);
+        boardActive();
     },[])
     return(
         <div>
+        <Content ref={contentRef}>
         <Row>
         <Col md={2} xs={2}></Col>
         <Col md={10} xs={14}>
         <TabGroup defaultActiveKey={"board"} ref={tabGrpRef} onSelect={handleTabSelect}>
-        <TabComponent title={board?.name} eventKey={"board"}>
+        <TabComponent title={board?.name||''} eventKey={"board"}>
         <div>
         <Row>
         <Col md={3} xs={9}>
-        <FormGenText label={"Board ID"} type={""} rows={0} value={board?.boardId} readOnly={true}/>
-        <FormGenText label={"Board Model"} type={""} rows={0} value={hardware?.boardName} readOnly={true}/>
-        <FormGenText label={"Status"} type={""} rows={0} value={status(board?.activated)} readOnly={true}/>
+        <TextInput label={"Board ID"} type={""} rows={0} value={board?.boardId} readOnly={true}/>
+        <TextInput label={"Board Model"} type={""} rows={0} value={hardware?.boardName} readOnly={true}/>
+        <TextInput label={"Status"} type={""} rows={0} value={status(board?.activated)} readOnly={true}/>
         </Col>
         <Col md={3} xs={9}>
-        <FormGenText label={"RAM Usage"} type={""} rows={0} value={board?.ramUsage} readOnly={true}/>
-        <FormGenText label={"Total RAM"} type={""} rows={0} value={hardware?.maxRam} readOnly={true}/>
-        <FormGenText label={"Local IP"} type={""} rows={0} value={board?.ip} readOnly={true}/>
+        <TextInput label={"RAM Usage"} type={""} rows={0} value={board?.ramUsage} readOnly={true}/>
+        <TextInput label={"Total RAM"} type={""} rows={0} value={hardware?.maxRam} readOnly={true}/>
+        <TextInput label={"Local IP"} type={""} rows={0} value={board?.ip} readOnly={true}/>
         </Col>
         <Col md={3} xs={9}>
-        <FormGenText label={"Routine Check"} type={""} rows={0} value={board?.periodicCheck} readOnly={true}/>
-        <FormGenText label={"Last Connection Date"} type={""} rows={0} value={board?.lastConnectDate} readOnly={true}/>
-        <FormGenText label={"Last Connection Time"} type={""} rows={0} value={board?.lastConnectTime} readOnly={true}/>
+        <TextInput label={"Routine Check"} type={""} rows={0} value={board?.periodicCheck} readOnly={true}/>
+        <TextInput label={"Last Connection Date"} type={""} rows={0} value={showDate(board?.lastConnectDateTime)} readOnly={true}/>
+        <TextInput label={"Last Connection Time"} type={""} rows={0} value={showTime(board?.lastConnectDateTime)} readOnly={true}/>
         </Col>
         </Row>
         <Row>
         <Col>
+        <Stack direction="horizontal" gap={2} className="mt-3">
         <RegularButton caption={"Change Password"} onClick={openChangePass} size={undefined} type={undefined}/>
-        <RegularButton caption={"Configurations"} size={undefined} type={undefined}/>
-        <RegularButton disabled={!activated} caption={"Reset"} size={undefined} type={undefined}/>
-        <RegularButton disabled={!activated} caption={"Reset Board Configuration"} size={undefined} type={undefined}/>
+        <ModalButton ref={updateModalRef} buttonCaption={"Configurations"} title={"Configured Board"} submitCaption={"Save"}>
+        <ConfigForm submissionHandle={handleUpdate} record={board} modalRef={updateModalRef}/>
+        </ModalButton>
+        <ConfirmButton disabled={!activated} buttonCaption={"Update"} title={"Update Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>
+        <p>Are you sure you want to update?</p>
+        </ConfirmButton>
+        <ConfirmButton disabled={!activated} buttonCaption={"Upload"} title={"Upload Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>
+        <p>Are you sure you want to upload?</p>
+        <p>Board will no longer receive commands from the Proto until new firmware is uploaded from IDE or manual reset</p>
+        </ConfirmButton>
+        <ConfirmButton disabled={!activated} buttonCaption={"Reset"} title={"Reset Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart')}>
+        <p>Are you sure you want to restart board?</p>
+        </ConfirmButton>
+        <ConfirmButton disabled={!activated} buttonCaption={"Reset Board Configuration"} title={"Reset Board Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart-board-config')}>
+        <p>Are you sure you want to reset board configurations?</p>
+        <p>Board configurations will be wiped and board will be deactivated until reactivated</p>
+        </ConfirmButton>
         <RegularButton caption={"Delete Board"} size={undefined} type={undefined} onClick={openDelete}/>
+        </Stack>
+       
         </Col>    
         </Row>
         </div>
         </TabComponent>
         {
-            devices.map((dev:any,key:number)=>(
-                <TabComponent title={dev.name} eventKey={key} disabled={!activated}>
-                <TabGroup defaultActiveKey={"overview"}>
-                <TabComponent title={"Overview"} eventKey={"overview"}>
-                <Row>
-                <Col>
-                <RegularButton caption={"Update Device"} size={undefined} type={undefined}/>
-                <RegularButton caption={"Delete Device"} size={undefined} type={undefined}/>
-                </Col>
-                </Row>
-                </TabComponent>
-                <TabComponent title={"Functions"} eventKey={"functions"}>
-                <Row>
-                <Col>
-                <TableComponent ref={functionTblRef} results={dev?.routes} idKey={"id"} rowSelect={true} onDoubleClick={openFunction}>
-                <TableComponentColumn key={"route"} columnName={"Function"} />
-                <TableComponentColumn columnName={"Startup"} key={""} size={5}/>
-                <TableComponentColumn key={"modes"} columnName={"Modes"} size={5}/>
-                </TableComponent>
-                </Col>
-                </Row>
-                <Row>
-                <Col>
-                <RegularButton caption={"Add Function"} size={undefined} type={undefined} onClick={openFunction}/>
-                <DeleteButton caption={"Delete Function"} size={undefined} type={undefined}/>
-                </Col>
-                </Row>
-                </TabComponent>
-                </TabGroup>
-                </TabComponent>
+            devices.map((dev:ObjectRecord,key:number)=>(
+                <TabComponent title={dev?.name} eventKey={key} disabled={!activated}>
+                                <TabGroup defaultActiveKey={"overview"}>
+                                <TabComponent title={"Overview"} eventKey={"overview"}>
+                                <Row>
+                                <Col>
+                                <RegularButton caption={"Update Device"} size={undefined} type={undefined}/>
+                                <RegularButton onClick={()=>deviceDeleteHandle(key)} caption={"Delete Device"} size={undefined} type={undefined}/>
+                                </Col>
+                                </Row>
+                                </TabComponent>
+                                <TabComponent title={"Functions"} eventKey={"functions"}>
+                                <Row>
+                                <Col>
+                                <TableComponent ref={functionTblRef} results={dev?.routes} idKey={"id"} rowSelect={true} onDoubleClick={openFunction}>
+                                <TableComponentColumn key={"route"} columnName={"Function"} />
+                                <TableComponentColumn columnName={"Startup"} key={""} size={5}/>
+                                <TableComponentColumn key={"modes"} columnName={"Modes"} size={5}/>
+                                </TableComponent>
+                                </Col>
+                                </Row>
+                                <Row>
+                                <Col>
+                                <RegularButton caption={"Add Function"} size={undefined} type={undefined} onClick={openFunction}/>
+                                <DeleteButton caption={"Delete Function"} onClick={()=>deleteFunctionHandle(key)} size={undefined} type={undefined}/>
+                                </Col>
+                                </Row>
+                                </TabComponent>
+                                </TabGroup>
+                            </TabComponent>   
             ))
         }
         <TabComponent title={"Add Device"} eventKey={"add"} disabled={!activated}>
-        <FormLayout id={""} formId={""} valueKey={""} externalUrl={uiBase.util.baseUrlIo} form={props.data.deviceForm}/>
+        <AddForm onUpdate={handleAddDevice} boardId={board?.id.toString()||""}/>
         </TabComponent>
         </TabGroup>
         </Col>
         </Row> 
-        <ModalBox ref={passwordModalRef} title={"Password Change"}>
+        <FormModal ref={passwordModalRef} title={"Password Change"} formRef={null} recordLayout={{password:'',passwordConfirm:''}} idKey={""}>
         <Row>
         <Col md={7}>
-        <FormGenText label={"New Password"} type={"password"} rows={0} value={""}/>
-        <FormGenText label={"Confirm New Password"} type={"password"} rows={0} value={""}/>
+        <TextInput label={"New Password"} type={"password"} rows={0} />
+        <TextInput label={"Confirm New Password"} type={"password"} rows={0} />
         </Col>
         </Row>
-        </ModalBox>
+        </FormModal>
         <ModalBox title={"Reset Board Configuration"}>
         <Row>
         <Col md={7}>
@@ -170,10 +240,12 @@ export default function Client(props:any){
         </Col>
         </Row>
         </ModalBox>
-        <DeleteBox ref={deleteModalRef} title={"Delete Board"} deleteApi={"/board/"} baseUrl={uiBase.util.baseURL+'/api'} param={board?.id} afterSubmit={deletehandle}>
+        <DeleteBox ref={deleteModalRef} title={"Delete Board"} deleteApi={"/board/"} baseUrl={uiBase.util.baseURL+'/api'} param={board?.id||''} afterSubmit={deletehandle}>
         <p>Are you sure you want to delete {board?.name}?</p>
         <p>All devices and functionality associated will be lost</p>
         </DeleteBox>
+        
+        </Content>
         </div>
     )
 }

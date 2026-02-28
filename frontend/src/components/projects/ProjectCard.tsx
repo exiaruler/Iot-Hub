@@ -1,5 +1,5 @@
 import { Component, useEffect, useState } from 'react';
-import { CardText, Col, Form, Row } from 'react-bootstrap';
+import { CardText, Col, Form, Row, Stack } from 'react-bootstrap';
 import Card from 'react-bootstrap/Card';
 import gitlogo from './assets/github-mark.png';
 import { Link,useNavigate } from 'react-router-dom';
@@ -44,7 +44,7 @@ export default function ProjectCard(props:any){
     <div>
     <Row>
     <Col>
-    <Card style={{minHeight:'11rem'}}>
+    <Card style={{minHeight:'11rem',backgroundColor:'	#FFFAFA'}}>
     <Card.Body>
     <Link to={'/project/'+id} className={disableStyle} state={{record:props}}>
     <Card.Title as="h4">{props.name}</Card.Title>
@@ -71,13 +71,13 @@ export default function ProjectCard(props:any){
     {login?
     <>
     
-  
+    <Stack direction="horizontal" gap={1}>
     <Link to={"/form/project/"+id} state={{record:props.project}}><ButtonComponent id={""} caption={'Update'} variant={''} onClick={undefined} size={''} active={false} disabled={false} type={undefined} /></Link>
   
     <Link to={"/project/view-statistics/"+id} state={{record:props.project}}><ButtonComponent id={""} caption={'Statistcs'} variant={''} onClick={undefined} size={''} active={false} disabled={false} type={undefined} /></Link>
    
     <Link to={""} state={{login:login}} onClick={()=>deleteProject({id})}><ButtonComponent id={""} caption={'Delete'} variant={'danger'} onClick={undefined} size={''} active={false} disabled={false} type={undefined} /></Link>
- 
+    </Stack>
     
     </>
     :null}

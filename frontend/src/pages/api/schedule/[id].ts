@@ -24,7 +24,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const id=req.query.id;
         const request=await base.fetchRequest('/schedule/update-schedule/'+id,'PUT',req.body,base.baseUrlIo);
         var json=await request.json;
-        console.log(json);
         response.status=await request.status;
         response.data=await base.encryptValueByKey(json,encrypt);
         

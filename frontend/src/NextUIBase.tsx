@@ -1,4 +1,5 @@
 'use client'
+import { Component, RefObject } from "react";
 import UiBase from "./base/UiBase";
 import { NextBase } from "./NextBase";
 // base for UI
@@ -12,5 +13,17 @@ export class NextUIBase extends UiBase{
     public checkKey(){
         var key=sessionStorage.getItem(this.util.originUrl+"-en");
         return key;
+    }
+    public addInputRefComponent(array:RefObject<Array<any>>,component:Component|null){
+            const exists=array.current.find((ele:any)=>component==ele)||null;
+            if(exists==null&&component!=null)array.current.push(component);
+            return array;
+        }
+    
+    public forceUpdateRefComponents(array:RefObject<Array<any>>){
+            array.current.map((ele:Component)=>{
+                const comp=ele;
+                comp?.forceUpdate();
+            });
     }   
 }

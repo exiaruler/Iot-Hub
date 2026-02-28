@@ -9,7 +9,7 @@ export class FormAPI extends Util{
             if(!projectRequest.ok){
                 throw new Error('error happened');
             }
-            var data=await projectRequest.json();
+            let data=await projectRequest.json();
             return data;
         }catch(err){
             this.throwError(err);
@@ -26,7 +26,7 @@ export class FormAPI extends Util{
             if(!request.ok){
                 throw new Error('error happened');
             }
-            var data=await request.json();
+            let data=await request.json();
             return data;
         }catch(err){
             this.throwError(err);
@@ -39,7 +39,7 @@ export class FormAPI extends Util{
             if(!request.ok){
                 throw new Error('error happened');
             }
-            var data=await request.json();
+            let data=await request.json();
             return data;
         }catch(err){
             this.throwError(err);

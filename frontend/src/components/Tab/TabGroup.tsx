@@ -7,7 +7,7 @@ import TabComponent from "./TabComponent";
 type Props={
     id?:string;
     defaultActiveKey:any;
-    children?:React.ReactElement<TabComponent,any>[];
+    children?:ReactNode;
     others?:any;
     onSelect?:any;
 }
@@ -48,39 +48,3 @@ export default class TabGroup extends Component<Props,State>{
     }
 
 }
-/*
- const TabGroup=forwardRef(function TabGroup(props:Props,ref){
-    const [activeTab, setActiveTab] = useState(props.defaultActiveKey);
-
-    const handleTabSwitch = (tabKey:any) => {
-        setActiveTab(tabKey);
-      };
-    const onSelectTab=(tabKey:any)=>{
-        setActiveTab(tabKey);
-        if(props.onSelect){
-            props.onSelect(tabKey);
-        }
-    }
-    useImperativeHandle(ref,()=>{
-        return {
-            handleTabSwitch
-        }
-    },[]);
-  
-    return (
-        <div>
-        <Tabs
-        className="mb-4"
-        activeKey={activeTab}
-        onSelect={(tabKey:any)=>onSelectTab(tabKey)}
-        defaultActiveKey={props.defaultActiveKey}
-        >
-        {
-            props.children
-        }
-        </Tabs>
-        </div>
-    );
-});
-export default TabGroup;
-*/

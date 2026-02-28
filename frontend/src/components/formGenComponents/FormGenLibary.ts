@@ -4,6 +4,7 @@ import { FormGenTextArea } from './FormGenTextArea';
 import { FormGenCheckBox } from './FormGenCheckBox';
 import {FormAPI} from '../../api/FormAPI';
 import PasswordText from '../PasswordText';
+import RgbHexSelect from './RgbHexSelect';
 export default class FormGenLibary extends Util{
     private api=new FormAPI();
     
@@ -26,6 +27,11 @@ export default class FormGenLibary extends Util{
         {
             componentName:"checkbox",
             component:FormGenCheckBox,
+            status:true
+        },
+        {
+            componentName:"rgbhexselect",
+            component:RgbHexSelect,
             status:true
         }
     ].filter((comp)=>comp.status===true);

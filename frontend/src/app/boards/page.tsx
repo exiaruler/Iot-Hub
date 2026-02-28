@@ -5,13 +5,13 @@ import { RegularButton } from "../next-components/buttons/RegularButton";
 import { NextBase } from "@/NextBase";
 
 async function getBoards() {
-  var dataResp={
+  let dataResp={
     boards:[],
     hardwares:[]
   };
   const base=new NextBase();
   // fetch user boards
-  var boards=await base.fetchClientGet('/board/board');
+  let boards=await base.fetchClientGet('/board/board');
   dataResp.boards=boards;
   // fetch hardware boards
   dataResp.hardwares=await base.fetchClientGet('/hardware/hardware');
@@ -21,7 +21,7 @@ export default async function Page(){
     const data=await getBoards();
     return(
     <PageGroup>
-    <Client data={data}/>
+    <Client boards={data.boards} hardwares={data.hardwares}/>
     </PageGroup>
     );
 }
