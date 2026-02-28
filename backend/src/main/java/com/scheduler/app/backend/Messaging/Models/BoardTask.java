@@ -8,9 +8,12 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -21,7 +24,7 @@ import com.scheduler.app.backend.aREST.Models.Mode;
 import com.scheduler.app.backend.aREST.Models.Route;
 // background task data structure in device
 @Entity
-@Table(name="board_task")
+@Table(name="board_task",indexes = @Index(columnList = "taskId"))
 public class BoardTask extends TaskModelBase {
     // task id (taskId|deviceId|date(day,month,year)|time(hour,minute,second))
     @Column
@@ -35,9 +38,6 @@ public class BoardTask extends TaskModelBase {
     // param
     @Column
     private String param="";
-    // GPIO pin
-    @Column
-    private int pin=-1;
     // GPIO pins array (max is 10)
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "boardTask", cascade =CascadeType.ALL)
     @JsonManagedReference("boardtask-pins")
@@ -53,6 +53,8 @@ public class BoardTask extends TaskModelBase {
     @OneToMany(mappedBy = "boardTaskOutput", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference("boardvariable-output")
     private List<OutputCurrent> output=new ArrayList<>();
+    // numbers input
+
     // RGB used in task
     @Column
     private boolean rgb=false;
@@ -69,22 +71,9 @@ public class BoardTask extends TaskModelBase {
     // servo move delay at the start
     @Column
     private int beginDelay;
-    //
     // delay interval
     @Column
     private long delayInterval=100;
-    // RGB output for red
-    @Column
-    private int rgbRed=0;
-    // RGB output for green
-    @Column
-    private int rgbGreen=0;
-    //RGB output for blue
-    @Column
-    private int rgbBlue=0;
-    // RGB type
-    @Column
-    private String rgbType;
     // deduction of current
     @Column
     private int deduction=5;
@@ -129,7 +118,8 @@ public class BoardTask extends TaskModelBase {
     public void initTaskId(long id){
         this.setTaskId(taskIdGenerate(id));
     }
-    public BoardTask() {
+    @PrePersist
+    public void prePersist() {
         long deviceId=0;
         if(this.getMode()!=null){
             deviceId=this.getMode().getRoute().getDevice().getBoard().getId();
@@ -139,13 +129,37 @@ public class BoardTask extends TaskModelBase {
         }
         this.setTaskId(taskIdGenerate(deviceId));
     }
+    @PreUpdate
+    public void preUpdate(){
+        if(this.taskId==0){
+            long deviceId=0;
+            if(this.getMode()!=null){
+                deviceId=this.getMode().getRoute().getDevice().getBoard().getId();
+            }
+            if(this.getRoute()!=null){
+                deviceId=this.getRoute().getDevice().getBoard().getId();
+            }
+            this.setTaskId(taskIdGenerate(deviceId));
+        }
+    }
+    public BoardTask() {
+        /* 
+        long deviceId=0;
+        if(this.getMode()!=null){
+            deviceId=this.getMode().getRoute().getDevice().getBoard().getId();
+        }
+        if(this.getRoute()!=null){
+            deviceId=this.getRoute().getDevice().getBoard().getId();
+        }
+        this.setTaskId(taskIdGenerate(deviceId));
+        */
+    }
 
     public BoardTask(BoardTask boardTask) {
         this.taskId = boardTask.taskId;
         this.task = boardTask.task;
         this.method = boardTask.method;
         this.param = boardTask.param;
-        this.pin = boardTask.pin;
         this.pins = boardTask.pins;
         this.pinsUsed = boardTask.pinsUsed;
         this.input = boardTask.input;
@@ -156,10 +170,6 @@ public class BoardTask extends TaskModelBase {
         this.loops = boardTask.loops;
         this.beginDelay = boardTask.beginDelay;
         this.delayInterval = boardTask.delayInterval;
-        this.rgbRed = boardTask.rgbRed;
-        this.rgbGreen = boardTask.rgbGreen;
-        this.rgbBlue = boardTask.rgbBlue;
-        this.rgbType = boardTask.rgbType;
         this.deduction = boardTask.deduction;
         this.runTarget = boardTask.runTarget;
         this.targetAngle = boardTask.targetAngle;
@@ -205,13 +215,6 @@ public class BoardTask extends TaskModelBase {
         this.param = param;
     }
 
-    public int getPin() {
-        return this.pin;
-    }
-
-    public void setPin(int pin) {
-        this.pin = pin;
-    }
 
     public List<BoardPin> getPins() {
         return this.pins;
@@ -295,38 +298,6 @@ public class BoardTask extends TaskModelBase {
 
     public void setDelayInterval(long delayInterval) {
         this.delayInterval = delayInterval;
-    }
-
-    public int getRgbRed() {
-        return this.rgbRed;
-    }
-
-    public void setRgbRed(int rgbRed) {
-        this.rgbRed = rgbRed;
-    }
-
-    public int getRgbGreen() {
-        return this.rgbGreen;
-    }
-
-    public void setRgbGreen(int rgbGreen) {
-        this.rgbGreen = rgbGreen;
-    }
-
-    public int getRgbBlue() {
-        return this.rgbBlue;
-    }
-
-    public void setRgbBlue(int rgbBlue) {
-        this.rgbBlue = rgbBlue;
-    }
-
-    public String getRgbType() {
-        return this.rgbType;
-    }
-
-    public void setRgbType(String rgbType) {
-        this.rgbType = rgbType;
     }
 
     public int getDeduction() {
@@ -449,11 +420,6 @@ public class BoardTask extends TaskModelBase {
         return this;
     }
 
-    public BoardTask pin(int pin) {
-        setPin(pin);
-        return this;
-    }
-
     public BoardTask pins(List<BoardPin> pins) {
         setPins(pins);
         return this;
@@ -501,26 +467,6 @@ public class BoardTask extends TaskModelBase {
 
     public BoardTask delayInterval(long delayInterval) {
         setDelayInterval(delayInterval);
-        return this;
-    }
-
-    public BoardTask rgbRed(int rgbRed) {
-        setRgbRed(rgbRed);
-        return this;
-    }
-
-    public BoardTask rgbGreen(int rgbGreen) {
-        setRgbGreen(rgbGreen);
-        return this;
-    }
-
-    public BoardTask rgbBlue(int rgbBlue) {
-        setRgbBlue(rgbBlue);
-        return this;
-    }
-
-    public BoardTask rgbType(String rgbType) {
-        setRgbType(rgbType);
         return this;
     }
 
@@ -587,13 +533,14 @@ public class BoardTask extends TaskModelBase {
             return false;
         }
         BoardTask boardTask = (BoardTask) o;
-        return taskId == boardTask.taskId && Objects.equals(task, boardTask.task) && Objects.equals(method, boardTask.method) && Objects.equals(param, boardTask.param) && pin == boardTask.pin && Objects.equals(pins, boardTask.pins) && pinsUsed == boardTask.pinsUsed && Objects.equals(input, boardTask.input) && Objects.equals(output, boardTask.output) && rgb == boardTask.rgb && startAngle == boardTask.startAngle && moveAngle == boardTask.moveAngle && loops == boardTask.loops && beginDelay == boardTask.beginDelay && delayInterval == boardTask.delayInterval && rgbRed == boardTask.rgbRed && rgbGreen == boardTask.rgbGreen && rgbBlue == boardTask.rgbBlue && Objects.equals(rgbType, boardTask.rgbType) && deduction == boardTask.deduction && runTarget == boardTask.runTarget && targetAngle == boardTask.targetAngle && status == boardTask.status && nextTask == boardTask.nextTask && requestNext == boardTask.requestNext && systemTask == boardTask.systemTask && Objects.equals(variable, boardTask.variable) && Objects.equals(route, boardTask.route) && Objects.equals(mode, boardTask.mode) && Objects.equals(command, boardTask.command);
+        return taskId == boardTask.taskId && Objects.equals(task, boardTask.task) && Objects.equals(method, boardTask.method) && Objects.equals(param, boardTask.param) &&  Objects.equals(pins, boardTask.pins) && pinsUsed == boardTask.pinsUsed && Objects.equals(input, boardTask.input) && Objects.equals(output, boardTask.output) && rgb == boardTask.rgb && startAngle == boardTask.startAngle && moveAngle == boardTask.moveAngle && loops == boardTask.loops && beginDelay == boardTask.beginDelay && delayInterval == boardTask.delayInterval  &&  deduction == boardTask.deduction && runTarget == boardTask.runTarget && targetAngle == boardTask.targetAngle && status == boardTask.status && nextTask == boardTask.nextTask && requestNext == boardTask.requestNext && systemTask == boardTask.systemTask && Objects.equals(variable, boardTask.variable) && Objects.equals(route, boardTask.route) && Objects.equals(mode, boardTask.mode) && Objects.equals(command, boardTask.command);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(taskId, task, method, param, pin, pins, pinsUsed, input, output, rgb, startAngle, moveAngle, loops, beginDelay, delayInterval, rgbRed, rgbGreen, rgbBlue, rgbType, deduction, runTarget, targetAngle, status, nextTask, requestNext, systemTask, variable, route, mode, command);
+        return Objects.hash(taskId, task, method, param, pins, pinsUsed, input, output, rgb, startAngle, moveAngle, loops, beginDelay, delayInterval, deduction, runTarget, targetAngle, status, nextTask, requestNext, systemTask, variable, route, mode, command);
     }
+
 
     @Override
     public String toString() {
@@ -602,7 +549,6 @@ public class BoardTask extends TaskModelBase {
             ", task='" + getTask() + "'" +
             ", method='" + getMethod() + "'" +
             ", param='" + getParam() + "'" +
-            ", pin='" + getPin() + "'" +
             ", pins='" + getPins() + "'" +
             ", pinsUsed='" + getPinsUsed() + "'" +
             ", input='" + getInput() + "'" +
@@ -613,10 +559,6 @@ public class BoardTask extends TaskModelBase {
             ", loops='" + getLoops() + "'" +
             ", beginDelay='" + getBeginDelay() + "'" +
             ", delayInterval='" + getDelayInterval() + "'" +
-            ", rgbRed='" + getRgbRed() + "'" +
-            ", rgbGreen='" + getRgbGreen() + "'" +
-            ", rgbBlue='" + getRgbBlue() + "'" +
-            ", rgbType='" + getRgbType() + "'" +
             ", deduction='" + getDeduction() + "'" +
             ", runTarget='" + getRunTarget() + "'" +
             ", targetAngle='" + getTargetAngle() + "'" +

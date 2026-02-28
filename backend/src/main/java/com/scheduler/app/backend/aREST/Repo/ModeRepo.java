@@ -9,9 +9,9 @@ import com.scheduler.app.backend.aREST.Models.Mode;
 
 public interface ModeRepo  extends JpaRepository<Mode, Long>{
 
-    @Query(value="select * from scheduler.mode where mode= :mode and route_id= :id",nativeQuery = true)
+    @Query(value="select * from Mode where mode= :mode and route_id= :id",nativeQuery = true)
     Mode findMode(@Param("mode")String mode,@Param("id")long id);
 
-    @Query(value="select * from scheduler.mode where route_id=?1",nativeQuery = true)
+    @Query(value="select * from Mode where route_id=?1",nativeQuery = true)
     List<Mode> getModesByRouteId(long id);
 }

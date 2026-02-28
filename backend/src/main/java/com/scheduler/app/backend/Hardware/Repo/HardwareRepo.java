@@ -7,7 +7,7 @@ import com.scheduler.app.backend.Hardware.Models.Hardware;
 
 public interface HardwareRepo extends JpaRepository<Hardware, Long> {
 
-    @Query(value="Select * from scheduler.hardware where boardName=?1",nativeQuery = true)
+    @Query(value="Select * from Hardware where boardName=?1",nativeQuery = true)
     Hardware findHardwareByBoardName(String board);
 
 }

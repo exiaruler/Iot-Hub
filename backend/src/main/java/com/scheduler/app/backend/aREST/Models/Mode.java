@@ -1,4 +1,5 @@
 package com.scheduler.app.backend.aREST.Models;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,14 +27,14 @@ public class Mode extends ModelBase{
     private Route route;
     // mode
     @Column
-    private String mode;
+    private String mode="New Mode";
     // switch off Mode
     @Column
     private boolean switchOff=false;    
     // aREST command
     @JsonManagedReference("mode-params")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "mode",cascade =CascadeType.ALL)
-    private List<Parameter> params;
+    private List<Parameter> params=new ArrayList<>();
     // Board Task
     @JsonManagedReference("boardtask-mode")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "mode", cascade = CascadeType.ALL)
@@ -42,7 +43,7 @@ public class Mode extends ModelBase{
     //
     @JsonManagedReference("schedule-mode")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "mode",cascade =CascadeType.ALL)
-    private List<Schedule> scheduledModes;    
+    private List<Schedule> scheduledModes=new ArrayList<>();    
 
 
     public Mode() {

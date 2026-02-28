@@ -53,7 +53,7 @@ public class ScheduleController extends ControllerBase {
         return ResponseEntity.ok(schedule);
     }
     @DeleteMapping("/delete-schedule/{id}")
-    public ResponseEntity<String> deleteSchedule(@PathVariable long id){
+    public ResponseEntity<?> deleteSchedule(@PathVariable long id){
         boolean del=service.deleteSchedule(id);
         if(del){
         }

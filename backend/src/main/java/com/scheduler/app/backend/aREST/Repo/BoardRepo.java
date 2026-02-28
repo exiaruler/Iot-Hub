@@ -6,10 +6,10 @@ import org.springframework.data.repository.query.Param;
 import com.scheduler.app.backend.aREST.Models.Board;
 
 public interface BoardRepo extends JpaRepository<Board, Long>{
-    @Query(value="Select * from scheduler.board where  boardId=?1",nativeQuery = true)
+    @Query(value="Select * from Board where  boardId=?1",nativeQuery = true)
     Board findBoardByBoardId(String i);
 
-    @Query(value="Select * from scheduler.board where ip=:ip",nativeQuery = true)
+    @Query(value="Select * from Board where ip=:ip",nativeQuery = true)
     Board findBoardByIp(@Param("ip")String ip);
 
     

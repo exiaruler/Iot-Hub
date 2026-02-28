@@ -1,5 +1,6 @@
 package com.scheduler.app.backend.Hardware.Models;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,12 +26,12 @@ public class Hardware extends ModelBase {
     // pins
     @JsonManagedReference
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "hardware", cascade =CascadeType.ALL, orphanRemoval = true)
-    private List<HardwarePins> pins;
+    private List<HardwarePins> pins=new ArrayList<>();;
     // boards that use this hardware model
     //@JsonManagedReference
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "hardware", cascade =CascadeType.ALL)
     @JsonIgnore
-    private List<Board> boardsUsed;
+    private List<Board> boardsUsed=new ArrayList<>();;
 
 
     public Hardware() {

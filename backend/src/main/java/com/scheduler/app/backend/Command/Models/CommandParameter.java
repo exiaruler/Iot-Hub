@@ -41,16 +41,26 @@ public class CommandParameter extends ModelBase{
     // sub key of background task
     @Column 
     private String subKey="";
+    // input array index
+    @Column
+    private int arrayIndex=-1;
     // class of key that it belongs to
     @Column
     private String className;
-
-
+    // hour
+    @Column
+    private boolean hour;
+    // min
+    @Column
+    private boolean mins;
+    // seconds
+    @Column
+    private boolean seconds;
 
     public CommandParameter() {
     }
 
-    public CommandParameter(Command command, int parameterOrder, String component, String label, String type, boolean pin, String backgroundKey, String subKey, String className) {
+    public CommandParameter(Command command, int parameterOrder, String component, String label, String type, boolean pin, String backgroundKey, String subKey, int index, String className, boolean hour, boolean mins, boolean seconds) {
         this.command = command;
         this.parameterOrder = parameterOrder;
         this.component = component;
@@ -59,8 +69,13 @@ public class CommandParameter extends ModelBase{
         this.pin = pin;
         this.backgroundKey = backgroundKey;
         this.subKey = subKey;
+        this.arrayIndex = index;
         this.className = className;
+        this.hour = hour;
+        this.mins = mins;
+        this.seconds = seconds;
     }
+
 
     public Command getCommand() {
         return this.command;
@@ -138,6 +153,55 @@ public class CommandParameter extends ModelBase{
         this.className = className;
     }
 
+    public boolean isHour() {
+        return this.hour;
+    }
+
+    public boolean getHour() {
+        return this.hour;
+    }
+
+    public void setHour(boolean hour) {
+        this.hour = hour;
+    }
+
+    public boolean isMins() {
+        return this.mins;
+    }
+
+    public boolean getMins() {
+        return this.mins;
+    }
+
+    public void setMins(boolean mins) {
+        this.mins = mins;
+    }
+
+    public boolean isSeconds() {
+        return this.seconds;
+    }
+
+    public boolean getSeconds() {
+        return this.seconds;
+    }
+
+    public void setSeconds(boolean seconds) {
+        this.seconds = seconds;
+    }
+
+    public int getIndex() {
+        return this.arrayIndex;
+    }
+
+    public void setIndex(int index) {
+        this.arrayIndex = index;
+    }
+
+    public CommandParameter index(int index) {
+        setIndex(index);
+        return this;
+    }
+
     public CommandParameter command(Command command) {
         setCommand(command);
         return this;
@@ -183,6 +247,21 @@ public class CommandParameter extends ModelBase{
         return this;
     }
 
+    public CommandParameter hour(boolean hour) {
+        setHour(hour);
+        return this;
+    }
+
+    public CommandParameter mins(boolean mins) {
+        setMins(mins);
+        return this;
+    }
+
+    public CommandParameter seconds(boolean seconds) {
+        setSeconds(seconds);
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -191,12 +270,12 @@ public class CommandParameter extends ModelBase{
             return false;
         }
         CommandParameter commandParameter = (CommandParameter) o;
-        return Objects.equals(command, commandParameter.command) && parameterOrder == commandParameter.parameterOrder && Objects.equals(component, commandParameter.component) && Objects.equals(label, commandParameter.label) && Objects.equals(type, commandParameter.type) && pin == commandParameter.pin && Objects.equals(backgroundKey, commandParameter.backgroundKey) && Objects.equals(subKey, commandParameter.subKey) && Objects.equals(className, commandParameter.className);
+        return Objects.equals(command, commandParameter.command) && parameterOrder == commandParameter.parameterOrder && Objects.equals(component, commandParameter.component) && Objects.equals(label, commandParameter.label) && Objects.equals(type, commandParameter.type) && pin == commandParameter.pin && Objects.equals(backgroundKey, commandParameter.backgroundKey) && Objects.equals(subKey, commandParameter.subKey) && arrayIndex == commandParameter.arrayIndex && Objects.equals(className, commandParameter.className) && hour == commandParameter.hour && mins == commandParameter.mins && seconds == commandParameter.seconds;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(command, parameterOrder, component, label, type, pin, backgroundKey, subKey, className);
+        return Objects.hash(command, parameterOrder, component, label, type, pin, backgroundKey, subKey, arrayIndex, className, hour, mins, seconds);
     }
 
     @Override
@@ -210,10 +289,11 @@ public class CommandParameter extends ModelBase{
             ", pin='" + isPin() + "'" +
             ", backgroundKey='" + getBackgroundKey() + "'" +
             ", subKey='" + getSubKey() + "'" +
+            ", index='" + getIndex() + "'" +
             ", className='" + getClassName() + "'" +
+            ", hour='" + isHour() + "'" +
+            ", mins='" + isMins() + "'" +
+            ", seconds='" + isSeconds() + "'" +
             "}";
-    }
-    
-    
-    
+    }    
 }

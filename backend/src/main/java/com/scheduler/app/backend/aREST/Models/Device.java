@@ -1,4 +1,5 @@
 package com.scheduler.app.backend.aREST.Models;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,15 +59,15 @@ public class Device extends ModelBase{
     // list of routes
     @JsonManagedReference("device-routes")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "device", cascade =CascadeType.ALL)
-    private List<Route> routes;
+    private List<Route> routes=new ArrayList<>();
     // list of schedule task
     @JsonManagedReference("device-schedules")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "device", cascade =CascadeType.ALL)
-    private List<Schedule> schedules;
+    private List<Schedule> schedules=new ArrayList<>();
     // list of components that device uses. mapping purpose
     @JsonManagedReference("device-components")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "device",cascade =CascadeType.ALL)
-    private List<Component> components;
+    private List<Component> components=new ArrayList<>();
   
 
     public Device() {

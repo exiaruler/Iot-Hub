@@ -12,21 +12,20 @@ import org.springframework.validation.Validator;
 
 import com.scheduler.Base.JsonObject.JsonObject;
 import com.scheduler.app.backend.HTTPHandle.HttpUtil;
+import com.scheduler.app.backend.Messaging.MessageUtil;
 import com.scheduler.app.backend.Messaging.Models.InputCurrent;
 import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
-
 // template class 
 public class Base{
     @Autowired
     private EntityManager entityManager;
-    @Autowired
-    private Validator validator;
     protected HttpUtil httpUtil=new HttpUtil();
+    public MessageUtil messageUtil=new MessageUtil();
     public JsonObject jsonobj=new JsonObject();
     public final String pathBase="com.scheduler.app.backend";
     // temporary memory storage
     public static HashMap<String[],String> memory=new HashMap<String[],String>();
-
+    
     public String getModel(String module,String className){
         return pathBase+"."+module+"."+"Models"+"."+className;
     }
@@ -61,6 +60,7 @@ public class Base{
                 data=Long.parseLong(executeQuery);
             }
         } catch (Exception e) {
+            return data;
         }
         return data;
     }

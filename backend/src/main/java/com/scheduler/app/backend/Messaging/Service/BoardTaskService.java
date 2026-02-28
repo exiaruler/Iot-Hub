@@ -40,6 +40,14 @@ public class BoardTaskService extends Base{
     public BoardTask addBoardTask(BoardTask task){
         return boardTaskRepo.save(task);
     }
+    public BoardTask getTask(String comm,String type,boolean system){
+        BoardTask tsk=boardTaskRepo.getBoardTaskByCommand(comm, type, system);
+        return tsk;
+    }
+    // get board task by command id
+    public BoardTask getTaskByCommandId(long id){
+        return boardTaskRepo.getBoardTaskByCommandId(id);
+    }
     public List<BoardPin> getPins(long id){
         List<BoardPin> res=new ArrayList<>();
         List<BoardPin> query=boardPinRepo.getPinsByBoardTaskId(id);
@@ -58,4 +66,5 @@ public class BoardTaskService extends Base{
         if(query.size()>0) res=query;
         return res;
     }
+    
 }

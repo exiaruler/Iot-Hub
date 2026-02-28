@@ -1,5 +1,7 @@
 package com.scheduler.app.backend.Messaging.Board.Models;
+import com.scheduler.app.backend.Messaging.Models.BoardTask;
 
+import java.util.*;
 import java.util.Objects;
 // use for routine checks
 public class DeviceCheck{
@@ -19,13 +21,19 @@ public class DeviceCheck{
     private boolean scheduleAvaliable;
     // development mode and configurations
     private boolean devMode;
+    // server url
     private String devServerUrl="";
+    // websocket url
+    private String devWsPort="";
+    // websocket headers
+    // http headers
+    // command tasks
+    private List<BoardTask> tasks=new ArrayList<>();
     
-
     public DeviceCheck() {
     }
 
-    public DeviceCheck(long id, String boardId, boolean userActive, boolean updated, int routineCheck, int closeConnection, boolean scheduleAvaliable, boolean devMode, String devServerUrl) {
+    public DeviceCheck(long id, String boardId, boolean userActive, boolean updated, int routineCheck, int closeConnection, boolean scheduleAvaliable, boolean devMode, String devServerUrl, String devWsPort, List<BoardTask> tasks) {
         this.id = id;
         this.boardId = boardId;
         this.userActive = userActive;
@@ -35,6 +43,8 @@ public class DeviceCheck{
         this.scheduleAvaliable = scheduleAvaliable;
         this.devMode = devMode;
         this.devServerUrl = devServerUrl;
+        this.devWsPort = devWsPort;
+        this.tasks = tasks;
     }
 
     public long getId() {
@@ -125,6 +135,22 @@ public class DeviceCheck{
         this.devServerUrl = devServerUrl;
     }
 
+    public String getDevWsPort() {
+        return this.devWsPort;
+    }
+
+    public void setDevWsPort(String devWsPort) {
+        this.devWsPort = devWsPort;
+    }
+
+    public List<BoardTask> getTasks() {
+        return this.tasks;
+    }
+
+    public void setTasks(List<BoardTask> tasks) {
+        this.tasks = tasks;
+    }
+
     public DeviceCheck id(long id) {
         setId(id);
         return this;
@@ -170,6 +196,16 @@ public class DeviceCheck{
         return this;
     }
 
+    public DeviceCheck devWsPort(String devWsPort) {
+        setDevWsPort(devWsPort);
+        return this;
+    }
+
+    public DeviceCheck tasks(List<BoardTask> tasks) {
+        setTasks(tasks);
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -178,12 +214,12 @@ public class DeviceCheck{
             return false;
         }
         DeviceCheck deviceCheck = (DeviceCheck) o;
-        return id == deviceCheck.id && Objects.equals(boardId, deviceCheck.boardId) && userActive == deviceCheck.userActive && updated == deviceCheck.updated && routineCheck == deviceCheck.routineCheck && closeConnection == deviceCheck.closeConnection && scheduleAvaliable == deviceCheck.scheduleAvaliable && devMode == deviceCheck.devMode && Objects.equals(devServerUrl, deviceCheck.devServerUrl);
+        return id == deviceCheck.id && Objects.equals(boardId, deviceCheck.boardId) && userActive == deviceCheck.userActive && updated == deviceCheck.updated && routineCheck == deviceCheck.routineCheck && closeConnection == deviceCheck.closeConnection && scheduleAvaliable == deviceCheck.scheduleAvaliable && devMode == deviceCheck.devMode && Objects.equals(devServerUrl, deviceCheck.devServerUrl) && Objects.equals(devWsPort, deviceCheck.devWsPort) && Objects.equals(tasks, deviceCheck.tasks);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, boardId, userActive, updated, routineCheck, closeConnection, scheduleAvaliable, devMode, devServerUrl);
+        return Objects.hash(id, boardId, userActive, updated, routineCheck, closeConnection, scheduleAvaliable, devMode, devServerUrl, devWsPort, tasks);
     }
 
     @Override
@@ -198,8 +234,12 @@ public class DeviceCheck{
             ", scheduleAvaliable='" + isScheduleAvaliable() + "'" +
             ", devMode='" + isDevMode() + "'" +
             ", devServerUrl='" + getDevServerUrl() + "'" +
+            ", devWsPort='" + getDevWsPort() + "'" +
+            ", tasks='" + getTasks() + "'" +
             "}";
     }
+    
+
 
 
 }

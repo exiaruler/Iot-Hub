@@ -1,5 +1,6 @@
 package com.scheduler.app.backend.Command.Models;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -46,11 +47,11 @@ public class Command extends ModelBase{
     //@JsonIgnore
     @JsonManagedReference("command-route")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "command", cascade =CascadeType.ALL)
-    private List<Route> commandUsedRoutes;
+    private List<Route> commandUsedRoutes=new ArrayList<>();
     // list of parameters used for this command
     @JsonManagedReference("command-commandParameter")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "command", cascade =CascadeType.ALL)
-    private List<CommandParameter> commandParameter;
+    private List<CommandParameter> commandParameter=new ArrayList<>();
     // command 
     @JsonManagedReference("command-boardtask")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "command", cascade = CascadeType.ALL)
@@ -150,7 +151,7 @@ public class Command extends ModelBase{
     public void setSystemCommand(boolean systemCommand) {
         this.systemCommand = systemCommand;
     }
-
+    
     public List<Route> getCommandUsedRoutes() {
         return this.commandUsedRoutes;
     }

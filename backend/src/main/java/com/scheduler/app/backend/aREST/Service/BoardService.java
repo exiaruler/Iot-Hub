@@ -1,27 +1,20 @@
 package com.scheduler.app.backend.aREST.Service;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
 import javax.transaction.Transactional;
-
 import org.springframework.stereotype.Service;
-
 import com.scheduler.Base.Base;
-import com.scheduler.Base.JsonObject.JsonObject;
+import com.scheduler.app.backend.Command.Models.Command;
+import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
-import com.scheduler.app.backend.Hardware.Repo.HardwareRepo;
 import com.scheduler.app.backend.Hardware.Service.HardwareService;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
 import com.scheduler.app.backend.Messaging.Board.Models.DeviceCheck;
-import com.scheduler.app.backend.aREST.ArestV2Frame;
+import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Board;
-import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 
 
@@ -32,101 +25,88 @@ public class BoardService extends Base {
     private final BoardRepo board;
     public final HardwareService hardwareService;
     private final DeviceService deviceService;
-    public ArestV2Frame arest=new ArestV2Frame();
+    public final CommandService commandService;
+    public final ScheduleService scheduleService;
+    public final TaskService taskService;
 
-    public BoardService(BoardRepo board, DeviceService deviceService,HardwareService hardwareService) {
+
+    public BoardService(BoardRepo board, DeviceService deviceService,HardwareService hardwareService, CommandService commandService, ScheduleService scheduleService, TaskService taskService) {
         this.board = board;
         this.hardwareService = hardwareService;
         this.deviceService = deviceService;
+        this.commandService = commandService;
+        this.scheduleService = scheduleService;
+        this.taskService = taskService;
     }
-   
-
-    public Board addBoardTest(Board newBoard){
-        return board.save(newBoard);
-    }
-    public Board addBoardManual(String name,String ip,boolean arest,boolean status){
-        Board newBoard=new Board();
-        newBoard.setName(name);
-        newBoard.setIp(ip);
-        newBoard.setArest(arest);
-        newBoard.setStatus(status);
-        // generate board Id
-        List <Board> boards=board.findAll();
-        if(!boards.isEmpty()){
-            Board lastBoard=boards.get(boards.size()-1);
-            String boardId=generateRandString(4)+lastBoard.getId();
-            newBoard.setBoardId(boardId);
-        }else{
-            String boardId=generateRandString(4)+1;
-            newBoard.setBoardId(boardId);
-        }
-        return board.save(newBoard);
-    }
-    private String genereateBoardId(){
-        int totalBoards=board.findAll().size();
-        long lastIdPo=board.findAll().get(totalBoards-1).getId()+1;
-        if(totalBoards==0){
-            totalBoards=1;
-        }else totalBoards++;
-        String boardId=generateRandString(4)+lastIdPo;
+  
+    private String genereateBoardId(long id){
+        String boardId=generateRandString(4)+id;
         return boardId;
     }
     // socket board add
-    public Board addBoardSocket(String name,Hardware hardwareObj){
+    public Board addBoardSocket(String name,long hardwareObj){
         Board newBoard=new Board();
+        if(name==null||name==""){
+            throw new IllegalArgumentException("Board name is required");
+        }
         newBoard.setName(name);
-        newBoard.setBoardId(genereateBoardId());
         newBoard.setSocket(true);
-        if (hardwareObj != null) {
-            long id=hardwareObj.getId();
-            Hardware existingHardware = hardwareService.getBoard(id);
-            newBoard.setHardware(existingHardware);
+        Hardware hard=hardwareService.getBoard(hardwareObj);
+        if (hard != null) {
+            long id=hard.getId();
+            newBoard.setHardware(hard);
         }
         Board save=board.save(newBoard);
+        long id=save.getId();
+        save.setBoardId(genereateBoardId(id));
+        save=board.save(save);
         return save;
     }
     public Object updateBoardArestCommand(Board boardRec){
         return board.save(boardRec);
     }
+    public Board updateBoardObject(Board entry){
+        return board.save(entry);
+    }
     public Board addBoard(Board entry){
         return board.save(entry);
     }
-    public ArrayList<Board> scanNewBoards(){
-        ArrayList<Board> addedList=new ArrayList<Board>();
-        String ipAddress="192.168.1.";
-        for(int i=0; i<255; i++){
-            String ipTest=ipAddress+i;
-            String rawJson=httpUtil.request(ipTest);
-            if(rawJson!=""){
-                Board add=addBoardIp(ipTest,rawJson);
-                if(add!=null) addedList.add(add);
-            }
-        }
-        return addedList;
-    }
+
+    
     public DeviceCheck routineCheck(long id,int ram,String ip){
         DeviceCheck check=null;
-        Board boardExist=board.getReferenceById(id);
+        Board boardExist=board.findById(id).get();
         if(boardExist!=null){
-            /* 
-            LocalDate date=LocalDate.now();
-            LocalTime time=LocalTime.now();
-            LocalDateTime dt=LocalDateTime.now();
-            boardExist.setLastConnectDate(date);
-            boardExist.setLastConnectTime(time);
+            Instant dt=Instant.now();
             boardExist.setLastConnectDateTime(dt);
-            */
+            
             boardExist.setRamUsage(ram);
             if(boardExist.getIp()!=ip&&ip!="") boardExist.setIp(ip);
             check=createDeviceCheck(boardExist);
+            
+            List <BoardTask> taskLists=new ArrayList<>();
+            List <BoardTask> scheduledTasks=taskService.getNextTasks(boardExist.getId());
+            if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
+
+            if(taskLists.size()>0&&taskLists.size()<50){
+                check.setTasks(taskLists);
+            }else
+            {
+                // open websocket or message carrier to process startup commands
+
+            }
             board.save(boardExist);
         }
         return check;
     }
-    public DeviceCheck startup(BoardRegister register,String ip,int ram){
+    public DeviceCheck startup(BoardRegister register,String ip,int ram,String ssid,String macAddress){
         DeviceCheck check=null;
-        Board exist=board.findBoardByBoardId(register.getBoardId());
+        String boardId=register.getBoardId().trim();
+        Board exist=board.findBoardByBoardId(boardId);
         if(exist!=null){
+            Instant dt=Instant.now();
+            exist.setLastConnectDateTime(dt);
+            taskService.purgeOldTasks(exist.getId());
             // verify password
             check=createDeviceCheck(exist);
             if(exist.getIp()!=ip) exist.setIp(ip);
@@ -138,12 +118,42 @@ public class BoardService extends Base {
             // check if there are any startup tasks. if so add startup tasks to the scheduler for the board to process
             if(exist.getDevice().size()>0&&exist.getDevice()!=null){
                 String devicesId=Arrays.toString(deviceService.getDevicesById(exist.getId())).replace("[","").replace("]","");
-                int startUpCount=getDataInt("SELECT count(id) FROM scheduler.schedule where startup=true and device_id in ("+quoteParam(devicesId)+")");
+                int startUpCount=getDataInt("SELECT count(id) FROM Schedule where startup=true and device_id in ("+quoteParam(devicesId)+")");
                 if(startUpCount>0){
                     check.setScheduleAvaliable(true);
                 }
             }
-            board.save(exist);
+            scheduleService.startStartupSchedule(exist);
+            Board update=board.save(exist);
+
+            Command com=commandService.getCommandByCommand("httprequestconnection", "schedule", true);
+            Command command=commandService.getCommandByCommand("wsconnectopen", "schedule",true);
+            List <BoardTask> taskLists=new ArrayList<>();
+            if(com!=null){
+                BoardTask boTsk=com.getBoardCommand();
+                //long tskId=boTsk.taskIdGenerate(exist.getId());
+                boTsk.setTaskId(1);
+                System.out.println(boTsk.getTaskId());
+                boTsk.setDelayInterval(5000);
+                //taskLists.add(boTsk);
+            }
+            List <BoardTask> scheduledTasks=taskService.getNextTasks(exist.getId());
+            if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
+            if(command!=null){
+                BoardTask routinewsConn=command.getBoardCommand();
+                routinewsConn.setDelayInterval(1);
+                routinewsConn.setRunTarget(1);
+                routinewsConn.setParam("startup");
+                taskLists.add(routinewsConn);
+            }
+            if(taskLists.size()>0&&taskLists.size()<50){
+                check.setTasks(taskLists);
+            }else
+            {
+                // open websocket or message carrier to process startup commands
+
+            }
+            
         }
         return check;
     }
@@ -157,66 +167,15 @@ public class BoardService extends Base {
         return newCheck;
     }
     
-    public Board addBoardIp(String rawJson,String ip){
-        Board add=null;
-        if(arduinoboardCheck(rawJson)){
-            Board newBoard=new Board();
-            JsonObject json=jsonobj.jsonToObject(rawJson);
-            if(arest.testBoardFrameWork(json,ip)){
-                String boardId=json.findKeyValue("id");
-                Board existingBoard=board.findBoardByBoardId(boardId);
-                if(existingBoard!=null){
-                    newBoard=existingBoard;
-                }else{
-                    newBoard.setBoardId(boardId);
-                } 
-                newBoard.setName(json.findKeyValue("name"));
-                newBoard.setArest(true);
-                newBoard.setIp(ip);
-                List<Device> deviceList=deviceService.addDeviceFromScan(newBoard,ip,json);
-                newBoard.setDevice(deviceList);
-                Board save=addBoard(newBoard);
-                add=save;
-            }else
-            // arest Command
-            {
-                String boardId=json.findKeyValue("id");
-                Board existingBoard=board.findBoardByBoardId(boardId);
-                if(existingBoard!=null){
-                    newBoard=existingBoard;
-                }else{
-                    newBoard.setBoardId(boardId);
-                } 
-                newBoard.setName(json.findKeyValue("name"));
-                newBoard.setIp(ip);
-                newBoard.setArestCommand(true);
-                Board save=addBoard(newBoard);
-                add=save;
-            }
-            }
-        return add;
-    }
-    public Board addBoardByIp(String ip){
-        Board board=null;
-        if(ip!=""){
-            String jsonRaw=httpUtil.request(ip);
-            if(jsonRaw!=""){
-                board=addBoardIp(jsonRaw,ip);
-            }
-        }
-        return board;
-    }
     // save ws session id into database for use
     public Board setWsConnection(long id,String sessionId,int ram,boolean updateLastConnect){
-        Board boardRec=board.findById(id).get();
-        if(boardRec!=null){
+        Board boardRec=null;
+        Optional<Board> findBoard=board.findById(id);
+        if(findBoard.isPresent()){
+            boardRec=findBoard.get();
             boardRec.setWebsocketId(sessionId);
-            LocalDate date=LocalDate.now();
-            LocalTime time=LocalTime.now();
-            LocalDateTime dt=LocalDateTime.now();
+            Instant dt=Instant.now();
             if(updateLastConnect){
-                boardRec.setLastConnectDate(date);
-                boardRec.setLastConnectTime(time);
                 boardRec.setLastConnectDateTime(dt);
             }
             if(ram>0){
@@ -231,7 +190,8 @@ public class BoardService extends Base {
     public Board updateBoard(Board obj,long id){
         Board rec=board.findById(id).get();
         if(rec!=null){
-            rec=obj;
+            rec.setName(obj.getName());
+            rec.setDevMode(obj.getDevMode());
             board.save(rec);
         }
         return rec;
@@ -242,7 +202,10 @@ public class BoardService extends Base {
         return list;
     }
     public Board getBoard(long id){
-        return board.getReferenceById(id);
+        return board.findById(id).get();
+    }
+    public Board getBoardById(long id){
+        return board.findById(id).get();
     }
     public String deleteBoard(long id){
         String output="Does not exist";
@@ -262,7 +225,10 @@ public class BoardService extends Base {
         return board.findById(id);
     }
     public Hardware getBoardHardwareId(String id){
-        return board.findBoardByBoardId(id).getHardware();
+        Hardware hardware=board.findBoardByBoardId(id).getHardware();
+        //List<HardwarePins> pins=hardware.getPins().stream().sorted(Comparator.comparing(HardwarePins::getBoardPin)).collect(Collectors.toList());
+        //hardware.setPins(pins);
+        return hardware;
     }
     public Board getBoardByBoardId(String id){
         return board.findBoardByBoardId(id);

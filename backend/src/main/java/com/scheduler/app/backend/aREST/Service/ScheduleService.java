@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.scheduler.Base.Base;
 import com.scheduler.Base.ResourceNotFoundException;
+import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
@@ -49,9 +50,9 @@ public class ScheduleService extends Base{
         return del;
     }
       
-    public Task createTask(long id,String application,String url,long routeId,long modeId,boolean hasMotor,Schedule schedule,Device device,Route route){
+    public Task createTask(TaskEventId id,String application,String url,long routeId,long modeId,boolean hasMotor,Schedule schedule,Device device,Route route){
         Task tsk=null;
-        if(id>0&&schedule!=null){
+        if(id!=null&&schedule!=null){
             Task task=taskService.getTask(id).get();
             if(task!=null){
                 if(device!=null){
@@ -65,6 +66,7 @@ public class ScheduleService extends Base{
             }
         }else if(schedule!=null){   
             tsk=new Task();
+            tsk.initId(device.getBoard().getId(),device.getId());
             tsk.oneTimeJob(false);
             tsk.setApplication(application);
             tsk.setSchedule(schedule);
@@ -100,14 +102,14 @@ public class ScheduleService extends Base{
                         Optional<Mode> mode=rou.getMode().stream().filter(rec->rec.getId()==schedule.getModeId()).findFirst();
                         if(mode.isPresent()){
                             schedule.setMode(mode.get());
-                            Task tsk=createTask(0,schedule.getName(),"",rou.getId(),mode.get().getId(),hasMotor,schedule,device,rou);
+                            Task tsk=createTask(null,schedule.getName(),"",rou.getId(),mode.get().getId(),hasMotor,schedule,device,rou);
                             schedule.setTask(tsk);
                         }
                     }else
                     {
                         // if random mode is enabled select random mode
                         Mode mode=taskService.randomMode(rou.getMode());
-                        Task tsk=createTask(0,schedule.getName(),"",rou.getId(),mode.getId(),hasMotor,schedule,device,rou);
+                        Task tsk=createTask(null,schedule.getName(),"",rou.getId(),mode.getId(),hasMotor,schedule,device,rou);
                         schedule.setMode(null);
                         schedule.setTask(tsk);
 
@@ -151,7 +153,6 @@ public class ScheduleService extends Base{
                             tsk.setModeId(schedule.getModeId());
                             tsk.setMotor(hasMotor);
                             existRec.setTask(tsk);
-                            //taskService.addToScheduler();
                         }
                     }else
                     {
@@ -210,7 +211,7 @@ public class ScheduleService extends Base{
                             }
                         }
                         // save task
-                        taskSche=createTask(0,name,url,routeId,modeId,hasMotor,scheduleTask,device,route);
+                        taskSche=createTask(null,name,url,routeId,modeId,hasMotor,scheduleTask,device,route);
                         if(taskSche!=null) scheduleTask.setTask(taskSche);
                         deviceSchList.add(scheduleTask);
                         device.setSchedules(deviceSchList); 

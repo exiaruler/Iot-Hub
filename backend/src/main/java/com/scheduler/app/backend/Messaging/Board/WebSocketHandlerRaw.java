@@ -1,10 +1,19 @@
 package com.scheduler.app.backend.Messaging.Board;
 
 import java.io.IOException;
-import java.time.*;
-import java.util.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.stereotype.*;
+
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -17,8 +26,8 @@ import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInput;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInputTask;
-import com.scheduler.app.backend.Messaging.Models.*;
-import com.scheduler.app.backend.Task.SchedulerTask;
+import com.scheduler.app.backend.Messaging.Models.BoardTask;
+import com.scheduler.app.backend.Messaging.Models.BoardVariable;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
@@ -36,11 +45,13 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     public final CommandService commandService;
     public final ScheduleService scheduleService;
     public final TaskService taskService;
-    //public final SchedulerTask scheduler;
+    
     // board Id and boardTask
     public static HashMap<Long,BoardTask> sentMessages=new HashMap<>();
     //public SchedulerTask scheduler;
     private static final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    // commands not to log
+    private String[] banComs={"reset","resetboard"};
 
     public WebSocketHandlerRaw(BoardService boardService, CommandService commandService, ScheduleService scheduleService, TaskService taskService) {
         this.boardService = boardService;
@@ -66,7 +77,6 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
         LocalTime time=LocalTime.now();
         String strId=""+boardId+date.getDayOfMonth()+date.getMonthValue()+date.getYear()+time.getNano();
         long taskId=Long.parseLong(strId);
-        System.out.println("Task Id "+taskId);
         return taskId;
     }
     public String uponConnect(Board board) throws JsonProcessingException{
@@ -83,15 +93,12 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         String sessionId=session.getId();
         BoardSession boarSess=new BoardSession();
-        LocalDate date=LocalDate.now();
-        LocalTime time=LocalTime.now();
-        LocalDateTime dt=LocalDateTime.now();
+        Instant dt=Instant.now();
         String action="";
         String query = session.getUri().getQuery();
         // retrieve action
         if(query!=null){
             action=query.split("=")[1];
-            System.out.println(action);
         }
         var headers = session.getHandshakeHeaders();
         String boardIdStr=headers.getFirst("board");
@@ -101,63 +108,90 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
             boarSess.setSession(session);
             boarSess.setSessionId(sessionId);
             boarSess.setBoardId(boardId);
-            Board board=boardService.setWsConnection(boardId,sessionId,0,false);
-            // if time out reset enabled check if it meets the requirement
-            if(board.getRestartTimeout()){
-                Duration timeDura=Duration.between(time, board.getLastConnectTime());
-                Duration dateDura=Duration.between(dt,board.getLastConnectDateTime());
-                long sec=timeDura.getNano();
-                long dtSec=dateDura.getNano();
-                // if requirement is met send restart command and immediately disconnect
-                /* 
-                if(sec>board.getTimeout()&&dtSec>board.getTimeout()){
-                    Command resetCom=commandService.getCommandByCommand("reset", "action",true);
-                    BoardTask restTsk=resetCom.getBoardCommand();
-                    restTsk.initTaskId(boardId);
-                    String restMsg=objectToJson(restTsk);
-                    session.sendMessage(new TextMessage(restMsg));
-                    session.close();
+            //Board board=boardService.setWsConnection(boardId,sessionId,0,false);
+            Board board=null;
+            try {
+                board=boardService.getBoard(boardId);
+            } catch (Exception e) {
+                // TODO: handle exception
+            }
+            if(board!=null){
+                if(action.equals("check")&&board.getRestartTimeout()){
+                    // if time out reset enabled check if it meets the requirement
+                        Instant lastConnect = board.getLastConnectDateTime();
+                        long elapsedMs = lastConnect == null ? Long.MAX_VALUE : Duration.between(lastConnect, dt).toMillis();
+                        // if requirement is met add restart command to scheduler
+                        if(elapsedMs > board.getTimeout()){
+                            board.setLastConnectDateTime(Instant.now());
+                            boardService.updateBoardObject(board);
+                            //taskService.runCommand(board.getBoardId(),"reset","action", true, true);
+                        }
+                    
                 }
-                */
-            }
-            board=boardService.setWsConnection(boardId,sessionId,0,true);
-            String status=uponConnect(board);
-            // send status message
-            if(status!=""){
-                session.sendMessage(new TextMessage(status));
-            }
-            // board startup/power up
-            if(action.equals("startup")){
-                // set a state in the board to stop processing message when board starting up
-                taskService.purgeOldTasks(boardId);
-                //taskService.addToScheduler();
-                // system route
-                Command command=commandService.getCommandByCommand("wsconnectopen", "schedule",true);
-                BoardTask routinewsConn=command.getBoardCommand();
-                routinewsConn.initTaskId(boardId);
-                routinewsConn.setDelayInterval(board.getPeriodicCheck());
-                routinewsConn.setVariable(new BoardVariable());
-                routinewsConn=pruneBoardTask(routinewsConn);
-                String routineCheckMsg = objectToJson(routinewsConn);
-                if(routineCheckMsg!=""){
-                    session.sendMessage(new TextMessage(routineCheckMsg));
-                    sentMessages.put(boardId,routinewsConn);
-                    // find startup functions
-                    boolean startupTskExist=scheduleService.startStartupSchedule(board);
-                    if(!startupTskExist){
+                // send status check first before saving the session id
+                String status=uponConnect(board);
+                // send status message
+                if(status!=""){
+                    session.sendMessage(new TextMessage(status));
+                }
+                // save session id
+                board=boardService.setWsConnection(boardId,sessionId,0,true);
+                // board startup/power up
+                if(action.equals("startup")){
+                    // set a state in the board to stop processing message when board starting up
+                    taskService.purgeOldTasks(boardId);
+                    // system route
+                    Command command=commandService.getCommandByCommand("wsconnectopen", "schedule",true);
+                    BoardTask routinewsConn=command.getBoardCommand();
+                    routinewsConn.initTaskId(boardId);
+                    routinewsConn.setDelayInterval(board.getPeriodicCheck());
+                    routinewsConn.setVariable(new BoardVariable());
+                    routinewsConn.setParam("check");
+                    routinewsConn=pruneBoardTask(routinewsConn);
+                    routinewsConn.setRunTarget(0);
+                    String routineCheckMsg = objectToJson(routinewsConn);
+                    if(routineCheckMsg!=""){
+                        session.sendMessage(new TextMessage(routineCheckMsg));
+                        sentMessages.put(boardId,routinewsConn);
+                        // find startup functions
+                        boolean esp32Check=board.getHardware().getBoardName().equals("ESP32");
+                        if(esp32Check){
+                            session.close();
+                        }else
+                        {
+                            boolean startupTskExist=scheduleService.startStartupSchedule(board);
+                            if(!startupTskExist){
+                                session.close();
+                            }
+                        }
+                    }
+                }
+                // routine check
+                if(action.equals("check")){
+                    // check for upcoming schedule commands or user active on the board
+                    Instant dtcurr=Instant.now();
+                    if(!taskService.checkNextTask(dtcurr,boardId,null)){
                         session.close();
+                        
                     }
                 }
             }
-            // routine check
-            if(action.equals("check")){
-                // check for upcoming schedule commands or user active on the board
-                Instant dtcurr=Instant.now();
-                if(!taskService.checkNextTask(dtcurr,boardId,0)){
-                    session.close();
+            else
+            {
+                // board does not exist send board reset command to wipe board configuration
+                Command restCommand=commandService.getCommandByCommand("resetboard", "action",true);
+                BoardTask reset=restCommand.getBoardCommand();
+                reset.setVariable(new BoardVariable());
+                String resetMsg = objectToJson(reset);
+                if(resetMsg!=""){
+                    session.sendMessage(new TextMessage(resetMsg));
                 }
+                session.close();
             }
+
         }
+    
+            
     }
 
     @Override
@@ -204,7 +238,6 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
             json = mapper.writeValueAsString(task);
         } catch (Exception e) {
             json="";
-            // TODO: handle exception
         }
         return json;
     }
@@ -216,23 +249,34 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
         return boardInput;
     }
     // use in scheduler, sent message commands to board
-    public SentToClientResponse sendToClient(String sessionId,BoardTask task,long boardId,Task taskObj,Device device,Route route,Mode mode) throws IOException {
+    public SentToClientResponse sendToClient(String sessionId,BoardTask task,long boardId,Task taskObj,Device device,Route route,Mode mode,String comMessage) throws IOException {
         SentToClientResponse resp=new SentToClientResponse();
         WebSocketSession session = sessions.get(sessionId);
         if (session != null && session.isOpen()) {
             if(!sentMessages.containsKey(boardId)){
-                task.initTaskId(boardId);
-                String message=objectToJson(task);
+                String message="";
+                if(task!=null){
+                    task.initTaskId(boardId);
+                    message=objectToJson(task);
+                }else if(comMessage!=""){
+                    message=comMessage;
+                }
                 if(message!=""){
+                    boolean log=false;
+                    // reset and update commands do not log
+                    if(Arrays.binarySearch(banComs,task.getMethod())<0) log=true;
                     System.out.println("task sent "+taskObj.getApplication());
                     System.out.println("schedule time "+taskObj.getScheduledTime());
-                    System.out.println("schedule time formatted "+taskObj.getScheduledTime().getHour()+":"+taskObj.getScheduledTime().getMinute()+":"+taskObj.getScheduledTime().getSecond());
+                    //System.out.println("schedule time formatted "+taskObj.getScheduledTime().getHour()+":"+taskObj.getScheduledTime().getMinute()+":"+taskObj.getScheduledTime().getSecond());
                     session.sendMessage(new TextMessage(message));
-                    sentMessages.put(boardId, task);
+                    if(log)sentMessages.put(boardId, task);
                     List<Task> nextTasks=taskService.taskComplete(taskObj, device, route, mode);
                     resp.setSent(true);
                     resp.setNextTasks(nextTasks);
                     // log message sent
+                    if(log){
+
+                    }
                     // logic to decide to close websocket
                     Instant dtcurr=Instant.now();
                     if(!taskService.checkNextTask(dtcurr,boardId,taskObj.getId())){

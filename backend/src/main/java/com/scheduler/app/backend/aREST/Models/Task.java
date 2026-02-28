@@ -1,31 +1,33 @@
 package com.scheduler.app.backend.aREST.Models;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
 import java.util.Objects;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Embedded;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.OneToOne;
-import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.scheduler.Base.ModelBase.ModelBase;
+import com.scheduler.Base.ModelBase.TaskEventId;
+import com.scheduler.Base.ModelBase.TaskEventModelBase;
 
 @Entity
-public class Task extends ModelBase {
+public class Task extends TaskEventModelBase {
     // application
     @Column
     private String application;
     // device Id 
-    @Column
+    @Column(insertable = false, updatable = false)
     private long deviceId;
     // board id 
-    @Column
-    private long board;
+    @Column(insertable = false, updatable = false)
+    private long boardId;
     // route id
     @Column long routeId;
     // mode id
@@ -37,6 +39,10 @@ public class Task extends ModelBase {
     // boardTask id
     @Column
     private long boardTaskId=0;
+    // board task json string
+    @Lob
+    @Column(columnDefinition ="MEDIUMTEXT")
+    private String boardTaskJson="";
     // url
     @Column
     private String url;
@@ -54,7 +60,7 @@ public class Task extends ModelBase {
     private boolean motor=false;
     // scheduled run time for task
     @Column
-    private LocalDateTime scheduledTime=LocalDateTime.now();
+    private Instant scheduledTime=Instant.now();
     // task to repeat once
     @Column 
     private boolean oneTimeJob=true;
@@ -62,8 +68,13 @@ public class Task extends ModelBase {
     @Column
     private boolean systemTask=false;
     // parent task or associated task, associated by existing automated tasks
-    @Column 
-    private long parentTask=0;
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "boardId", column = @Column(name = "parent_board_id")),
+        @AttributeOverride(name = "deviceId", column = @Column(name = "parent_device_id")),
+        @AttributeOverride(name = "eventTime", column = @Column(name = "parent_event_time"))
+    })
+    private TaskEventId parentTask;
     // update device status in database
     @Column
     private boolean updateDevice=false;
@@ -80,22 +91,21 @@ public class Task extends ModelBase {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "schedule_id",referencedColumnName = "id")
     private Schedule schedule;
-    // list of modes when random is enabled
-    @Transient 
-    List<Mode> randomModes=new ArrayList<>();
 
 
     public Task() {
     }
 
-    public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, long boardTaskId, String url, String payload, String section, int priority, boolean motor, LocalDateTime scheduledTime, boolean oneTimeJob, boolean systemTask, long parentTask, boolean updateDevice, boolean active, boolean httpTask, int retry, Schedule schedule) {
+    public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, long boardTaskId, String boardTaskJson, String url, String payload, String section, int priority, boolean motor, Instant scheduledTime, boolean oneTimeJob, boolean systemTask, TaskEventId parentTask, boolean updateDevice, boolean active, boolean httpTask, int retry, Schedule schedule) {
+        this.initId(boardId, deviceId);
         this.application = application;
         this.deviceId = deviceId;
-        this.board = board;
+        this.boardId = board;
         this.routeId = routeId;
         this.modeId = modeId;
         this.commandId = commandId;
         this.boardTaskId = boardTaskId;
+        this.boardTaskJson = boardTaskJson;
         this.url = url;
         this.payload = payload;
         this.section = section;
@@ -129,11 +139,11 @@ public class Task extends ModelBase {
     }
 
     public long getBoard() {
-        return this.board;
+        return this.boardId;
     }
 
     public void setBoard(long board) {
-        this.board = board;
+        this.boardId = board;
     }
 
     public long getRouteId() {
@@ -166,6 +176,14 @@ public class Task extends ModelBase {
 
     public void setBoardTaskId(long boardTaskId) {
         this.boardTaskId = boardTaskId;
+    }
+
+    public String getBoardTaskJson() {
+        return this.boardTaskJson;
+    }
+
+    public void setBoardTaskJson(String boardTaskJson) {
+        this.boardTaskJson = boardTaskJson;
     }
 
     public String getUrl() {
@@ -212,11 +230,11 @@ public class Task extends ModelBase {
         this.motor = motor;
     }
 
-    public LocalDateTime getScheduledTime() {
+    public Instant getScheduledTime() {
         return this.scheduledTime;
     }
 
-    public void setScheduledTime(LocalDateTime scheduledTime) {
+    public void setScheduledTime(Instant scheduledTime) {
         this.scheduledTime = scheduledTime;
     }
 
@@ -244,11 +262,11 @@ public class Task extends ModelBase {
         this.systemTask = systemTask;
     }
 
-    public long getParentTask() {
+    public TaskEventId getParentTask() {
         return this.parentTask;
     }
 
-    public void setParentTask(long parentTask) {
+    public void setParentTask(TaskEventId parentTask) {
         this.parentTask = parentTask;
     }
 
@@ -339,6 +357,11 @@ public class Task extends ModelBase {
         return this;
     }
 
+    public Task boardTaskJson(String boardTaskJson) {
+        setBoardTaskJson(boardTaskJson);
+        return this;
+    }
+
     public Task url(String url) {
         setUrl(url);
         return this;
@@ -364,7 +387,7 @@ public class Task extends ModelBase {
         return this;
     }
 
-    public Task scheduledTime(LocalDateTime scheduledTime) {
+    public Task scheduledTime(Instant scheduledTime) {
         setScheduledTime(scheduledTime);
         return this;
     }
@@ -379,7 +402,7 @@ public class Task extends ModelBase {
         return this;
     }
 
-    public Task parentTask(long parentTask) {
+    public Task parentTask(TaskEventId parentTask) {
         setParentTask(parentTask);
         return this;
     }
@@ -409,16 +432,6 @@ public class Task extends ModelBase {
         return this;
     }
 
-
-    public List<Mode> getRandomModes() {
-        return this.randomModes;
-    }
-
-    public void setRandomModes(List<Mode> randomModes) {
-        this.randomModes = randomModes;
-    }
-
-
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -427,12 +440,12 @@ public class Task extends ModelBase {
             return false;
         }
         Task task = (Task) o;
-        return Objects.equals(application, task.application) && deviceId == task.deviceId && board == task.board && routeId == task.routeId && modeId == task.modeId && commandId == task.commandId && boardTaskId == task.boardTaskId && Objects.equals(url, task.url) && Objects.equals(payload, task.payload) && Objects.equals(section, task.section) && priority == task.priority && motor == task.motor && Objects.equals(scheduledTime, task.scheduledTime) && oneTimeJob == task.oneTimeJob && systemTask == task.systemTask && parentTask == task.parentTask && updateDevice == task.updateDevice && active == task.active && httpTask == task.httpTask && retry == task.retry && Objects.equals(schedule, task.schedule);
+        return Objects.equals(application, task.application) && deviceId == task.deviceId && boardId == task.boardId && routeId == task.routeId && modeId == task.modeId && commandId == task.commandId && boardTaskId == task.boardTaskId && Objects.equals(boardTaskJson, task.boardTaskJson) && Objects.equals(url, task.url) && Objects.equals(payload, task.payload) && Objects.equals(section, task.section) && priority == task.priority && motor == task.motor && Objects.equals(scheduledTime, task.scheduledTime) && oneTimeJob == task.oneTimeJob && systemTask == task.systemTask && parentTask == task.parentTask && updateDevice == task.updateDevice && active == task.active && httpTask == task.httpTask && retry == task.retry && Objects.equals(schedule, task.schedule);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(application, deviceId, board, routeId, modeId, commandId, boardTaskId, url, payload, section, priority, motor, scheduledTime, oneTimeJob, systemTask, parentTask, updateDevice, active, httpTask, retry, schedule);
+        return Objects.hash(application, deviceId, boardId, routeId, modeId, commandId, boardTaskId, boardTaskJson, url, payload, section, priority, motor, scheduledTime, oneTimeJob, systemTask, parentTask, updateDevice, active, httpTask, retry, schedule);
     }
 
     @Override
@@ -445,6 +458,7 @@ public class Task extends ModelBase {
             ", modeId='" + getModeId() + "'" +
             ", commandId='" + getCommandId() + "'" +
             ", boardTaskId='" + getBoardTaskId() + "'" +
+            ", boardTaskJson='" + getBoardTaskJson() + "'" +
             ", url='" + getUrl() + "'" +
             ", payload='" + getPayload() + "'" +
             ", section='" + getSection() + "'" +
@@ -461,6 +475,6 @@ public class Task extends ModelBase {
             ", schedule='" + getSchedule() + "'" +
             "}";
     }
-
+    
     
 }

@@ -1,7 +1,6 @@
 package com.scheduler.app.backend.aREST.Models;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,6 +34,10 @@ public class Board extends ModelBase {
     @Column
     @NotBlank(message = "Require name")
     private String name;
+    // SSID
+    
+    // mac address
+
     // local ip address
     @Column
     private String ip;
@@ -65,15 +68,9 @@ public class Board extends ModelBase {
     // development mode
     @Column
     private boolean devMode;
-    // last connection date (HTTP or websocket)
-    @Column(nullable = true)
-    LocalDate lastConnectDate;
-    // last connecton time (HTTP or websocket)
-    @Column(nullable = true)
-    LocalTime lastConnectTime;
     // last connection date and time (HTTP or websocket)
     @Column(nullable = true)
-    LocalDateTime lastConnectDateTime;
+    Instant lastConnectDateTime;
     // restart device timeout (mins to hours)
     @Column(nullable = true)
     private long timeout;
@@ -86,7 +83,7 @@ public class Board extends ModelBase {
     // device list
     @JsonManagedReference("device-board")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "board", cascade =CascadeType.ALL)
-    private List<Device> device;
+    private List<Device> device=new ArrayList<>();
     // section that the board belongs to
     @JsonBackReference("board-section")
     @ManyToOne
@@ -104,7 +101,7 @@ public class Board extends ModelBase {
     public Board() {
     }
 
-    public Board(String boardId, String boardKey, String name, String ip, boolean status, boolean arest, boolean arestCommand, boolean socket, int periodicCheck, int ramUsage, boolean activated, String websocketId, boolean devMode, LocalDate lastConnectDate, LocalTime lastConnectTime, LocalDateTime lastConnectDateTime, long timeout, boolean restartTimeout, int tasksExecuted, List<Device> device, Section section, Hardware hardware, long hardwardId) {
+    public Board(String boardId, String boardKey, String name, String ip, boolean status, boolean arest, boolean arestCommand, boolean socket, int periodicCheck, int ramUsage, boolean activated, String websocketId, boolean devMode, Instant lastConnectDateTime, long timeout, boolean restartTimeout, int tasksExecuted, List<Device> device, Section section, Hardware hardware, long hardwardId) {
         this.boardId = boardId;
         this.boardKey = boardKey;
         this.name = name;
@@ -118,8 +115,6 @@ public class Board extends ModelBase {
         this.activated = activated;
         this.websocketId = websocketId;
         this.devMode = devMode;
-        this.lastConnectDate = lastConnectDate;
-        this.lastConnectTime = lastConnectTime;
         this.lastConnectDateTime = lastConnectDateTime;
         this.timeout = timeout;
         this.restartTimeout = restartTimeout;
@@ -258,27 +253,11 @@ public class Board extends ModelBase {
         this.devMode = devMode;
     }
 
-    public LocalDate getLastConnectDate() {
-        return this.lastConnectDate;
-    }
-
-    public void setLastConnectDate(LocalDate lastConnectDate) {
-        this.lastConnectDate = lastConnectDate;
-    }
-
-    public LocalTime getLastConnectTime() {
-        return this.lastConnectTime;
-    }
-
-    public void setLastConnectTime(LocalTime lastConnectTime) {
-        this.lastConnectTime = lastConnectTime;
-    }
-
-    public LocalDateTime getLastConnectDateTime() {
+    public Instant getLastConnectDateTime() {
         return this.lastConnectDateTime;
     }
 
-    public void setLastConnectDateTime(LocalDateTime lastConnectDateTime) {
+    public void setLastConnectDateTime(Instant lastConnectDateTime) {
         this.lastConnectDateTime = lastConnectDateTime;
     }
 
@@ -407,17 +386,7 @@ public class Board extends ModelBase {
         return this;
     }
 
-    public Board lastConnectDate(LocalDate lastConnectDate) {
-        setLastConnectDate(lastConnectDate);
-        return this;
-    }
-
-    public Board lastConnectTime(LocalTime lastConnectTime) {
-        setLastConnectTime(lastConnectTime);
-        return this;
-    }
-
-    public Board lastConnectDateTime(LocalDateTime lastConnectDateTime) {
+    public Board lastConnectDateTime(Instant lastConnectDateTime) {
         setLastConnectDateTime(lastConnectDateTime);
         return this;
     }
@@ -465,12 +434,12 @@ public class Board extends ModelBase {
             return false;
         }
         Board board = (Board) o;
-        return Objects.equals(boardId, board.boardId) && Objects.equals(boardKey, board.boardKey) && Objects.equals(name, board.name) && Objects.equals(ip, board.ip) && status == board.status && arest == board.arest && arestCommand == board.arestCommand && socket == board.socket && periodicCheck == board.periodicCheck && ramUsage == board.ramUsage && activated == board.activated && Objects.equals(websocketId, board.websocketId) && devMode == board.devMode && Objects.equals(lastConnectDate, board.lastConnectDate) && Objects.equals(lastConnectTime, board.lastConnectTime) && Objects.equals(lastConnectDateTime, board.lastConnectDateTime) && Objects.equals(timeout, board.timeout) && restartTimeout == board.restartTimeout && tasksExecuted == board.tasksExecuted && Objects.equals(device, board.device) && Objects.equals(section, board.section) && Objects.equals(hardware, board.hardware) && hardwardId == board.hardwardId;
+        return Objects.equals(boardId, board.boardId) && Objects.equals(boardKey, board.boardKey) && Objects.equals(name, board.name) && Objects.equals(ip, board.ip) && status == board.status && arest == board.arest && arestCommand == board.arestCommand && socket == board.socket && periodicCheck == board.periodicCheck && ramUsage == board.ramUsage && activated == board.activated && Objects.equals(websocketId, board.websocketId) && devMode == board.devMode && Objects.equals(lastConnectDateTime, board.lastConnectDateTime) && Objects.equals(timeout, board.timeout) && restartTimeout == board.restartTimeout && tasksExecuted == board.tasksExecuted && Objects.equals(device, board.device) && Objects.equals(section, board.section) && Objects.equals(hardware, board.hardware) && hardwardId == board.hardwardId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(boardId, boardKey, name, ip, status, arest, arestCommand, socket, periodicCheck, ramUsage, activated, websocketId, devMode, lastConnectDate, lastConnectTime, lastConnectDateTime, timeout, restartTimeout, tasksExecuted, device, section, hardware, hardwardId);
+        return Objects.hash(boardId, boardKey, name, ip, status, arest, arestCommand, socket, periodicCheck, ramUsage, activated, websocketId, devMode, lastConnectDateTime, timeout, restartTimeout, tasksExecuted, device, section, hardware, hardwardId);
     }
 
     @Override
@@ -489,8 +458,6 @@ public class Board extends ModelBase {
             ", activated='" + isActivated() + "'" +
             ", websocketId='" + getWebsocketId() + "'" +
             ", devMode='" + isDevMode() + "'" +
-            ", lastConnectDate='" + getLastConnectDate() + "'" +
-            ", lastConnectTime='" + getLastConnectTime() + "'" +
             ", lastConnectDateTime='" + getLastConnectDateTime() + "'" +
             ", timeout='" + getTimeout() + "'" +
             ", restartTimeout='" + isRestartTimeout() + "'" +

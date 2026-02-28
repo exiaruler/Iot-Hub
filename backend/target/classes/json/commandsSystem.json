@@ -1,7 +1,5 @@
 [
     {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "schedule",
         "displayName":"Open WebSocket Connection",
         "command": "wsconnectopen",
@@ -43,8 +41,6 @@
 }
     },
     {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "schedule",
         "displayName":"Close WebSocket Connection",
         "command": "wsconnectclose",
@@ -86,8 +82,6 @@
 }
     },
     {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "schedule",
         "displayName":"Request Connection",
         "command": "httprequestconnection",
@@ -129,8 +123,6 @@
 }
     },
     {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "schedule",
         "displayName":"Start Queue",
         "command": "queuestart",
@@ -172,8 +164,6 @@
 }
     },
         {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "action",
         "displayName":"Update Board Firmware",
         "command": "update",
@@ -215,8 +205,6 @@
 }
     },
     {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "action",
         "displayName":"Restart",
         "command": "reset",
@@ -258,8 +246,6 @@
 }
     },
     {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "action",
         "displayName":"Close WebSocket Connection",
         "command": "closesock",
@@ -301,8 +287,6 @@
 }
     },
     {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "action",
         "displayName":"Stop Queue",
         "command": "queuestop",
@@ -344,8 +328,6 @@
 }
     },
     {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "action",
         "displayName":"Status Check",
         "command": "status",
@@ -387,8 +369,6 @@
 }
     },
       {
-        "createdDate": "2025-04-21T03:18:58.65104",
-        "updatedDate": "2025-04-21T03:18:58.65104",
         "commandType": "action",
         "displayName":"Reset Board Configuration",
         "command": "resetboard",

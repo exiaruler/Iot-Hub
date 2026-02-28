@@ -1,9 +1,6 @@
 package com.scheduler.app.backend.Task;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.scheduler.app.backend.Task.Model.CompletedTask;
 import com.scheduler.app.backend.Task.Thread.HttpSchedule;
 import com.scheduler.app.backend.Task.Thread.CheckRun;
@@ -17,8 +14,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scheduler.app.backend.Command.Models.Command;
+import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Board.SentToClientResponse;
 import com.scheduler.app.backend.Messaging.Board.WebSocketHandlerRaw;
 import com.scheduler.app.backend.Messaging.Models.BoardPin;
@@ -36,9 +36,9 @@ public class SchedulerTask{
     // running queue active
     public static boolean queueRun=false;
     @Autowired
-    private TaskService taskService;
-    @Autowired
     private BoardService boardService;
+    @Autowired
+    public TaskService taskService;
     @Autowired
     private DeviceService deviceService;
     @Autowired
@@ -49,17 +49,15 @@ public class SchedulerTask{
     public WebSocketHandlerRaw websocketHandler;
     @Autowired
     public BoardTaskService boardTaskService;
-
+    @Autowired
+    public CommandService commandService;
+    
     // task queue
     private static List<Task> queue=new ArrayList<Task>();
-    // modifed tasks incoming
-    private static List<Task> modifiedTasks=new ArrayList<Task>();
     // task running 
     private static List<Task> runningQueue=new ArrayList<Task>();
     // task finished processing 
     private static List<CompletedTask> completeTaskQueue=new ArrayList<CompletedTask>();
-    // complete received websocket messages
-    private static Map<String,String> completeMessages=new ConcurrentHashMap<>();
     
     @Scheduled(fixedRate = 1000)
     public void runSche(){
@@ -69,21 +67,43 @@ public class SchedulerTask{
         }
         if(running&&!queue.isEmpty()){
             start=true;
-            LocalDateTime dt=LocalDateTime.now();
+            Instant dt=Instant.now();
             System.out.println(dt);
             System.out.println("number of task that are pending in the queue "+queue.size());
             System.out.println("number of task that are running "+runningQueue.size());
             List<Task> scheduled=queue.stream().filter(rec->rec.getScheduledTime().equals(dt)||rec.getScheduledTime().isBefore(dt)).toList();
             if(scheduled.size()>0){
-                for(int x=0; x<scheduled.size(); x++){
-                    Task task=queue.get(x);
-                    String [] paramsArr={};
+                scheduled.stream().forEach(tas->processTask(tas));
+            }
+        }
+    }
+    // get board tasks at the present by boardId
+    public List<Task> queryQueueNow(long boardId){
+        Instant dt=Instant.now();
+        List<Task> filterList=queue.stream().filter(rec->rec.getScheduledTime().equals(dt)||rec.getScheduledTime().isBefore(dt)&&rec.getBoard()==boardId||rec.getSystemTask()&&rec.getBoard()==boardId).toList();
+        queue.removeIf(rec ->(rec.getScheduledTime().equals(dt)|| rec.getScheduledTime().isBefore(dt))&& rec.getBoard() == boardId||rec.getSystemTask()&&rec.getBoard()==boardId);
+        return filterList;
+    }
+    public BoardTask boardTaskToObject(String json){
+        BoardTask tsk=null;
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            tsk=mapper.readValue(json,BoardTask.class);
+        } catch (Exception e) {
+            return null;
+        }
+        return tsk;
+    }
+    public void processTask(Task task){
+        String [] paramsArr={};
                     // add task to running queue if it passes check else let it stick in the queue 
                     if(!checkTaskRunning(task)&&!task.getHttpTask()){
+                        Board board=null;
                         Device device=null;
                         Route route=null;
                         Mode mode=null;
                         try {
+                            board=boardService.getBoardById(task.getBoard());
                             device=deviceService.getDevice(task.getDeviceId());
                             route=routeService.getRouteById(task.getRouteId());
                             mode=routeService.getMode(task.getModeId());
@@ -91,11 +111,11 @@ public class SchedulerTask{
                             
                         }
                         paramsArr=parameterService.getParamsArray(task.getModeId());
-                        if(device.getBoard().getSocket()){
+                        if(board.getSocket()){
                             boolean removed=queue.remove(task);
                             if(removed){
                                 try {
-                                    sendSocketMessageTest(task, device, route, mode);
+                                    sendSocketMessage(task, board,device, route, mode);
                                 } catch (InstantiationException e) {
                                     // TODO Auto-generated catch block
                                     e.printStackTrace();
@@ -107,20 +127,17 @@ public class SchedulerTask{
                     if(task.getHttpTask()){
                         HttpSchedule thread=new HttpSchedule(task,null,null,null,paramsArr);
                         thread.start();
-                        queue.remove(x);
+                        queue.remove(task);
                     }
-                    
-                }
-            }
-        }
     }
+    /* */
     @Scheduled(fixedRate = 60000)
     public void checkRunningQueue(){
         if(queueRun){
-            LocalDateTime dt=LocalDateTime.now();
+            Instant dt=Instant.now();
             for(int i=0; i<runningQueue.size(); i++){
                 Task task=queue.get(i);
-                LocalDateTime taskDt=task.getScheduledTime();
+                Instant taskDt=task.getScheduledTime();
                 if(dt.isAfter(taskDt)&&checkTaskRunning(task)){
                     /* 
                     if(task.getRetry()!=task.getSchedule().getRetries()){
@@ -159,44 +176,11 @@ public class SchedulerTask{
     // check if the device or board is running to avoid clashing or strain on power
     public boolean checkTaskRunning(Task task){
         boolean result=false;
-        String tdevice=task.getApplication();
-        long tboard=task.getBoard();
-        String tsection=task.getSection();
-        boolean tmotor=task.getMotor();
-        boolean synchronous=false;
         queue.stream().filter(rec->rec.getId()==task.getId()).findFirst();
         List<Task> query=runningQueue.stream().filter(rec->rec.getBoard()==task.getBoard()&&rec.getDeviceId()==task.getDeviceId()||rec.getId()==task.getId()).toList();
         if(query.size()>0){
             result=true;
         }
-        /* 
-        if(!synchronous){
-            for(int i=0; i<runningQueue.size(); i++){
-                Task running=runningQueue.get(i);
-                String rdevice=running.getApplication();
-                long rboard=running.getBoard();
-                String rsection=running.getSection();
-                boolean rmotor=running.getMotor();
-                if(tdevice.equals(rdevice)){
-                    result=true;
-                }
-                if(tboard==rboard){
-                    result=true;
-                }
-                // validate if servo or any motor device running in that section or board
-                if(tsection.equals(rsection)&&rsection!=""){
-                    if(tmotor==rmotor&&tdevice.equals(rdevice)&&tboard==rboard&&tsection.equals(rsection)){
-                        result=true;
-                    }else{
-                        if(rmotor){
-                            result=true;
-                        }
-                    }
-                }
-                
-            }
-        }
-            */
         return result;
     }
     // get priority task 
@@ -303,7 +287,7 @@ public class SchedulerTask{
         if(queryList.size()==delCount) deleteAll=true;
         return deleteAll;
     }
-    private boolean batchRequeTasks(List<Task> batch){
+    public boolean batchRequeTasks(List<Task> batch){
         return queue.addAll(batch);
     }
     private boolean batchRemove(List<Task> batch){
@@ -315,42 +299,62 @@ public class SchedulerTask{
     public void removeRunningTask(Task task){
         runningQueue.remove(task);
     }
+    public BoardTask getBoardTask(Task task,Route route,Mode mode){
+        BoardTask commandInput=null; 
+        if(route!=null&&mode!=null){
+            if(route.getModes()){
+                commandInput=mode.getBoardAction();
+            }else if(!route.getModes()){
+                commandInput=route.getBoardAction();
+            }
+        }else
+        {
+            // schedule commands
+            if(task.getSchedule()!=null){
+                commandInput=boardTaskService.getBoardTask(task.getBoardTaskId());
+            }
+            // get command store in commandId 
+            if(task.getSchedule()==null&&task.getCommandId()>0){
+                Command com=commandService.getCommand(task.getCommandId());
+                commandInput=com.getBoardCommand();
+            }
+        }
+        if(commandInput!=null){
+                    // retrieve pins,output and input lists
+            List<BoardPin> pins=boardTaskService.getPins(commandInput.getId());
+            List<OutputCurrent> output=boardTaskService.getOuputs(commandInput.getId());
+            List<InputCurrent> input=boardTaskService.getInputs(commandInput.getId());
+            commandInput.setPins(pins);
+            commandInput.setOutput(output);
+            commandInput.setInput(input);
+        }
+        return commandInput;
+    }
     
     @Async
     @Transactional
-    public void sendSocketMessageTest(Task task,Device device,Route route,Mode mode) throws InstantiationException{
+    public void sendSocketMessage(Task task,Board board,Device device,Route route,Mode mode) throws InstantiationException{
         long startTime = System.nanoTime();
-        LocalDateTime currDt=LocalDateTime.now();
-        if(device!=null&&device.getBoard().getSocket()&&task.getScheduledTime().isBefore(currDt)){
-                long boardId=device.getBoard().getId();
-                String wsId=device.getBoard().getWebsocketId();
-                BoardTask commandInput=null; 
-                String modeState="";
-                if(mode!=null)modeState=mode.getMode();
-                if(route!=null&&mode!=null){
-                    if(route.getModes()){
-                        commandInput=mode.getBoardAction();
-                    }else if(!route.getModes()){
-                        commandInput=route.getBoardAction();
-                    }
-                }else
+        Instant currDt=Instant.now();
+        if(board.getSocket()&&task.getScheduledTime().isBefore(currDt)){
+                long boardId=board.getId();
+                String wsId=board.getWebsocketId();
+                BoardTask commandInput=getBoardTask(task,route,mode); 
+                String commandMsg="";
+                if(commandInput==null)
                 {
-                    commandInput=boardTaskService.getBoardTask(task.getBoardTaskId());
+                    // command task if it's already in string
+                    if(task.getBoardTaskJson()!=""&&task.getSystemTask()){
+                        commandMsg=task.getBoardTaskJson();
+                    }
                 }
-                // retrieve pins,output and input lists
-                List<BoardPin> pins=boardTaskService.getPins(commandInput.getId());
-                List<OutputCurrent> output=boardTaskService.getOuputs(commandInput.getId());
-                List<InputCurrent> input=boardTaskService.getInputs(commandInput.getId());
-                commandInput.setPins(pins);
-                commandInput.setOutput(output);
-                commandInput.setInput(input);
-                if(commandInput!=null&&wsId!=""){
+                if((commandInput!=null&&wsId!="")||(wsId!=""&&commandMsg!="")){
                     try {
-                        SentToClientResponse sent=websocketHandler.sendToClient(wsId, commandInput,boardId,task,device,route,mode);
+                        SentToClientResponse sent=websocketHandler.sendToClient(wsId, commandInput,boardId,task,device,route,mode,commandMsg);
                         if(sent.getSent()){
                             batchRequeTasks(sent.getNextTasks());
                         } else if(!sent.getSent()){
-                            Task retTask=taskService.taskFailed(task,device);
+                            Task retTask=taskService.taskFailed(task,board);
                             if(retTask!=null){
                                 requeueTask(retTask);
                             }
@@ -358,10 +362,9 @@ public class SchedulerTask{
                         // check the type of task
                         // if the task is a 1 time only check the scheduled time and compare to the current time
                         // if it's less than 1 hour difference requeue it or else log it and delete it
-                        //addToComplete(device, sucess, state, warning,complete,task);
                     } catch (IOException e) {
                         // requeue task
-                        taskService.taskFailed(task,device);
+                        taskService.taskFailed(task,board);
                         e.printStackTrace();
                     }
                 }else{
@@ -370,12 +373,11 @@ public class SchedulerTask{
                 long endTime = System.nanoTime();
         }else
         {
-            Task retTask=taskService.taskFailed(task,device);
+            Task retTask=taskService.taskFailed(task,board);
             if(retTask!=null){
                 requeueTask(retTask);
             }
         }
-        removeRunningTask(task);
     }
     
 }

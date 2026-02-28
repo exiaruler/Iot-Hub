@@ -1,5 +1,6 @@
 package com.scheduler.Base.ModelBase;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -22,10 +23,10 @@ public class TaskModelBase {
         this.id = id;
     }
     public long taskIdGenerate(long boardId){
+        Instant utcdt=Instant.now();
         LocalDate date=LocalDate.now();
         LocalTime time=LocalTime.now();
-        String strId=""+boardId+date.getDayOfMonth()+date.getMonthValue()+date.getYear()+time.getNano();
-        long taskId=Long.parseLong(strId);
-        return taskId;
+        long genId=boardId+date.getDayOfMonth()+date.getMonthValue()+date.getYear()+time.getNano();
+        return genId;
     }
 }

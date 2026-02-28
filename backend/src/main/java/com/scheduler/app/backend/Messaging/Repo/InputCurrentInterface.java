@@ -9,6 +9,6 @@ import com.scheduler.app.backend.Messaging.Models.InputCurrent;
 
 public interface InputCurrentInterface extends JpaRepository<InputCurrent, Long>{
 
-    @Query(value="SELECT * FROM scheduler.inputcurrent where board_task_id=?1 order by orderPosition",nativeQuery = true)
+    @Query(value="SELECT * FROM InputCurrent where board_task_id=?1 order by orderPosition",nativeQuery = true)
     public List<InputCurrent> getInputByBoardTaskId(long id);
 }

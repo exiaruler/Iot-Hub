@@ -1,4 +1,5 @@
 package com.scheduler.app.backend.aREST.Models;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -17,6 +18,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
+import com.scheduler.app.backend.Messaging.Models.InputCurrent;
+import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
 // device functions
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
@@ -47,7 +50,7 @@ public class Route extends ModelBase{
     // list of modes
     @JsonManagedReference("route-mode")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "route", cascade =CascadeType.ALL)
-    private List<Mode> mode;
+    private List<Mode> mode=new ArrayList<>();
     // Board Task
     @JsonManagedReference("boardtask-route")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "route", cascade = CascadeType.ALL)
@@ -55,11 +58,137 @@ public class Route extends ModelBase{
     // routes that are scheduled
     @JsonManagedReference("route-schedule")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "route", cascade =CascadeType.ALL)
-    private List<Schedule> scheduledRoutes;
+    private List<Schedule> scheduledRoutes=new ArrayList<>();
 
 
 
     public Route() {
+    }
+    // calculate current to save
+    public void calculateCurrent(){
+        String elect=this.getElectrode();
+        if(!elect.equals("")){
+            BoardTask funcTask=this.getBoardAction();
+            if(funcTask!=null){
+                int length=funcTask.getOutput().size();
+                int intputLength=funcTask.getInput().size();
+                if(intputLength>length){
+                    length=intputLength;
+                }
+                for(int i=0; i<length; i++){
+                    if(i<funcTask.getOutput().size()){
+                        OutputCurrent oc=funcTask.getOutput().get(i);
+                        oc.setCurrent(electrodeCalculate(elect, oc.getCurrent()));
+                        funcTask.getOutput().set(i, oc);
+                    }
+                    if(i<funcTask.getInput().size()){
+                        InputCurrent oc=funcTask.getInput().get(i);
+                        oc.setCurrent(electrodeCalculate(elect, oc.getCurrent()));
+                        funcTask.getInput().set(i, oc);
+                    }
+                }
+                
+            }
+            this.boardAction=funcTask;
+        }
+        // loop over modes
+            List<Mode> modes=this.getMode();
+            if(modes!=null&&modes.size()>0){
+                for(Mode m:modes){
+                    BoardTask modeTask=m.getBoardAction();
+                    if(modeTask!=null){
+                        int length=modeTask.getOutput().size();
+                        int intputLength=modeTask.getInput().size();
+                        if(intputLength>length){
+                            length=intputLength;
+                        }
+                        for(int i=0; i<length; i++){
+                            if(i<modeTask.getOutput().size()){
+                                OutputCurrent oc=modeTask.getOutput().get(i);
+                                oc.setCurrent(electrodeCalculate(elect, oc.getCurrent()));
+                                modeTask.getOutput().set(i, oc);
+                            }
+                            if(i<modeTask.getInput().size()){
+                                InputCurrent oc=modeTask.getInput().get(i);
+                                oc.setCurrent(electrodeCalculate(elect, oc.getCurrent()));
+                                modeTask.getInput().set(i, oc);
+                            }
+                        }
+                        
+                    }
+                    m.setBoardAction(modeTask);
+                }
+                this.setMode(modes);
+            }
+    }
+    // calculate output display for frontend
+    public void calculateOutputDisplay(){
+        String elect=this.getElectrode();
+        if(!elect.equals("")){
+            BoardTask funcTask=this.getBoardAction();
+            if(funcTask!=null){
+                int length=funcTask.getOutput().size();
+                int intputLength=funcTask.getInput().size();
+                if(intputLength>length){
+                    length=intputLength;
+                }
+                for(int i=0; i<length; i++){
+                    if(i<funcTask.getOutput().size()){
+                        OutputCurrent oc=funcTask.getOutput().get(i);
+                        oc.setCurrent(electrodeCalculateDisplay(elect, oc.getCurrent()));
+                        funcTask.getOutput().set(i, oc);
+                    }
+                    if(i<funcTask.getInput().size()){
+                        InputCurrent oc=funcTask.getInput().get(i);
+                        oc.setCurrent(electrodeCalculateDisplay(elect, oc.getCurrent()));
+                        funcTask.getInput().set(i, oc);
+                    }
+                }
+                
+            }
+            this.boardAction=funcTask;
+        }
+        // loop over modes
+            List<Mode> modes=this.getMode();
+            if(modes!=null&&modes.size()>0){
+                for(Mode m:modes){
+                    BoardTask modeTask=m.getBoardAction();
+                    if(modeTask!=null){
+                        int length=modeTask.getOutput().size();
+                        int intputLength=modeTask.getInput().size();
+                        if(intputLength>length){
+                            length=intputLength;
+                        }
+                        for(int i=0; i<length; i++){
+                            if(i<modeTask.getOutput().size()){
+                                OutputCurrent oc=modeTask.getOutput().get(i);
+                                oc.setCurrent(electrodeCalculateDisplay(elect, oc.getCurrent()));
+                                modeTask.getOutput().set(i, oc);
+                            }
+                            if(i<modeTask.getInput().size()){
+                                InputCurrent oc=modeTask.getInput().get(i);
+                                oc.setCurrent(electrodeCalculateDisplay(elect, oc.getCurrent()));
+                                modeTask.getInput().set(i, oc);
+                            }
+                        }
+                        
+                    }
+                    m.setBoardAction(modeTask);
+                }
+                this.setMode(modes);
+            }
+    }
+    private int electrodeCalculate(String electrode,int current){
+        if(electrode.equals("cathode")){
+            current=255-current;
+        }   
+        return current;
+    }
+    private int electrodeCalculateDisplay(String electrode,int current){
+        if(electrode.equals("cathode")){
+            current+=255;
+        }   
+        return current;
     }
 
     public Route(Device device, String route, boolean modes, String electrode, Command command, long commandId, boolean switchDevice, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes) {

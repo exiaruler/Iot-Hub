@@ -1,6 +1,5 @@
 package com.scheduler.app.backend.Command.Service;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -15,26 +14,7 @@ public class CommandParameterService extends Base{
     public CommandParameterService(CommandParameterRepo commandParameter) {
         this.commandParameter=commandParameter;
     }
-    public HashMap<String,String> createComponentMap(){
-        HashMap<String, String> comp = new HashMap<>();
-        comp.put("pin","PinSelect");
-        comp.put("output","OutputText");
-        //comp.put("downput","OutputText");
-        comp.put("rgbRed","OutputText");
-        comp.put("rgbGreen","OutputText");
-        comp.put("rgbBlue","OutputText");
-        comp.put("deduction","NumberText");
-        comp.put("runTarget","NumberText");
-        comp.put("loops","NumberText");
-        comp.put("interval","TimeControl");
-        comp.put("beginDelay","TimeControl");
-        comp.put("electo","ElectodeSelect");
-        comp.put("startAngle","AngleInput");
-        comp.put("moveAngle","AngleInput");
-        comp.put("rgbSet","RgbPinsInput");
-        comp.put("rgbType","RgbTypeSelect");
-        return comp;
-    }
+    
     // electrode 
     public String electode[]={"anode","cathode"};
 
