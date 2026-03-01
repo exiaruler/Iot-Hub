@@ -40,9 +40,10 @@ public class Route extends ModelBase{
     // arest Command route
     @JsonBackReference("command-route")
     @ManyToOne
-    @JoinColumn(name="command_id")
+    @JoinColumn(name="used_command_id")
     private Command command;
     // command id
+    @Column(name="commandId")
     private long commandId;
     // switch device type
     @Column

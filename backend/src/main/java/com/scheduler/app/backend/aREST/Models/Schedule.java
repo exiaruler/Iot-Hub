@@ -55,7 +55,7 @@ public class Schedule extends ModelBase {
     // link to device
     @JsonBackReference("device-schedules")
     @ManyToOne
-    @JoinColumn(name="device_id")
+    @JoinColumn(name="schedule_device_id")
     private Device device;
     // device id
     @Column
@@ -63,7 +63,7 @@ public class Schedule extends ModelBase {
     // link route from device
     @JsonBackReference("route-schedule")
     @ManyToOne
-    @JoinColumn(name="route_id")
+    @JoinColumn(name="schedule_route_id")
     private Route route;
     // route id
     @Column
@@ -71,7 +71,7 @@ public class Schedule extends ModelBase {
     // link mode
     @JsonBackReference("schedule-mode")
     @ManyToOne
-    @JoinColumn(name="mode_id")
+    @JoinColumn(name="schedule_mode_id")
     private Mode mode;
     // mode id
     @Column

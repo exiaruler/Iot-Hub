@@ -19,7 +19,7 @@ export class NextBase extends Util{
     // frontend URL
     baseURL="http://localhost:3000";
     // IoT URL
-    baseUrlIo="http://localhost:8080";
+    baseUrlIo=process.env.NEXT_PUBLIC_API_IOTURL||"http://localhost:8080";
     // encryption
     encrypt=false;
   
