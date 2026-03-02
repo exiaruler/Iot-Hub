@@ -9,9 +9,9 @@ import com.scheduler.app.backend.aREST.Models.Schedule;
 
 public interface ScheduleRepo extends JpaRepository<Schedule,Long>{
 
-    @Query(value="SELECT id FROM Schedule where status=true and startup=true and deviceId in (?1)",nativeQuery=true)
+    @Query(value="select id from schedule where status=true and startup=true and device_id in (?1)",nativeQuery=true)
     List<Long> getActiveStartupSchedules(String ids);
 
-    @Query(value="SELECT id FROM Schedule where repeatTask=true and status=true and deviceId in (?1)",nativeQuery=true)
+    @Query(value="select id from schedule where repeat_task=true and status=true and device_id in (?1)",nativeQuery=true)
     List<Long> getActiveRoutineSchedules(String ids);
 } 

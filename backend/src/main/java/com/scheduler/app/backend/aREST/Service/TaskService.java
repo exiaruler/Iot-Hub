@@ -64,7 +64,7 @@ public class TaskService extends Base{
     // board commands only
     public String runCommand(String board,String command,String action,boolean system,boolean systemTask){
         String act="";
-        long boardId=getDataLong("Select id from Board where boardId="+quoteParam(board));
+        long boardId=getDataLong("select id from board where board_id="+quoteParam(board));
         // find command
         Command com=commandService.getCommandByCommand(command,action, system);
         if(com!=null&&boardId>0){
@@ -78,9 +78,9 @@ public class TaskService extends Base{
     // run commands enter by user
     public String runCommandDeviceInput(Mode mode,long deviceId){
         String act="";
-        long boardId=getDataLong("select board_id from Device where id="+deviceId);
+        long boardId=getDataLong("select board_id from device where id="+deviceId);
         if(mode!=null){
-            String wsSession=getDataString("select websocketId from Board where id="+boardId);
+            String wsSession=getDataString("select websocket_id from board where id="+boardId);
             if(wsSession=="") act=mode.getMode()+" has been added to the queue";
             createOneTimeTask(mode.getMode(), boardId, deviceId, mode.getId(),0, false);
         }
@@ -134,9 +134,11 @@ public class TaskService extends Base{
                 TaskEventId parentTaskId=task.getParentTask();
                 long boardId=task.getBoard();
                 long deviceId=task.getDeviceId();
-                String query="Select count(*) from Task where parentTask="+parentTaskId;
-                query+=" and systemTask=true and boardId="+boardId;
-                query+=" and deviceId="+deviceId;
+                String query="select count(*) from task where parent_board_id="+parentTaskId.getBoardId();
+                query+=" and parent_device_id="+parentTaskId.getDeviceId();
+                query+=" and parent_event_time="+quoteParam(parentTaskId.getEventTime().toString());
+                query+=" and system_task=true and board_id="+boardId;
+                query+=" and device_id="+deviceId;
                 query+=" and application="+quoteParam("schedule wsconnectopen");
                 long existId=taskRepo.findAll().stream().filter(rec->rec.getParentTask()==parentTaskId&&rec.getSystemTask()&&rec.getBoard()==boardId&&rec.getDeviceId()==deviceId&&rec.getApplication().equals("schedule wsconnectopen")).count();
                 System.out.println(query);
@@ -468,13 +470,13 @@ public class TaskService extends Base{
         long diff=60;
         Instant minPast=datetime.minusSeconds(diff);
         Instant ahead=datetime.plusSeconds(diff);
-        String query="Select count(*) from Task where scheduledTime BETWEEN "+quoteParam(minPast.toString())+" and "+quoteParam(datetime.toString());
-        query+=" and active=true and boardId="+boardId;
+        String query="select count(*) from task where scheduled_time BETWEEN "+quoteParam(minPast.toString())+" and "+quoteParam(datetime.toString());
+        query+=" and active=true and board_id="+boardId;
         if(taskId!=null){
             query+=" and id!="+taskId;
         }
-        query+=" or scheduledTime BETWEEN "+quoteParam(datetime.toString())+" and "+quoteParam(ahead.toString());
-        query+=" and active=true and boardId="+boardId;
+        query+=" or scheduled_time BETWEEN "+quoteParam(datetime.toString())+" and "+quoteParam(ahead.toString());
+        query+=" and active=true and board_id="+boardId;
         if(taskId!=null){
             query+=" and id!="+taskId;
         }

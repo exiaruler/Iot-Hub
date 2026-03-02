@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 
 @Entity
-@Table(indexes = @Index(columnList = "name,deviceId"))
+@Table(indexes = @Index(columnList = "name,device_id"))
 public class Device extends ModelBase{
 
     // device which the board is belong to
@@ -27,7 +27,7 @@ public class Device extends ModelBase{
     @JsonBackReference("device-board")
     private Board board;
     // boardId+id
-    @Column
+    @Column(name="device_id")
     private String deviceId;
     // name of device
     @Column

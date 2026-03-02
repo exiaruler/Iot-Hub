@@ -24,10 +24,10 @@ import com.scheduler.app.backend.aREST.Models.Mode;
 import com.scheduler.app.backend.aREST.Models.Route;
 // background task data structure in device
 @Entity
-@Table(name="board_task",indexes = @Index(columnList = "taskId"))
+@Table(name="board_task",indexes = @Index(columnList = "task_id"))
 public class BoardTask extends TaskModelBase {
     // task id (taskId|deviceId|date(day,month,year)|time(hour,minute,second))
-    @Column
+    @Column(name="task_id")
     private long taskId;
     // type of task and name of task
     @Column

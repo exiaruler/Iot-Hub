@@ -7,6 +7,6 @@ import org.springframework.data.repository.query.Param;
 import com.scheduler.app.backend.aREST.Models.Parameter;
 
 public interface ParamRepo extends JpaRepository<Parameter,Long>{
-    @Query(value="select value from Parameter where mode_id=:id order by parameterOrder",nativeQuery = true)
+    @Query(value="select value from parameter where mode_id=:id order by parameter_order",nativeQuery = true)
     String [] getAllParamValueArray(@Param("id")long id);
 }

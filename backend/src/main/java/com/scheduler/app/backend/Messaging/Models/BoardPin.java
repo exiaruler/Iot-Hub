@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.scheduler.Base.ModelBase.TaskModelBase;
 // rgb pins
 @Entity
-@Table(name="Board_pin")
+@Table(name="board_pin")
 public class BoardPin extends TaskModelBase {
     @ManyToOne
     @JoinColumn(name="board_task_id")

@@ -43,7 +43,7 @@ public class Route extends ModelBase{
     @JoinColumn(name="used_command_id")
     private Command command;
     // command id
-    @Column(name="commandId")
+    @Column(name="command_id")
     private long commandId;
     // switch device type
     @Column

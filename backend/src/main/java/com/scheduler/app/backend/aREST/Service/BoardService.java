@@ -118,7 +118,7 @@ public class BoardService extends Base {
             // check if there are any startup tasks. if so add startup tasks to the scheduler for the board to process
             if(exist.getDevice().size()>0&&exist.getDevice()!=null){
                 String devicesId=Arrays.toString(deviceService.getDevicesById(exist.getId())).replace("[","").replace("]","");
-                int startUpCount=getDataInt("SELECT count(id) FROM Schedule where startup=true and device_id in ("+quoteParam(devicesId)+")");
+                int startUpCount=getDataInt("select count(id) from schedule where startup=true and device_id in ("+quoteParam(devicesId)+")");
                 if(startUpCount>0){
                     check.setScheduleAvaliable(true);
                 }

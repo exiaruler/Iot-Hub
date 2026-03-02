@@ -87,7 +87,7 @@ public class CommandService extends Base {
 
     private void mergeCommand(Command target, Command source){
         target.setDisplayName(source.getDisplayName());
-        target.setClassName(source.getClassName());
+        //target.setClassName(source.getClassName());
         target.setParams(source.getParams());
         target.setTotalParam(source.getTotalParam());
         target.setHasMotor(source.getHasMotor());

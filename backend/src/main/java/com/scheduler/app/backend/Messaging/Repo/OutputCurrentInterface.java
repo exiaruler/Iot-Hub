@@ -9,6 +9,6 @@ import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
 
 public interface OutputCurrentInterface extends JpaRepository<OutputCurrent, Long>{
 
-    @Query(value="SELECT * FROM OutputCurrent where board_task_id=?1 order by orderPosition",nativeQuery = true)
+    @Query(value="select * from output_current where board_task_id=?1 order by order_position",nativeQuery = true)
     public List<OutputCurrent> getOutputByBoardTaskId(long id);
 }

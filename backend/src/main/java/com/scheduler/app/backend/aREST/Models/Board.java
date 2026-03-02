@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -21,11 +22,11 @@ import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
 
 @Entity
-@Table(indexes = @Index(columnList = "boardId"))
+@Table(indexes = @Index(columnList = "board_id"))
 public class Board extends ModelBase {
  
-    // arduino board id
-    @Column
+    // esp board id
+    @Column(name = "board_id")
     private String boardId;
     // generated authotisation key
     @Column
@@ -94,7 +95,8 @@ public class Board extends ModelBase {
     @ManyToOne
     @JoinColumn(name="hardware_id")
     private Hardware hardware;
-    // hardware Id
+    // request-only hardware id used by controller payloads
+    @Transient
     private long hardwardId;
 
 

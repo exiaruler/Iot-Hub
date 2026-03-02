@@ -46,7 +46,7 @@ public class HttpSchedule extends BaseThread{
             String deviceIp=device.getBoard().getIp();
             if(http.requestRouteTest(deviceIp)&&device.getBoard().getArestCommand()){ 
                 String modeState=mode.getMode();
-                String classString=route.getCommand().getClassName();
+                String classString="";
                 String methodName=route.getCommand().getCommand();
                 try {
                     Class <?> className=Class.forName(classString);

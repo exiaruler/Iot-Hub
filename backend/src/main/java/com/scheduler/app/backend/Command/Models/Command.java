@@ -19,7 +19,7 @@ import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Route;
 // store route method and class origin
 @Entity
-@Table(indexes = @Index(columnList = "command,className"))
+@Table(indexes = @Index(columnList = "command"))
 public class Command extends ModelBase{
     // type of command
     @Column
@@ -29,9 +29,6 @@ public class Command extends ModelBase{
     // route or command name 
     @Column
     private String command;
-    // class origin (legacy)
-    @Column
-    private String className;
     // does it have params
     @Column
     private boolean params=false;
@@ -58,15 +55,13 @@ public class Command extends ModelBase{
     private BoardTask boardCommand;
 
 
-
     public Command() {
     }
 
-    public Command(String commandType, String displayName, String command, String className, boolean params, int totalParam, boolean hasMotor, boolean systemCommand, List<Route> commandUsedRoutes, List<CommandParameter> commandParameter, BoardTask boardCommand) {
+    public Command(String commandType, String displayName, String command, boolean params, int totalParam, boolean hasMotor, boolean systemCommand, List<Route> commandUsedRoutes, List<CommandParameter> commandParameter, BoardTask boardCommand) {
         this.commandType = commandType;
         this.displayName = displayName;
         this.command = command;
-        this.className = className;
         this.params = params;
         this.totalParam = totalParam;
         this.hasMotor = hasMotor;
@@ -98,14 +93,6 @@ public class Command extends ModelBase{
 
     public void setCommand(String command) {
         this.command = command;
-    }
-
-    public String getClassName() {
-        return this.className;
-    }
-
-    public void setClassName(String className) {
-        this.className = className;
     }
 
     public boolean isParams() {
@@ -151,7 +138,7 @@ public class Command extends ModelBase{
     public void setSystemCommand(boolean systemCommand) {
         this.systemCommand = systemCommand;
     }
-    
+
     public List<Route> getCommandUsedRoutes() {
         return this.commandUsedRoutes;
     }
@@ -188,11 +175,6 @@ public class Command extends ModelBase{
 
     public Command command(String command) {
         setCommand(command);
-        return this;
-    }
-
-    public Command className(String className) {
-        setClassName(className);
         return this;
     }
 
@@ -239,12 +221,12 @@ public class Command extends ModelBase{
             return false;
         }
         Command command = (Command) o;
-        return Objects.equals(commandType, command.commandType) && Objects.equals(displayName, command.displayName) && Objects.equals(command, command.command) && Objects.equals(className, command.className) && params == command.params && totalParam == command.totalParam && hasMotor == command.hasMotor && systemCommand == command.systemCommand && Objects.equals(commandUsedRoutes, command.commandUsedRoutes) && Objects.equals(commandParameter, command.commandParameter) && Objects.equals(boardCommand, command.boardCommand);
+        return Objects.equals(commandType, command.commandType) && Objects.equals(displayName, command.displayName) && Objects.equals(command, command.command) && params == command.params && totalParam == command.totalParam && hasMotor == command.hasMotor && systemCommand == command.systemCommand && Objects.equals(commandUsedRoutes, command.commandUsedRoutes) && Objects.equals(commandParameter, command.commandParameter) && Objects.equals(boardCommand, command.boardCommand);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(commandType, displayName, command, className, params, totalParam, hasMotor, systemCommand, commandUsedRoutes, commandParameter, boardCommand);
+        return Objects.hash(commandType, displayName, command, params, totalParam, hasMotor, systemCommand, commandUsedRoutes, commandParameter, boardCommand);
     }
 
     @Override
@@ -253,7 +235,6 @@ public class Command extends ModelBase{
             " commandType='" + getCommandType() + "'" +
             ", displayName='" + getDisplayName() + "'" +
             ", command='" + getCommand() + "'" +
-            ", className='" + getClassName() + "'" +
             ", params='" + isParams() + "'" +
             ", totalParam='" + getTotalParam() + "'" +
             ", hasMotor='" + isHasMotor() + "'" +
@@ -262,7 +243,6 @@ public class Command extends ModelBase{
             ", commandParameter='" + getCommandParameter() + "'" +
             ", boardCommand='" + getBoardCommand() + "'" +
             "}";
-    }
-    
+    }    
     
 }

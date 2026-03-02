@@ -7,14 +7,14 @@ import org.springframework.data.jpa.repository.Query;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.aREST.Models.Task;
 public interface TaskRepo extends JpaRepository<Task, TaskEventId>{
-    @Query(value="select * from Task where active= ?1",
+    @Query(value="select * from task where active= ?1",
     nativeQuery=true)
     List<Task> getAllTaskAct(boolean active);
 
-    @Query(value="Select * from Task where oneTimeJob=true and boardId=?1",nativeQuery = true)
+    @Query(value="select * from task where one_time_job=true and board_id=?1",nativeQuery = true)
     List<Task> getOneTimeJobs(long boardId);
 
-    @Query(value="Select * from Task where active=true and boardId=?1",nativeQuery = true)
+    @Query(value="select * from task where active=true and board_id=?1",nativeQuery = true)
     List<Task> getRoutineJobs(long boardId);
 
 }
