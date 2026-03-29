@@ -1,7 +1,7 @@
 'use client'
 import { forwardRef, useImperativeHandle, useState } from "react"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "react-bootstrap";
-import { ButtonComponent } from "../Buttons/ButtonComponent";
+import { ButtonComponent } from "../../component-base/ButtonComponent";
 import UiBase from "../../base/UiBase";
 type modalContent={
     title:string,

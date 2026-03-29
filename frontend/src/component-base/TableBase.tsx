@@ -1,5 +1,6 @@
 import { Component, ReactNode } from "react";
-import checked from "../assets/checked.png";
+import checked from "../components/assets/checked.png";
+import Image from "next/image";
 interface Props{
     id?:string;
     width?:any,
@@ -53,7 +54,7 @@ export default class TableBase extends Component<Props,State>{
                 //width:size,
                 backgroundColor: this.state.selectedRow === indexKey ? "#D3D3D3" : ""
               }} className={this.state.selectedRow === indexKey ? "TableRowSelect":""}>
-            <img src={checked.src} alt="Checked" width={"30px"} height={"30px"}/>
+            <Image src={checked.src} alt="Checked" width={30} height={30}/>
               </td>;
         }
         return element;

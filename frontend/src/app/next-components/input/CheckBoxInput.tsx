@@ -2,7 +2,7 @@
 
 import { FormGenCheckBox } from "@/components/formGenComponents/FormGenCheckBox";
 import Warning from "@/components/formGenComponents/Warning";
-import CheckBase from "@/components/input/CheckBase";
+import CheckBase from "@/component-base/CheckBase";
 import { Col, Form } from "react-bootstrap";
 
 export default class CheckBoxInput extends CheckBase{

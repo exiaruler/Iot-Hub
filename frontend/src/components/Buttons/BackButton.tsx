@@ -2,6 +2,7 @@ import { Button, ButtonGroup } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 //import BackLogo from "../../assets/icons8-back-arrow-48.png";
 import BackLogo from "../assets/icons8-back-arrow-48.png";
+import Image from "next/image";
 export default function BackButton(props:any){
     var caption="Back";
     var url="/";
@@ -30,7 +31,7 @@ export default function BackButton(props:any){
             <br/>
             <ButtonGroup className="Button-Regular">
             <Button variant="light" size="lg" onClick={goBackto} >
-            <img src={BackLogo} alt="Back" width={width} height={height}/>
+            <Image src={BackLogo} alt="Back" width={width} height={height}/>
             </Button>
             </ButtonGroup>
             </div>

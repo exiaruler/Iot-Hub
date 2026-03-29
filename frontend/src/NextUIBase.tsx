@@ -2,6 +2,9 @@
 import { Component, RefObject } from "react";
 import UiBase from "./base/UiBase";
 import { NextBase } from "./NextBase";
+import { useSelector } from "react-redux";
+import { getPages } from "./redux/slice/pageSlice";
+
 // base for UI
 export class NextUIBase extends UiBase{
     public util=new NextBase();
@@ -25,5 +28,6 @@ export class NextUIBase extends UiBase{
                 const comp=ele;
                 comp?.forceUpdate();
             });
-    }   
+    }
+       
 }

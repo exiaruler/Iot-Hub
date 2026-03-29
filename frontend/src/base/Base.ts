@@ -1,27 +1,33 @@
 import CryptoJS from 'crypto-js';
+const config=require("../../config.json");
 // api domain and key
 class Base{
 
   public originUrl=this.getOriginUrl();
   
-  private apiURlBase=process.env.REACT_APP_API_URL||"http://localhost:8000/api";
+  private apiURlBase=config["url"]||"http://localhost:8000/api";
   // dev key
-  private apikey=process.env.REACT_APP_API_KEY||"S7fgxFOTKTK8aCjq";
+  private apikey=config["api-key"]||"S7fgxFOTKTK8aCjq";
   // encryption key
-  public encryptKey:string=process.env.REACT_APP_API_ENCRYPTKEY||"";
+  public encryptKey:string=config["encrypt-key"]||"";
   // tinymce API kye
-  public tinyKey:string=process.env.REACT_APP_TINY_KEY||process.env.NEXT_PUBLIC_API_TINY_KEY||"";
+  public tinyKey:string=config["tiny-key"]||"";
   // app
-  public app=process.env.REACT_APP_APPLICATION||process.env.NEXT_PUBLIC_API_APPLICATION||"";
+  public app=config["application"]||"";
   // js vanilla fetch
   public apiCallConfig(method:string,body:any=null,encrypt:boolean=false){
       let date=new Date();
       var encryptGen="";
+      let token='';
+      if(typeof localStorage!== 'undefined'){
+        token=localStorage.getItem("login")||'';
+      }
       if(encrypt) encryptGen=this.genereateEncrypt(10);
       var config:any={
         method:method.toUpperCase(),
         credentials: 'include',
         headers:{
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
           "apikey":this.getApiKey(),
           "datetime":date,
@@ -43,6 +49,7 @@ class Base{
           method:method.toUpperCase(),
           credentials: 'include',
           headers:{
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             "apikey":this.getApiKey(),
             "datetime":date,

@@ -2,7 +2,7 @@ import { Component, ReactNode } from "react";
 import Table from 'react-bootstrap/Table';
 import checked from "../assets/checked.png";
 import { Image } from "react-bootstrap";
-import TableBase from "./TableBase";
+import TableBase from "../../component-base/TableBase";
 type Props={
     id?:string;
     width?:any,
@@ -56,7 +56,7 @@ export default class TableComponentClass extends TableBase{
                 //width:size,
                 backgroundColor: this.state.selectedRow === indexKey ? "#D3D3D3" : ""
               }} className={this.state.selectedRow === indexKey ? "TableRowSelect":""}>
-            <Image src={checked} alt="Checked" width={"30xpx"} height={"30px"}/>
+            <Image src={checked.src} alt="Checked" width={"30xpx"} height={"30px"}/>
               </td>;
         }
         return element;

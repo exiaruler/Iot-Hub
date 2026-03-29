@@ -1,4 +1,3 @@
-import PageGroup from "@/app/next-components/pageGroup"
 import { Col, Row } from "react-bootstrap";
 
 export default function Page(){
@@ -13,11 +12,11 @@ export default function Page(){
 
     }
     return(
-        <PageGroup url="/device/control/">
+
         <Row>
         <Col>
         </Col>
         </Row>
-        </PageGroup>
+        
     )
 }

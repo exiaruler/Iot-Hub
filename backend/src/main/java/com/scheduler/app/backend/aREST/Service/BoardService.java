@@ -44,7 +44,7 @@ public class BoardService extends Base {
         return boardId;
     }
     // socket board add
-    public Board addBoardSocket(String name,long hardwareObj){
+    public Board addBoardSocket(String name,long hardwareObj,String boardUniqueId){
         Board newBoard=new Board();
         if(name==null||name==""){
             throw new IllegalArgumentException("Board name is required");
@@ -56,10 +56,19 @@ public class BoardService extends Base {
             long id=hard.getId();
             newBoard.setHardware(hard);
         }
+        if(boardUniqueId!=null&&boardUniqueId!=""){
+            Board exist=board.findBoardByBoardId(boardUniqueId);
+            if(exist!=null){
+                throw new IllegalArgumentException("Board with the same unique id already exists");
+            }
+            newBoard.setBoardId(boardUniqueId);
+        }
         Board save=board.save(newBoard);
-        long id=save.getId();
-        save.setBoardId(genereateBoardId(id));
-        save=board.save(save);
+        if(boardUniqueId==null||boardUniqueId==""){
+            long id=save.getId();
+            save.setBoardId(genereateBoardId(id));
+            save=board.save(save);
+        }
         return save;
     }
     public Object updateBoardArestCommand(Board boardRec){
@@ -129,22 +138,23 @@ public class BoardService extends Base {
             Command com=commandService.getCommandByCommand("httprequestconnection", "schedule", true);
             Command command=commandService.getCommandByCommand("wsconnectopen", "schedule",true);
             List <BoardTask> taskLists=new ArrayList<>();
+            List <BoardTask> scheduledTasks=taskService.getNextTasks(exist.getId());
+            if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
+            // add htp request connection command
             if(com!=null){
                 BoardTask boTsk=com.getBoardCommand();
                 //long tskId=boTsk.taskIdGenerate(exist.getId());
-                boTsk.setTaskId(1);
-                System.out.println(boTsk.getTaskId());
-                boTsk.setDelayInterval(5000);
-                //taskLists.add(boTsk);
+                //boTsk.setTaskId(1);
+                boTsk.setDelayInterval(60000);
+                boTsk.setRunTarget(0);
+                taskLists.add(boTsk);
             }
-            List <BoardTask> scheduledTasks=taskService.getNextTasks(exist.getId());
-            if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
             if(command!=null){
                 BoardTask routinewsConn=command.getBoardCommand();
-                routinewsConn.setDelayInterval(1);
+                routinewsConn.setDelayInterval(100);
                 routinewsConn.setRunTarget(1);
                 routinewsConn.setParam("startup");
-                taskLists.add(routinewsConn);
+                //taskLists.add(routinewsConn);
             }
             if(taskLists.size()>0&&taskLists.size()<50){
                 check.setTasks(taskLists);
@@ -162,6 +172,7 @@ public class BoardService extends Base {
         DeviceCheck newCheck=new DeviceCheck();
         newCheck.setBoardId(board.getBoardId());
         newCheck.setId(board.getId());
+        newCheck.setDevMode(board.getDevMode());
         newCheck.setRoutineCheck(board.getPeriodicCheck());
         newCheck.setCloseConnection(120000);
         return newCheck;
@@ -192,6 +203,7 @@ public class BoardService extends Base {
         if(rec!=null){
             rec.setName(obj.getName());
             rec.setDevMode(obj.getDevMode());
+            rec.setRestartTimeout(obj.getRestartTimeout());
             board.save(rec);
         }
         return rec;

@@ -1,5 +1,5 @@
 'use client'
-import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
+import { ButtonComponent } from "@/component-base/ButtonComponent";
 import { Button, ButtonGroup } from "react-bootstrap";
 export class RegularButton extends ButtonComponent{
     

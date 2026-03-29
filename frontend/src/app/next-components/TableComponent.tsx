@@ -1,6 +1,4 @@
 'use client'
-import { forwardRef, ReactNode, useImperativeHandle, useState } from "react";
-import Table from 'react-bootstrap/Table';
 import checked from '../../components/assets/checked.png';
 import Image from 'next/image';
 import TableComponentClass from "@/components/Table/TableComponentClass";

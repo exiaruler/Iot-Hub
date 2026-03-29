@@ -1,7 +1,7 @@
 'use client'
 import { Col, Form, Row } from "react-bootstrap";
 import { Props,State } from "@/components/formGenComponents/interface/textInterface";
-import InputBase from "@/components/input/InputBase";
+import InputBase from "@/component-base/InputBase";
 import Warning from "@/components/formGenComponents/Warning";
 export default class CurrentInput extends InputBase{
     constructor(props:Props) {

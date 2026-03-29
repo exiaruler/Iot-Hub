@@ -1,5 +1,5 @@
 import { Button, ButtonGroup } from "react-bootstrap";
-import { ButtonComponent } from "./ButtonComponent";
+import { ButtonComponent } from "../../component-base/ButtonComponent";
 
 export class SaveButton extends ButtonComponent{
     

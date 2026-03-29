@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { NextUtil } from "@/pages/NextUtil";
+import NextUtil from "@/NextUtil";
 const base=new NextUtil();
 // application API
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

@@ -1,17 +1,8 @@
-'use client'
-import { Col, Row } from "react-bootstrap";
-import PageGroup from "./next-components/pageGroup";
-import ContentEditor from "@/components/content/ContentEditor";
+import Client from "./client";
 
-export default function Home() {
-  
+export default function Page() {
+
   return (
-   <div>
-  <PageGroup>
-  <Row>
-  <ContentEditor/>
-  </Row>
-  </PageGroup>
-   </div>
+  <Client/>
   );
 }

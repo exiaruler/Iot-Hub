@@ -1,6 +1,6 @@
 import { Col, Form, Row } from "react-bootstrap";
 import { FormGenText } from "./FormGenText";
-import InputBase from "../input/InputBase";
+import InputBase from "../../component-base/InputBase";
 import Warning from "./Warning";
 
 export class FormGenTextArea extends InputBase{

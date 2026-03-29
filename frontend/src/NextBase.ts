@@ -1,4 +1,6 @@
 import Util from "./base/Util";
+const os = require('os');
+const config=require("../config.json");
 interface GetInput{
     api:string,
     key:string,
@@ -13,19 +15,30 @@ interface requestResponse{
 }
 // override class
 export class NextBase extends Util{
+    
     // override encrypt key in next.js
-    encryptKey=process.env.NEXT_PUBLIC_API_ENCRYPTKEY||'';
+    encryptKey=config["encrypt-key"]||'';
 
     // frontend URL
-    baseURL="http://localhost:3000";
+    public baseURL=this.nextAppUrl();
     // IoT URL
-    baseUrlIo=process.env.NEXT_PUBLIC_API_IOTURL||"http://localhost:8080";
+    public baseUrlIo=config["iot-url"]||"http://localhost:8080";
     // encryption
     encrypt=false;
-  
+    
+    public nextAppUrl():string{
+        let url="http://localhost"+":"+3000;
+        if(config['iot-url']!=""){
+            url="https://"+os.hostname();
+        }
+        return url;
+    }
     public getOriginUrl():string{
-      let url=process.env.NEXT_PUBLIC_API_DOMAIN||'http://localhost:3000';
-      return url;
+        let url="http://localhost"+":"+3000;
+        if(config['iot-url']!=""){
+            url="https://"+os.hostname();
+        }
+        return url;
     }
     public newResponse():requestResponse{
         return {
@@ -42,7 +55,7 @@ export class NextBase extends Util{
         let config=this.apiCallConfig('GET',null,false);
         encrypt=config.headers.encrypt;
         try{
-            const request=await fetch(this.baseURL+'/api'+url,config);
+            const request=await fetch(this.baseUrlIo+url,config);
             if(request.ok){
                 response=await request.json();
                 //response=this.decryptValueToStringByKey(response,encrypt);
@@ -91,7 +104,7 @@ export class NextBase extends Util{
         }
         return response;
     }
-    public async fetchClient(url:string,method:string,body:any):Promise<requestResponse>{
+    public async fetchClient(url:string,method:string,body:any=null):Promise<requestResponse>{
         let response:requestResponse=this.newResponse();
         let encrypt="";
         const config=this.apiCallConfig(method,body,false);

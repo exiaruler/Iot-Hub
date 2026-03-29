@@ -1,9 +1,9 @@
 'use client'
-import { Component, MouseEventHandler } from "react"
 import { RegularButton } from "../buttons/RegularButton"
 import { ButtonGroup, Button } from "react-bootstrap"
-import { ButtonInterface } from "@/components/Buttons/ButtonInterface"
 import Form from "./Form"
+import { ButtonInterface } from "@/component-base/ButtonInterface"
+
 interface Props extends ButtonInterface{
     formRef:Form|any;
 }

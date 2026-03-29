@@ -24,6 +24,24 @@ export default class UserAPI extends Util{
             this.throwError(err);
         }
     }
+    public async loginRemote(json:any){
+        try{
+            const request=await fetch(this.getApiUrl()+this.base+"login-remote",
+            {   method:"POST",
+                body:JSON.stringify(json),
+                headers:this.header,
+                credentials: 'include'
+            });
+            
+            if(!request.ok){
+                throw new Error('error happened');
+            }
+            const response=await request.json();
+            return response;
+        }catch(err:any){
+            this.throwError(err);
+        }
+    }
 
     public async checkLogin(){
         let login=false;
@@ -37,6 +55,15 @@ export default class UserAPI extends Util{
     public async userDetails(){
         let data=null;
         const request =await this.fetchRequest(this.base+"user-details","GET");
+        if(request.ok){
+            data= await request.json();
+        }
+        return data;
+    }
+
+    public async userDetailsJwt(){
+        let data=null;
+        const request =await this.fetchRequest(this.base+"user-details-jwt","GET");
         if(request.ok){
             data= await request.json();
         }

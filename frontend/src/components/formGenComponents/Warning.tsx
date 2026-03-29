@@ -1,5 +1,5 @@
 import { Form } from "react-bootstrap";
-import WarningBase from "../input/WarningBase";
+import WarningBase from "../../component-base/WarningBase";
 
 export default class Warning extends WarningBase{
     render(){

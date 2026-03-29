@@ -1,7 +1,7 @@
 import { Col, Form, Row } from "react-bootstrap";
 import { HexColorPicker } from "react-colorful";
 import { Props } from './interface/textInterface';
-import InputBase from "../input/InputBase";
+import InputBase from "../../component-base/InputBase";
 
 // rgb hex select
 export default class RgbHexSelect extends InputBase{

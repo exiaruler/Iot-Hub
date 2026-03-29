@@ -1,7 +1,7 @@
 'use client'
 import { Component, createRef } from "react";
-import { InputInterface, State } from "./interface/input";
-
+//import { InputInterface,State } from "./interface/input";
+import { InputInterface,State } from "./interface/input";
 // input base handlers
 export default class InputBase extends Component<InputInterface,State>{
     public warningComponent:any;

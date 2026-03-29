@@ -6,9 +6,7 @@ import TabComponent from "@/components/Tab/TabComponent"
 import TabGroup from "@/components/Tab/TabGroup"
 import { Row, Col, Stack } from "react-bootstrap"
 import { useEffect, useRef, useState } from "react"
-import DeleteBox from "@/components/modal/DeleteBox"
 import { NextUIBase } from "@/NextUIBase"
-import { useRouter } from 'next/navigation';
 import TableComponent from "@/app/next-components/TableComponent"
 import TableComponentColumn from "@/components/Table/TableComponentColumn"
 import DeleteButton from "@/app/next-components/buttons/DeleteButton"
@@ -17,7 +15,10 @@ import AddForm from "./add-form"
 import FormModal from "@/app/next-components/modal/FormModal"
 import ModalButton from "@/components/Buttons/ModalButton"
 import ConfigForm from "./config-form"
-import Content, { ObjectArray, ObjectRecord } from "@/app/next-components/layout/Content"
+import { ContentRef, ObjectArray, ObjectRecord } from "@/app/next-components/layout/Content"
+import Content from "@/app/next-components/layout/Content"
+import Dev from "@/app/next-components/user/dev"
+import DeleteModal from "@/app/next-components/modal/DeleteModal"
 type JsonRecord ={
     key:string,
     value:any
@@ -25,11 +26,11 @@ type JsonRecord ={
 interface Props{
     deviceForm:ObjectRecord;
     board:ObjectRecord;
-    hardware:ObjectRecord;
+    boardHardware:ObjectRecord;
 }
 // board page
-export default function Client(props:any){
-    const contentRef=useRef<any>(null);
+export default function Client(props:Props){
+    const contentRef=useRef<ContentRef>(null);
     const passwordModalRef=useRef<any>(null);
     const deleteModalRef:any=useRef(null);
     const updateModalRef=useRef<ModalButton>(null);
@@ -37,11 +38,10 @@ export default function Client(props:any){
     const functionTblRef=useRef<TableComponent>(null);
     const formRefs:any=useRef([]);
     const [activated,setActivated]=useState(true);
-    const [board,setBoard]=useState<ObjectRecord>(props.data.board.board||null);
-    const [devices,setDevices]=useState<ObjectArray>(props.data.board.board?.device||[]);
+    const [board,setBoard]=useState<ObjectRecord>(props.board||null);
+    const [devices,setDevices]=useState<ObjectArray>(props.board?.device||[]);
     const [device,setDevice]=useState<ObjectRecord>(null);
-    const [hardware,setHardware]=useState<ObjectRecord>(props.data.board.hardware||null);
-    const router = useRouter();
+    const [hardware,setHardware]=useState<ObjectRecord>(props.boardHardware||null);
     const uiBase=new NextUIBase();
     
     const openChangePass=()=>{
@@ -51,7 +51,7 @@ export default function Client(props:any){
         deleteModalRef.current.open();
     }
     
-    const loadForms=(forms:Record<string,any>)=>{
+    const loadForms=(forms:ObjectRecord)=>{
         formRefs.current.push(forms);
     }
     const boardActive=()=>{
@@ -77,13 +77,14 @@ export default function Client(props:any){
         if(funcRec!=null){
             id=funcRec.id;
         }
-        router.push('/device/function/'+board?.boardId+'/'+device?.deviceId+'/'+id);
+        contentRef.current!.router.push('/device/function/'+board?.boardId+'/'+device?.deviceId+'/'+id);
     }
     const deletehandle=()=>{
-        router.push('/boards');
+        contentRef.current!.router.push('/boards');
     }
     const deviceDeleteHandle=async (index:number)=>{
-        const request=await uiBase.util.fetchClientQuery('/device/delete-device/'+devices[index]?.id,'DELETE');
+        const content=contentRef.current!;
+        const request=await content.util.fetchClientQuery('/device/delete-device/'+devices[index]?.id,'DELETE');
         if(request.status==200){
             const arr=[...devices];
             arr.splice(index,1);
@@ -93,9 +94,10 @@ export default function Client(props:any){
     const deleteFunctionHandle=async (deviceIndex:number)=>{
         const table=functionTblRef.current;
         const selectedRow=table?.returnRow();
+        const content=contentRef.current!;
         if(selectedRow!=null){
             const id=selectedRow.id;
-            const request=await uiBase.util.fetchClientQuery('/route/delete-route/'+id,'DELETE');
+            const request=await content.util.fetchClientQuery('/route/delete-route/'+id,'DELETE');
             if(request.status==200){
                 const arr=[...devices];
                 const funcArr=arr[deviceIndex]?.routes;
@@ -105,7 +107,8 @@ export default function Client(props:any){
         }
     }
     const boardCommand=async(command:string)=>{
-        const request=await uiBase.util.fetchClient('/task/'+command+'/'+board?.boardId,'POST',null);
+        const content=contentRef.current!;
+        const request=await content.util.fetchClient('/task/'+command+'/'+board?.boardId,'POST',null);
         if(request.ok){
             let result=await request.json();
         }
@@ -114,10 +117,10 @@ export default function Client(props:any){
        setBoard(boardRec);
     }
     const handleAddDevice=(record:ObjectRecord)=>{
-        const dev=devices;
+        const devs=devices;
         const tab=tabGrpRef.current;
-        dev.push(record);
-        setDevices(devices);
+        devs.push(record);
+        setDevices([...devs]);
     }
     const showDate=(dateTime:Date)=>{
         return new Date(dateTime).toDateString();
@@ -126,10 +129,9 @@ export default function Client(props:any){
         const dt= new Date(dateTime);
         const time=dt.toLocaleTimeString();
         return time;
-    }
- 
+    } 
     useEffect(()=>{
-        loadForms(props.data.deviceForm);
+        loadForms(props.deviceForm);
         boardActive();
     },[])
     return(
@@ -168,10 +170,12 @@ export default function Client(props:any){
         <ConfirmButton disabled={!activated} buttonCaption={"Update"} title={"Update Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>
         <p>Are you sure you want to update?</p>
         </ConfirmButton>
+        <Dev>
         <ConfirmButton disabled={!activated} buttonCaption={"Upload"} title={"Upload Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>
         <p>Are you sure you want to upload?</p>
         <p>Board will no longer receive commands from the Proto until new firmware is uploaded from IDE or manual reset</p>
         </ConfirmButton>
+        </Dev>
         <ConfirmButton disabled={!activated} buttonCaption={"Reset"} title={"Reset Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart')}>
         <p>Are you sure you want to restart board?</p>
         </ConfirmButton>
@@ -240,10 +244,10 @@ export default function Client(props:any){
         </Col>
         </Row>
         </ModalBox>
-        <DeleteBox ref={deleteModalRef} title={"Delete Board"} deleteApi={"/board/"} baseUrl={uiBase.util.baseURL+'/api'} param={board?.id||''} afterSubmit={deletehandle}>
+        <DeleteModal ref={deleteModalRef} title={"Delete Board"} deleteApi={"/board/"} param={board?.id||''} afterSubmit={deletehandle}>
         <p>Are you sure you want to delete {board?.name}?</p>
         <p>All devices and functionality associated will be lost</p>
-        </DeleteBox>
+        </DeleteModal>
         
         </Content>
         </div>

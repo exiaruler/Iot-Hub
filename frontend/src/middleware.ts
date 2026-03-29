@@ -6,6 +6,7 @@ const LOGIN_PATH = '/login';
 const HOME_PATH = '/';
 
 function isLoggedIn(request: NextRequest): boolean {
+  
   const authCookie = request.cookies.get('id')?.value ?? '';
   return authCookie.length === 24;
 }
@@ -18,7 +19,7 @@ export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const loggedIn = isLoggedIn(request);
   const protectedPath = isProtectedPath(pathname);
-
+  //console.log(`Middleware: Pathname: ${pathname}, Logged In: ${loggedIn}, Protected Path: ${protectedPath}`);
   if (pathname === LOGIN_PATH && loggedIn) {
     return NextResponse.redirect(new URL(HOME_PATH, request.url));
   }

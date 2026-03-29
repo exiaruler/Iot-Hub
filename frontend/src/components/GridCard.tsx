@@ -49,6 +49,14 @@ const GridCard=forwardRef(function GridCard(props:Props,ref){
                 </Col>
             ))
         }
+        <Col sm={props.smCol} md={props.mdCol} key={props.data.length}>
+        <div>
+        <Card key={props.data.length} onClick={(event:any)=>onClick(event,-1)}>
+        <CardTitle>{'Add Board'}</CardTitle>
+        <CardBody>{''}</CardBody>
+        </Card>
+        </div>
+        </Col>
         </Row>
         </div>
     )

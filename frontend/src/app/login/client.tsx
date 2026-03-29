@@ -1,16 +1,19 @@
-import { useState } from "react";
-import { Alert, Button, Col, Form, Row } from "react-bootstrap";
-import { FormGenText } from "../../components/formGenComponents/FormGenText";
-import { SaveButton } from "../../components/Buttons/SaveButton";
-import { useDispatch, useSelector } from "react-redux";
-import { setUser,getUser } from "../../redux/slice/loginSlice";
-import UiBase from "../../base/UiBase";
-import { useNavigate } from "react-router-dom";
-import Group from "../../components/Group";
-export default function Login(){
-    const base=new UiBase();
+'use client'
+
+import UiBase from "@/base/UiBase";
+import { SaveButton } from "@/components/Buttons/SaveButton";
+import { FormGenText } from "@/components/formGenComponents/FormGenText";
+import Group from "@/components/Group";
+import { setUser } from "@/redux/slice/loginSlice";
+import { useRef, useState } from "react";
+import { Row, Col, Form, Alert } from "react-bootstrap";
+import { useDispatch } from "react-redux";
+import Content, { ContentRef } from "../next-components/layout/Content";
+
+export default function Client(){
+const base=new UiBase();
     const dispatch = useDispatch();
-    const nav=useNavigate();
+    const contentRef=useRef<ContentRef>(null);
     const [form,setForm]=useState({
         username:"",
         password:""
@@ -26,14 +29,15 @@ export default function Login(){
     
     const submit=async(event:any)=>{
         event.preventDefault();
+        const content=contentRef.current;
         try{
-          const login=await base.userApi.login(form);
+          const login=await base.userApi.loginRemote(form);
           if(login.message==="Successfully Authenticated"){
             dispatch(setUser(Object(login)));
             let timeout=base.util.addMillsToCurrent(login.timeout);
-            document.cookie="id="+login.id+"; expires="+timeout;
-            nav("/");
-            //window.location.href="/";
+            document.cookie=`id=${login.id}; expires=${timeout.toUTCString()}; path=/; SameSite=Lax`;
+            localStorage.setItem("login",login.token);
+            content?.router.push('/');
           }else
           {
             const error:any=login;
@@ -64,14 +68,15 @@ export default function Login(){
       }
     return(
         <div>
+        <Content ref={contentRef}>
         <Group>
         <Row >
         <Col xs={3} md={5}>
         </Col>
         <Col xs={9} md={3}>
         <Form onSubmit={submit}>
-        <FormGenText label={"Username"} type={"string"} name={"username"} rows={0} required={false} onChange={(event: any) => base.onChange(event.target.name, event.target.value, setForm, form)} warning={formWarning.username}  size={'60%'} />
-        <FormGenText label={"Password"} type={"password"} name={"password"} rows={0} required={false} onChange={(event: any) => base.onChange(event.target.name, event.target.value, setForm, form)} warning={formWarning.password}  size={'60%'} />
+        <FormGenText label={"Username"} type={"string"} name={"username"} rows={0} required={false} onChange={(event: any) => base.onChange(event.target.name, event.target.value, setForm, form)} warning={formWarning.username} value={""} size={'60%'} />
+        <FormGenText label={"Password"} type={"password"} name={"password"} rows={0} required={false} onChange={(event: any) => base.onChange(event.target.name, event.target.value, setForm, form)} warning={formWarning.password} value={""} size={'60%'} />
         <Alert variant='warning' key='warning' hidden={formErrorMsg.hide}>
         {formErrorMsg.error}
         </Alert>
@@ -82,6 +87,7 @@ export default function Login(){
         </Col>
         </Row>
         </Group>
+        </Content>
         </div>
     )
 }

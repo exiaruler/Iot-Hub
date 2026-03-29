@@ -2,8 +2,8 @@
 import { Component } from "react";
 import { Row, Col, Form, Stack } from "react-bootstrap";
 import TextInput from "./TextInput";
-import InputBase from "@/components/input/InputBase";
-import { InputInterface, State as BaseState } from "@/components/input/interface/input";
+import InputBase from "@/component-base/InputBase";
+import { InputInterface, State as BaseState } from "@/component-base/interface/input";
 import Warning from "@/components/formGenComponents/Warning";
 
 interface Props extends InputInterface{

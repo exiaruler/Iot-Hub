@@ -95,6 +95,8 @@ public class Board extends ModelBase {
     @ManyToOne
     @JoinColumn(name="hardware_id")
     private Hardware hardware;
+    // operation
+    
     // request-only hardware id used by controller payloads
     @Transient
     private long hardwardId;

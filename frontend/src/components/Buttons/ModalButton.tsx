@@ -1,10 +1,9 @@
 'use client'
-
-import { RegularButton } from "@/app/next-components/buttons/RegularButton";
 import ModalBox from "../modal/ModalBox";
 import ConfirmButton from "./ConfirmButton";
 import { ModalInterface } from "../modal/ModalProperties";
 import { ReactNode } from "react";
+import { ButtonComponent } from "../../component-base/ButtonComponent";
 interface Props extends ModalInterface{
     buttonCaption:string;
     disabled?:boolean;
@@ -15,7 +14,7 @@ export default class ModalButton extends ConfirmButton{
     render(){
             return(
                 <>
-                <RegularButton caption={this.props.buttonCaption} size={undefined} onClick={this.openModal} disabled={this.props.disabled}/>
+                <ButtonComponent caption={this.props.buttonCaption} onClick={this.openModal} disabled={this.props.disabled} size={undefined}/>
                 
                 <ModalBox hideSubmit={true} ref={this.modal} title={this.props.title} submitCaption={this.props.submitCaption} submit={this.submit} onClose={this.props.onClose}>
                 {

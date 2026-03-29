@@ -95,13 +95,22 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
         BoardSession boarSess=new BoardSession();
         Instant dt=Instant.now();
         String action="";
+        String boardIdStr="";
         String query = session.getUri().getQuery();
-        // retrieve action
-        if(query!=null){
-            action=query.split("=")[1];
+        // multiple query
+        if(query!=null&&query.contains("&")){
+            String[] queries=query.split("&");
+            boardIdStr=queries[0].split("=")[1];
+            action=queries[1].split("=")[1];
+        }else
+        {
+            // retrieve action
+            if(query!=null){
+                action=query.split("=")[1];
+            }
+            var headers = session.getHandshakeHeaders();
+            boardIdStr=headers.getFirst("board");
         }
-        var headers = session.getHandshakeHeaders();
-        String boardIdStr=headers.getFirst("board");
         if(boardIdStr!=""){
             sessions.put(session.getId(),session);
             long boardId=Long.parseLong(boardIdStr);
@@ -175,6 +184,10 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                         
                     }
                 }
+                // connect
+                if(action.equals("connect")){
+                    // set a state in the board to start processing message when board connected
+                }
             }
             else
             {
@@ -221,7 +234,16 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         System.out.println("Client disconnected: " + session.getId());
         var headers = session.getHandshakeHeaders();
-        String boardIdStr=headers.getFirst("board");
+        String boardIdStr="";
+        String query = session.getUri().getQuery();
+        // multiple query
+        if(query!=null&&query.contains("&")){
+            String[] queries=query.split("&");
+            boardIdStr=queries[0].split("=")[1];
+        }else
+        {
+            boardIdStr=headers.getFirst("board");
+        }
         if(boardIdStr!=""){
             sessions.remove(session.getId());
             long boardId=Long.parseLong(boardIdStr);

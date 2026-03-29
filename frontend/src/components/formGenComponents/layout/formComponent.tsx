@@ -7,7 +7,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } f
 import { Component } from "../../../base/interfaces/component";
 import BackButton from "../../Buttons/BackButton";
 import { SaveButton } from "../../Buttons/SaveButton";
-import { ButtonComponent } from "../../Buttons/ButtonComponent";
+import { ButtonComponent } from "../../../component-base/ButtonComponent";
 import { FormAPI } from "../../../api/FormAPI";
 import UiBase from "../../../base/UiBase";
 import { ErrorGenOutput } from "../../../base/interfaces/Response/ErrorGen";

@@ -1,6 +1,6 @@
 'use client'
 import { Component } from "react";
-import ColumnBase from "./ColumnBase";
+import ColumnBase from "../../component-base/ColumnBase";
 type Props={
     columnName:string;
     size?:any;

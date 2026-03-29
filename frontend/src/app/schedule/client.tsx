@@ -9,28 +9,26 @@ import SelectInput from "../next-components/input/SelectInput";
 import FormHandle from "@/components/form/FormHandle";
 import SaveButton from "../next-components/buttons/SaveButton";
 import { RegularButton } from "../next-components/buttons/RegularButton";
-import { NextBase } from "@/NextBase";
 import NewButton from "../next-components/form/NewButton";
 import Form from "../next-components/form/Form";
 import TextInput from "../next-components/input/TextInput";
 import CheckBoxInput from "../next-components/input/CheckBoxInput";
 import TimeInput from "../next-components/input/TimeInput";
-import Content, { ObjectArray, ObjectRecord } from "../next-components/layout/Content";
+import Content, { ContentRef, ObjectArray, ObjectRecord } from "../next-components/layout/Content";
 interface Props{
     form:Object;
     schedule:ObjectArray;
     devices:ObjectArray;
 }
 export default function Client({form,schedule,devices}:Props){
-    const base=new NextBase();
     const [modeSelectView,setModeSelectView]=useState(true);
     const [devicesList,setDeviceList]=useState(devices);
     const [scheduleList,setScheduleList]=useState(schedule);
     const [deleteBtn,setDeleteBtn]=useState(true);
     const [functions,setFunctions]=useState([]);
     const [modes,setModes]=useState([]);
-    const tabRef=useRef<TabGroup|null>(null);
-    const formRef=useRef<FormHandle|any>(null);
+    const tabRef=useRef<TabGroup>(null);
+    const formRef=useRef<Form>(null);
     const tableRef=useRef<TableComponent|null>(null);
     const deviceRef=useRef<SelectInput>(null);
     const functionRef=useRef<SelectInput>(null);
@@ -41,11 +39,16 @@ export default function Client({form,schedule,devices}:Props){
         routine:false
     })
     const [scheduleType,setScheduleType]=useState("");
-
+    const contentRef=useRef<ContentRef>(null);
+    
     const submit=()=>{
         let form=formRef.current;
-        if(form.statusResponse==200){
-            location.reload();
+        const tabGroup=tabRef.current;
+        if(form?.statusResponse==200){
+            const data=form.submissionResponse;
+            setScheduleList((prev:any)=>[...prev.filter((rec:any)=>rec.id!=data.id),data]);
+            form.newRecord();
+            tabGroup?.handleTabSwitch('schedule');
         }
     }
     const backSchedules=()=>{
@@ -101,11 +104,18 @@ export default function Client({form,schedule,devices}:Props){
     }
     const deleteRecord=async()=>{
         let form=formRef.current;
-        let id=form?.getId();
+        const table=tableRef.current;
+        const tabGrp=tabRef.current;
+        let id=Number.parseInt(form!.getId());
+        const content=contentRef.current!;
         if(id>0){
-            const request=await base.fetchClientQuery('/schedule/delete-schedule/'+id,'DELETE',null);
+            const request=await content.util.fetchClientQuery('/schedule/delete-schedule/'+id,'DELETE');
             if(request.status==200){
-                location.reload();
+                const index=table?.selectedRow;
+                tabGrp?.handleTabSwitch('schedule');
+                const sche=schedule.splice(index!,1);
+                setScheduleList([...sche]);
+                //location.reload();
             }
         }
 
@@ -128,10 +138,10 @@ export default function Client({form,schedule,devices}:Props){
                     setModeSelectView(false);
                     setModes(modes);
                     found=true;
-                    setDeleteBtn(false);
                     break;
                 }
             }
+            setDeleteBtn(false);
         }else
         {
             form?.newRecord();
@@ -151,7 +161,7 @@ export default function Client({form,schedule,devices}:Props){
     }
     return(
         <div>
-        <Content>
+        <Content ref={contentRef}>
         <Row>
         <Col md={2}></Col>
         <Col md={9}>

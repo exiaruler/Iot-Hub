@@ -1,7 +1,7 @@
 'use client';
 
 import Warning from "@/components/formGenComponents/Warning";
-import SelectBase from "@/components/input/SelectBase";
+import SelectBase from "@/component-base/SelectBase";
 import { Col, Form, Row } from "react-bootstrap";
 
 export default class SelectInput extends SelectBase{

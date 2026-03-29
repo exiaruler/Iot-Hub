@@ -12,6 +12,7 @@ import SaveButton from "../next-components/buttons/SaveButton";
 import NewButton from "../next-components/form/NewButton";
 import SelectInput from "../next-components/input/SelectInput";
 import Content from "../next-components/layout/Content";
+import Dev from "../next-components/user/dev";
 interface Props{
     boards:Array<Record<string,any>>;
     //addForm:Record<string,any>|null;
@@ -37,8 +38,8 @@ export default function Client(props:Props){
         
     }
     const addHandle=(event:any)=>{
-        let record=gridRef.current.getSelectedCard();
-        if(record.id==0){
+        let record=gridRef.current.getSelectedCard()||null;
+        if(record==null){
             modalRef.current?.open();
         }else
         {
@@ -72,6 +73,9 @@ export default function Client(props:Props){
         <Col md={7} xs={9}>
         <TextInput formRef={formRef} label={"Name"} name="name" type={"text"} rows={0} required={true}/>
         <SelectInput formRef={formRef} label={"Board Model"} name={"hardwardId"} valueKey={"id"} required={true} displayKey={"boardName"} options={props.hardwares} type={""} rows={0}/>
+        <Dev>
+        <TextInput formRef={formRef} label={"Board Unique ID"} name={"boardId"} type={"text"} rows={0} required={false}/>
+        </Dev>
         <SaveButton caption={"Save"} size={undefined}  />
         <NewButton formRef={formRef} caption={"Clear"} size={undefined}/>
         </Col>

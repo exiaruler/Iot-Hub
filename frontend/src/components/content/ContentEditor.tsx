@@ -1,3 +1,4 @@
+'use client'
 import { useEffect, useRef, useState } from "react";
 import FormHandle from "../form/FormHandle";
 import ContentInput from "../input/ContentInput";
@@ -5,7 +6,7 @@ import { SaveButton } from "../Buttons/SaveButton";
 import { useSelector,useDispatch} from 'react-redux';
 import { setContent as contentSet,getAppId,getContents } from "../../redux/slice/appSlice";
 import { getLoginState } from "../../redux/slice/loginSlice";
-import { ButtonComponent } from "../Buttons/ButtonComponent";
+import { ButtonComponent } from "../../component-base/ButtonComponent";
 import HTMLRender from "./HTMLRender";
 import { FormGenTextArea } from "../formGenComponents/FormGenTextArea";
 interface ContentEditorProps{

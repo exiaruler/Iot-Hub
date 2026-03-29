@@ -2,7 +2,7 @@
 import { ChangeEventHandler, Component } from "react"
 import { Col, Form, Row } from "react-bootstrap";
 import FormHandle from "../form/FormHandle";
-import SelectBase from "../input/SelectBase";
+import SelectBase from "../../component-base/SelectBase";
 import Warning from "./Warning";
 
 type Props={

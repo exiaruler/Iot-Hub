@@ -4,7 +4,7 @@ import { Component } from "react";
 import {Util} from "../../base/Util";
 import { Row, Col } from "react-bootstrap";
 import FormHandle from "../form/FormHandle";
-import InputBase from "./InputBase";
+import InputBase from "../../component-base/InputBase";
 
 export default class ContentInput extends InputBase{
     public util=new Util();

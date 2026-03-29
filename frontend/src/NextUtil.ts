@@ -5,7 +5,7 @@ interface ResponseFormat{
     data:any;
 }
 
-export class NextUtil extends NextBase{
+export default class NextUtil extends NextBase{
     
     private jsonTransform(data:any){
         return { ...data, source: 'proxied-through-nextjs' };

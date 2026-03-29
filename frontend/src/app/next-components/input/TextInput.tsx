@@ -2,7 +2,7 @@
 
 import { FormGenText } from "@/components/formGenComponents/FormGenText";
 import Warning from "@/components/formGenComponents/Warning";
-import InputBase from "@/components/input/InputBase";
+import InputBase from "@/component-base/InputBase";
 import { Row, Col, Form } from "react-bootstrap";
 
 export default class TextInput extends InputBase{

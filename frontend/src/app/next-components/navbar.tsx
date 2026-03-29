@@ -29,11 +29,12 @@ export default function NavBar(){
     const routes=uiBase.getPagesSection('navbar');
 
     const checkLogin= async()=>{
-      const userDet=await uiBase.userApi.userDetails();
+      const userDet=await uiBase.userApi.userDetailsJwt();
       if(userDet!=null&&uiBase.util.checkLogCookie()){
         dispatch(setUser(Object(userDet)));
       }else{
         uiBase.util.removeLogCookie();
+        localStorage.removeItem('login');
       }
       setLogin(loginState);
     }

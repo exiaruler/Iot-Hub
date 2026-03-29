@@ -2,7 +2,7 @@
 import { ChangeEventHandler, Component } from 'react';
 import Form from 'react-bootstrap/Form';
 import { Col, Row } from 'react-bootstrap';
-import InputBase from '../input/InputBase';
+import InputBase from '../../component-base/InputBase';
 import Warning from "./Warning";
 
 // text field of react bootstrap forms

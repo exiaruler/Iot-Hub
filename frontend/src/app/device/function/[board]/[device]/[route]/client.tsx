@@ -5,11 +5,11 @@ import Form from "../../../../../next-components/form/Form";
 import TabComponent from "@/components/Tab/TabComponent";
 import TabGroup from "@/components/Tab/TabGroup";
 import { NextUIBase } from "@/NextUIBase";
-import { Component, createRef, ReactElement, ReactNode, RefObject, use, useEffect, useRef, useState } from "react";
+import { Component, createRef, ReactElement, ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import { findComponentFunction, findComponentMode } from "@/app/next-components/command-components/componentLibrary";
 import React from "react";
-import { useRouter,useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import TextInput from "@/app/next-components/input/TextInput";
 import NewButton from "@/app/next-components/form/NewButton";
 import DeleteBox from "@/components/modal/DeleteBox";
@@ -18,7 +18,7 @@ import SubForm from "@/app/next-components/form/SubForm";
 import PinSubForm from "@/app/next-components/form/PinSubForm";
 import ModeSubForm from "@/app/next-components/form/ModeSubForm";
 import SelectInput from "@/app/next-components/input/SelectInput";
-import Content from "@/app/next-components/layout/Content";
+import Content, { ContentRef } from "@/app/next-components/layout/Content";
 interface ComponentRender{
     component:any;
     config:any;
@@ -38,6 +38,8 @@ interface Props{
     device:Record<string,any>|null;
     // electrodes component
     electrodes:Array<string>;
+    // hardware
+    boardHardware:Record<string,any>|null;
     
 }
 export default function Client({
@@ -48,11 +50,10 @@ export default function Client({
     newFunction,
     commands,
     record,
+    boardHardware
 }: Props) {
     const base = new NextUIBase();
-    const router = useRouter();
     const params=useParams();
-    
     let pinIndex=0;
     // Refs
     const modeLayoutRef = useRef<Record<string,any>>({});
@@ -71,9 +72,9 @@ export default function Client({
     const deleteModalRef=useRef<any>(null);
     const inputFields=useRef<Array<Component>>([]);
     const commandInputRef=useRef<SelectInput>(null);
+    const contentRef=useRef<ContentRef>(null);
     // State
     const currentCommand=useRef<string>("");
-    const [functionRecord,setFunctionRecord]=useState<Record<string,any>|null>(null);
     const [functionForm, setFunctionForm] = useState<ReactElement[]>([]);
     const [addMode, setAddMode] = useState(false);
     const [modeTabForm,setModeTabForm]=useState<ReactNode[]>([]);
@@ -103,8 +104,12 @@ export default function Client({
         return JSON.parse(currentCommand.current)||null;
     }
     const addElement=(element:Component|null)=>{
-        const fields=base.addInputRefComponent(inputFields,element);
-        inputFields.current=fields.current;
+        const content=contentRef.current;
+        //debugger
+        if(content){
+            const fields=content.addInputRefComponent(inputFields,element);
+            inputFields.current=fields.current;
+        }
     }
     const renderFunctionForm = () => {
         const layout = functionFormLay.current;
@@ -331,8 +336,9 @@ export default function Client({
         if(firstModeBoardAct!=null){
                 boardAct.pins=firstModeBoardAct.pins;
         }
-        if(modes.length>0){
-
+        let modeLoop=1;
+        if(modes.length>0&&params?.route!="0"){
+            modeLoop=modes.length;
         }
         for(let i=0; i<componentsInput.length; i++){
             const component=componentsInput[i];
@@ -358,109 +364,112 @@ export default function Client({
                 formsCompRef.current.push(subModeComRef.current!);
             }
         }
-        const newModeLay={...newMode};
-        newModeLay.boardAction=boardAct;
-        const tab=<TabComponent key={currentModes} title={tabModeDisplay(ref)||newModeLay.mode} eventKey={currentModes}>
-        <ModeSubForm recordLayout={newModeLay || {}}
-        idKey="id"
-        //record={getModeRecord(currentModes)}
-        ref={ref}
-        objectKey={"mode"}
-        index={currentModes}
-        formRef={formRef}
-        array={true}
-        >
-        <Row>
-        <Col md={4} xs={8}>
-        <TextInput
-        formRef={ref}
-        label="Mode"
-        required={true}
-        rows={0}
-        name="mode"/>
-        <SubForm id="BoardAct-Form" recordLayout={boardAct||{}} idKey="id" ref={modeComRef} objectKey={"boardAction"} formRef={ref}>
-        {
-            compArr
+        for(let x=1; x<=modeLoop;x++){
+            const newModeLay={...newMode};
+            newModeLay.boardAction=boardAct;
+            const tab=<TabComponent key={currentModes} title={tabModeDisplay(ref)||newModeLay.mode} eventKey={currentModes}>
+            <ModeSubForm recordLayout={newModeLay || {}}
+            idKey="id"
+            //record={getModeRecord(currentModes)}
+            ref={ref}
+            objectKey={"mode"}
+            index={currentModes}
+            formRef={formRef}
+            array={true}
+            >
+            <Row>
+            <Col md={4} xs={8}>
+            <TextInput
+            formRef={ref}
+            label="Mode"
+            required={true}
+            rows={0}
+            name="mode"/>
+            <SubForm id="BoardAct-Form" recordLayout={boardAct||{}} idKey="id" ref={modeComRef} objectKey={"boardAction"} formRef={ref}>
+            {
+                compArr
+            }
+            </SubForm>
+            </Col>
+            </Row>
+            </ModeSubForm>
+            <Row>
+            <Col xs={16}>
+            <RegularButton
+            caption="Back"
+            type="button"
+            onClick={() => tabHandle("command")} size={undefined} />
+            <SaveButton caption="Save Function" size={undefined} />
+            <RegularButton
+            caption="Delete Mode"
+            type="button"
+            disabled={modesTabFormRef.current.length<1}
+            onClick={() => removeMode(currentModes)}
+            size={undefined}/>
+            <DeleteBox ref={deleteModalRef} title={"Delete"} deleteApi={"/board/"} baseUrl={base.util.baseURL+'/api'} param={board?.id||''}>
+            <p>Are you sure you want to delete this function?</p>
+            </DeleteBox>
+            <RegularButton
+            caption="Add Mode"
+            type="button"
+            onClick={() => addModeForm()} size={undefined}/>
+            <NewButton formRef={formRef} caption="Clear" size={undefined} />
+            </Col>
+            </Row>
+            </TabComponent>
+            
+            currentModes++;
+            modeTabCounter.current=currentModes;
+            formsCompRef.current.push(ref.current!);
+            formsCompRef.current.push(modeComRef.current!);
+            setModeTabForm((prev)=>[...prev,tab]);
+            modesTabFormRef.current.push(tab);
         }
-        </SubForm>
-        </Col>
-        </Row>
-        </ModeSubForm>
-        <Row>
-        <Col xs={16}>
-        <RegularButton
-        caption="Back"
-        type="button"
-        onClick={() => tabHandle("command")} size={undefined} />
-        <SaveButton caption="Save Function" size={undefined} />
-        <RegularButton
-        caption="Delete Mode"
-        type="button"
-        disabled={modesTabFormRef.current.length<1}
-        onClick={() => removeMode(currentModes)}
-        size={undefined}/>
-        <DeleteBox ref={deleteModalRef} title={"Delete"} deleteApi={"/board/"} baseUrl={base.util.baseURL+'/api'} param={board?.id||''}>
-        <p>Are you sure you want to delete this function?</p>
-        </DeleteBox>
-        <RegularButton
-        caption="Add Mode"
-        type="button"
-        onClick={() => addModeForm()} size={undefined}/>
-        <NewButton formRef={formRef} caption="Clear" size={undefined} />
-        </Col>
-        </Row>
-        </TabComponent>
-        
-        currentModes++;
-        modeTabCounter.current=currentModes;
-        formsCompRef.current.push(ref.current!);
-        formsCompRef.current.push(modeComRef.current!);
-        setModeTabForm((prev)=>[...prev,tab]);
-        modesTabFormRef.current.push(tab);
     }
     const submitHandle=async()=>{
         const form = formRef.current;
         const response=await form?.response;
-        if(response.status===200)router.push('/boards/'+params?.board);
+        if(response.status===200)contentRef.current!.router.push('/boards/'+params?.board);
     }
     
     const loadData = (
         _commands: any[],
-        hardware: any,
+        boardHardware: any,
         board: any,
         device: any,
         _functionLayout: any,
         modeLayout: any,
-        functionRec: any
+        recordData: any
     ) => {
-        hardwareRef.current = hardware;
+        hardwareRef.current = boardHardware;
         boardRef.current = board;
         deviceRef.current = device;
         modeLayoutRef.current = modeLayout;
         const form=formRef.current;
-        const commandRef=commandInputRef.current;
-        if(record!=null){
-            commandHandle(record.commandId);
-            
+
+        // If a record is provided, ensure the form reflects it (select command, render modes, etc.)
+        if (recordData != null) {
+            clearCommandSelection();
+            commandHandle(recordData.commandId);
         }
     };
 
     useEffect(() => {
         loadData(
             commands,
-            board?.hardware,
+            boardHardware,
             board?.board,
             device,
             newFunction,
             newMode,
             record
         );
-        base.forceUpdateRefComponents(inputFields);
-    }, [commands, board, device]);
+        //contentRef.current?.forceUpdateRefComponents(inputFields);
+    }, [commands, board, device, record]);
 
     return (
         <div>
-            <Content>
+            <Content ref={contentRef}>
             <Row>
                 <Col md={2}>
                     <BackButton url={'/boards/'+params?.board} />

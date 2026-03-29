@@ -7,6 +7,7 @@ import CheckBoxInput from "@/app/next-components/input/CheckBoxInput";
 import { Row } from "react-bootstrap";
 import Content from "@/app/next-components/layout/Content";
 import { NextUIBase } from "@/NextUIBase";
+import Dev from "@/app/next-components/user/dev";
 interface Props{
     submissionHandle:CallableFunction;
     record:Record<string,any>|null;
@@ -66,6 +67,7 @@ export default function ConfigForm(props:Props){
                 }} idKey={"id"} put="/board/update-board/">
                 <TextInput ref={(element)=>addElement(element)} formRef={formRef} name={"name"} label={"Board Name"} rows={0}/>
                 <CheckBoxInput ref={(element)=>addElement(element)} formRef={formRef} name={"devMode"} label={"Dev Mode"} rows={0}/>
+                <CheckBoxInput ref={(element)=>addElement(element)} formRef={formRef} name={"restartTimeout"} label={"Restart Timeout"} rows={0}/>
                 <SaveButton caption={"Save"} size={undefined}/>
                 </Form>
                 </Row>

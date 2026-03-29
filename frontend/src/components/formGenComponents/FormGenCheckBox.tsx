@@ -1,6 +1,6 @@
 'use client'
 import { Col, Form } from "react-bootstrap";
-import CheckBase from "../input/CheckBase";
+import CheckBase from "../../component-base/CheckBase";
 import Warning from "./Warning";
 export class FormGenCheckBox extends CheckBase{
     public componentId=this.props.name+"Check";

@@ -36,7 +36,7 @@ public class BoardController extends ControllerBase{
     
     @PostMapping(value="/add-board-socket", consumes = "application/json")
     public ResponseEntity<Board> addBoard(@RequestBody Board input) {
-        Board boardSave=boardService.addBoardSocket(input.getName(),input.getHardwardId());
+        Board boardSave=boardService.addBoardSocket(input.getName(),input.getHardwardId(),input.getBoardId());
         return ResponseEntity.ok(boardSave);
     }
     @PutMapping(value="/update-board/{id}", consumes = {"application/xml","application/json"})

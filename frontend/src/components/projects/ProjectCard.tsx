@@ -5,8 +5,9 @@ import gitlogo from './assets/github-mark.png';
 import { Link,useNavigate } from 'react-router-dom';
 import UiBase from '../../base/UiBase';
 //import props from './../../base/interfaces/project';
-import { ButtonComponent } from '../Buttons/ButtonComponent';
+import { ButtonComponent } from '../../component-base/ButtonComponent';
 import ProjectAPI from '../../api/ProjectsAPI';
+import Image from 'next/image';
 export default function ProjectCard(props:any){
   const id=props.id;
   var disableStyle='';
@@ -53,7 +54,7 @@ export default function ProjectCard(props:any){
     <div>
     {
       url?
-      <Card.Link onClick={repositoryHandle} href={props.url}><img src={gitlogo} height={30} width={30} alt="Repistory"/></Card.Link>
+      <Card.Link onClick={repositoryHandle} href={props.url}><Image src={gitlogo} height={30} width={30} alt="Repistory"/></Card.Link>
       :null
     }
     {

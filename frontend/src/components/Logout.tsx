@@ -10,12 +10,11 @@ export default function Logout(){
   const nav=useNavigate();
   const logOut= async () => {
     try{
-        const log=await base.userApi.logout();
-        if(log){
-            base.util.removeLogCookie();
-            dispatch(clearUser());
-            window.location.href = "/";
-        }
+        base.util.removeLogCookie();
+        localStorage.removeItem("login");
+        dispatch(clearUser());
+        window.location.href = "/";
+        
     }catch(err){
         throw err;
     }
