@@ -5,6 +5,7 @@ import TextInput from "./TextInput";
 import InputBase from "@/component-base/InputBase";
 import { InputInterface, State as BaseState } from "@/component-base/interface/input";
 import Warning from "@/components/formGenComponents/Warning";
+import { RecordContext } from "@/components/form/FormHandle";
 
 interface Props extends InputInterface{
     seconds:boolean;
@@ -20,7 +21,7 @@ interface State extends BaseState{
 
 // time input that converts seconds,mins and hours to milliseconds
 export default class TimeInput extends InputBase{
-    
+    static contextType = RecordContext;
     public value=0;
     public seconds=0;
     public min=0;

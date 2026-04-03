@@ -2,8 +2,10 @@
 import { Row, Col, Form } from "react-bootstrap";
 import TextInput from "../input/TextInput";
 import Warning from "@/components/formGenComponents/Warning";
+import { RecordContext } from "@/components/form/FormHandle";
 
 export default class NumberInput extends TextInput{
+    static contextType = RecordContext;
     render(){
         return(
             <Row>

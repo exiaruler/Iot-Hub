@@ -48,6 +48,7 @@ export default function Client({form,schedule,devices}:Props){
             const data=form.submissionResponse;
             setScheduleList((prev:any)=>[...prev.filter((rec:any)=>rec.id!=data.id),data]);
             form.newRecord();
+            newRecord();
             tabGroup?.handleTabSwitch('schedule');
         }
     }
@@ -113,9 +114,9 @@ export default function Client({form,schedule,devices}:Props){
             if(request.status==200){
                 const index=table?.selectedRow;
                 tabGrp?.handleTabSwitch('schedule');
-                const sche=schedule.splice(index!,1);
-                setScheduleList([...sche]);
-                //location.reload();
+                setScheduleList([...scheduleList.slice(0, index!), ...scheduleList.slice(index! + 1)]);
+                form?.newRecord();
+                newRecord();
             }
         }
 
@@ -195,7 +196,7 @@ export default function Client({form,schedule,devices}:Props){
         <CheckBoxInput formRef={formRef} name={"status"} label={"Status"} size={undefined} type={""} rows={0}/>
         <RegularButton caption={"Back"} size={undefined} type={"button"} onClick={backSchedules}/>
         <RegularButton caption={"Delete"} size={undefined} type={"button"} disabled={deleteBtn} onClick={deleteRecord}/>
-        <NewButton caption={""} size={undefined} type={undefined} formRef={formRef} onClick={newRecord}/>
+        <NewButton formRef={formRef} caption={""} size={undefined} type={undefined} onClick={newRecord}/>
         <SaveButton caption={"Save"} size={undefined} type={undefined}/>
         </Form>
         </Col>

@@ -3,7 +3,9 @@ import { Col, Form, Row } from "react-bootstrap";
 import { Props,State } from "@/components/formGenComponents/interface/textInterface";
 import InputBase from "@/component-base/InputBase";
 import Warning from "@/components/formGenComponents/Warning";
+import { RecordContext } from "@/components/form/FormHandle";
 export default class CurrentInput extends InputBase{
+    static contextType = RecordContext;
     constructor(props:Props) {
             super(props);
             this.state = {

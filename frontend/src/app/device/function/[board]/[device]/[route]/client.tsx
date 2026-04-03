@@ -5,7 +5,7 @@ import Form from "../../../../../next-components/form/Form";
 import TabComponent from "@/components/Tab/TabComponent";
 import TabGroup from "@/components/Tab/TabGroup";
 import { NextUIBase } from "@/NextUIBase";
-import { Component, createRef, ReactElement, ReactNode, RefObject, useEffect, useRef, useState } from "react";
+import { Component, createRef, ReactElement, ReactNode, Ref, RefObject, useEffect, useRef, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import { findComponentFunction, findComponentMode } from "@/app/next-components/command-components/componentLibrary";
 import React from "react";
@@ -111,6 +111,7 @@ export default function Client({
             inputFields.current=fields.current;
         }
     }
+    // render function form section
     const renderFunctionForm = () => {
         const layout = functionFormLay.current;
         const currentCommandObj=currentCommandToJson();
@@ -323,6 +324,7 @@ export default function Client({
         const value=form.getRecordValue('mode');
         return value;
     }
+    // create mode tab form
     const createMode=(componentsInput:Record<string,any>[])=>{
         let currentModes=modeTabCounter.current;
         const form=formRef.current;
@@ -413,6 +415,7 @@ export default function Client({
             caption="Add Mode"
             type="button"
             onClick={() => addModeForm()} size={undefined}/>
+            <NewButton onClick={()=>modeClear(modeComRef)} formRef={ref} caption="Clear Mode" size={undefined} />
             <NewButton formRef={formRef} caption="Clear" size={undefined} />
             </Col>
             </Row>
@@ -424,6 +427,12 @@ export default function Client({
             formsCompRef.current.push(modeComRef.current!);
             setModeTabForm((prev)=>[...prev,tab]);
             modesTabFormRef.current.push(tab);
+        }
+    }
+    const modeClear=(comRef:RefObject<SubForm|null>)=>{
+        const ref=comRef.current;
+        if(ref){
+            ref.newRecord();
         }
     }
     const submitHandle=async()=>{

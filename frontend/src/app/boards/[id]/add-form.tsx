@@ -12,20 +12,21 @@ interface Props{
 }
 export default function AddForm(props:Props){
     const formRef=useRef<Form>(null);
+    const testRef=useRef<TextInput>(null);
     const submitHandle=()=>{
         const form=formRef.current;
         if(form?.statusResponse==200){
             const data=form.submissionResponse;
             props.onUpdate(data);
             form.newRecord();
-            form.forceUpdate();
         }
     }
+
     return (
         <div>
         <Content>
         <Form ref={formRef} recordLayout={{id:0,name:""}} idKey={"id"} onSubmit={submitHandle} post={"/device/add-device/"+props.boardId}>
-        <TextInput md={4} formRef={formRef} label={"Name"} required={true} name={"name"} type={"text"} rows={0}/>
+        <TextInput ref={testRef} md={4} formRef={formRef} label={"Name"} required={true} name={"name"} type={"text"} rows={0}/>
         <NewButton formRef={formRef} caption={"Clear"} size={undefined}/>
         <SaveButton caption={"Add Device"} size={undefined}/>
         </Form>

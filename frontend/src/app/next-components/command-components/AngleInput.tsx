@@ -3,9 +3,10 @@
 import { Row, Col, Form } from "react-bootstrap";
 import TextInput from "../input/TextInput";
 import Warning from "@/components/formGenComponents/Warning";
+import { RecordContext } from "@/components/form/FormHandle";
 
 export default class AngleInput extends TextInput{
-    
+    static contextType = RecordContext;
     public value=0;
     public type='number';
     render(){

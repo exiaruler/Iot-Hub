@@ -1,5 +1,5 @@
 'use client'
-import FormHandle, { Props } from "@/components/form/FormHandle";
+import FormHandle, { Props, RecordContext } from "@/components/form/FormHandle";
 import Form from "./Form";
 export interface PropsMod extends Props{
     objectKey?:string;
@@ -52,9 +52,11 @@ export default class SubForm extends Form{
     render(){
         return(
             <div onChange={()=>this.formOnChange()} >
+            <RecordContext.Provider value={this.state.record}>
             {
                 this.props.children
             }
+            </RecordContext.Provider>
             </div>
         )
     }

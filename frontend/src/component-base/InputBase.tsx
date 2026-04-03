@@ -1,7 +1,8 @@
 'use client'
-import { Component, createRef } from "react";
+import { Component, createRef, useContext } from "react";
 //import { InputInterface,State } from "./interface/input";
 import { InputInterface,State } from "./interface/input";
+import { RecordContext } from "@/components/form/FormHandle";
 // input base handlers
 export default class InputBase extends Component<InputInterface,State>{
     public warningComponent:any;
@@ -17,6 +18,7 @@ export default class InputBase extends Component<InputInterface,State>{
     public warning:string=this.props.warning||"";
     public name=this.props.name||"";
     public type=this.props.type;
+    public static context=RecordContext;
     
     componentDidMount(): void {
         if(this.props.value){
@@ -29,16 +31,18 @@ export default class InputBase extends Component<InputInterface,State>{
     componentDidUpdate(prevProps: Readonly<InputInterface>, prevState: Readonly<State>, snapshot?: any): void {
         this.formHandleValueSetUpdate(prevProps);
     }
+    
     // return state value
     public getStateValue():any{
         if(this.props.formRef){
             let form=this.props.formRef.current;
             if(this.props.name&&form!=null&&JSON.stringify(form.state.record)!=='{}'&&form.state.record!=null){
                 this.value=form.state.record[this.props.name];
-                return form.state.record[this.props.name];
+                const value=this.context as Record<string, any>;
+                return value[this.props.name];
             }
         }else if(this.props.value) this.value=this.props.value
-         return this.value;
+        return this.value;
     }
     public getWarning():string{
         if(this.state.warning!==""){

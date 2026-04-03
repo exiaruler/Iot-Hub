@@ -1,5 +1,5 @@
 'use client'
-import FormHandle, { Props } from "@/components/form/FormHandle";
+import FormHandle, { Props, RecordContext } from "@/components/form/FormHandle";
 import { NextBase } from "../../../NextBase";
 interface PropsMod extends Props{
     putUrlArgument?:string;
@@ -80,10 +80,13 @@ export default class Form extends FormHandle{
     render(){
         return(
             <form onSubmit={(event:React.FormEvent<HTMLFormElement>)=>this.onsubmit(event)} >
+            <RecordContext.Provider value={this.state.record}>
             {
                 this.props.children
             }
+            </RecordContext.Provider>
             </form>
+            
         )
     }
     

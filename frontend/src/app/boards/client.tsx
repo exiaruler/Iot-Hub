@@ -2,7 +2,6 @@
 import GridCard from "@/components/GridCard";
 import { Col, Row } from "react-bootstrap";
 import ModalBox from "@/components/modal/ModalBox";
-import { NextUIBase } from "@/NextUIBase";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from 'next/navigation';
 import FormModal from "../next-components/modal/FormModal";
@@ -24,7 +23,6 @@ export default function Client(props:Props){
     const formRef=useRef<Form>(null);
     const modalRef=useRef<FormModal>(null);
     const gridRef:any=useRef(null);
-    const uiBase=new NextUIBase();
     const [boards,setBoards]:any=useState([]);
    
     const submitHandle=()=>{

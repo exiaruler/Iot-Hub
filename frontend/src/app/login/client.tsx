@@ -37,7 +37,7 @@ const base=new UiBase();
             let timeout=base.util.addMillsToCurrent(login.timeout);
             document.cookie=`id=${login.id}; expires=${timeout.toUTCString()}; path=/; SameSite=Lax`;
             localStorage.setItem("login",login.token);
-            content?.router.push('/');
+            window.location.href="/";
           }else
           {
             const error:any=login;

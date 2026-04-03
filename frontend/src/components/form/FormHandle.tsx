@@ -1,5 +1,5 @@
 'use client'
-import { Component, createRef, ReactNode } from "react";
+import { Component, createContext, createRef, ReactNode } from "react";
 import {Util} from "../../base/Util";
 import React from "react";
 export interface Props{
@@ -32,6 +32,7 @@ interface State{
     statusResponse:number;
     submissionResponse:any;
 }
+export const RecordContext=createContext<Record<string,any>|null>(null);
 export default class FormHandle extends Component<Props,State>{
     constructor(props:Props) {
             super(props);
@@ -46,6 +47,7 @@ export default class FormHandle extends Component<Props,State>{
     public inputFields:Array<any>=[];
     // static record, use for call back events only
     public record:Record<string,any>|null=null;
+    public recordLayoutString:string="";
     public inputRefs: Record<string, React.RefObject<Component>> = {};
     public statusResponse:number=0;
     overrideUrl:string="";
@@ -58,6 +60,7 @@ export default class FormHandle extends Component<Props,State>{
         if(this.props.recordLayout){
             let rec=this.props.recordLayout;
             this.setState({...this.state,recordLayout:this.props.recordLayout,record:rec});
+            this.recordLayoutString=JSON.stringify(this.props.recordLayout);
             this.record=rec;
             if(this.props.record){
                 this.setRecord(this.props.record);
@@ -66,7 +69,7 @@ export default class FormHandle extends Component<Props,State>{
     }
    
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
-        if(prevState.recordLayout!==this.props.recordLayout){
+        if(JSON.stringify(prevState.recordLayout)!=JSON.stringify(this.props.recordLayout)){
             let rec=this.state.record;
             if(prevState.id==0){
                 rec=this.props.recordLayout;
@@ -78,8 +81,7 @@ export default class FormHandle extends Component<Props,State>{
             if(prevState.id!==currId&&currId!="0"){
                 this.setRecord(this.props.record);
             }
-        }   
-    
+        }    
     }
     
     public addInput(component:Component):void{
@@ -107,6 +109,14 @@ export default class FormHandle extends Component<Props,State>{
         let name=event.target.name;
         this.setState({...this.state,record:{...this.state.record,[name]:value}});
         if(this.record!=null)this.record[name]=value;
+    }
+    // get string layout to object
+    public getRecordLayout():Record<string,any>|null{
+        let obj=null;
+        if(this.recordLayoutString!=""){
+            obj=JSON.parse(this.recordLayoutString);
+        }
+        return obj;
     }
     // get record
     getRecord():Record<string,any>|null{
@@ -142,9 +152,9 @@ export default class FormHandle extends Component<Props,State>{
         this.submissionResponse=null;
         this.response=null;
         this.ok=false;
-        this.setState({...this.state,record:this.props.recordLayout,id:0,statusResponse:0,submissionResponse:null});
-        this.record=this.props.recordLayout;
+        this.record=this.getRecordLayout();
         this.clearWarnings();
+        this.setState({...this.state,record:this.getRecordLayout(),id:0,statusResponse:0,submissionResponse:null});
     }
     public clearWarnings():void{
         if(this.inputFields.length>0)this.inputFields.map((input)=>input.current.setWarning(""));
@@ -189,9 +199,11 @@ export default class FormHandle extends Component<Props,State>{
     render(){
         return(
             <form onSubmit={(event:any)=>this.onsubmit(event)}>
+            <RecordContext.Provider value={this.state.record}>
             {
                 this.props.children
             }
+            </RecordContext.Provider>
             </form>
         )
     }

@@ -1,6 +1,7 @@
 import { NextBase } from "@/NextBase";
 import Client from "./client";
 const base=new NextBase();
+export const dynamic = 'force-dynamic';
 async function getData(){
     
     const fetchApis:any=await base.fetchGetApi([

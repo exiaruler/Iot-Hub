@@ -18,7 +18,8 @@ export default class CheckBase extends InputBase{
         if(this.props.formRef){
             let form=this.props.formRef.current;
             if(this.props.name&&form!=null&&JSON.stringify(form.state.record)!=='{}'&&form.state.record!=null){
-                return form.state.record[this.props.name];
+                const value=this.context as Record<string, any>;
+                return value[this.props.name];
             }
         }else return this.value;
     }

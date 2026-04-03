@@ -3,8 +3,10 @@
 import Warning from "@/components/formGenComponents/Warning";
 import SelectBase from "@/component-base/SelectBase";
 import { Col, Form, Row } from "react-bootstrap";
+import { RecordContext } from "@/components/form/FormHandle";
 
 export default class SelectInput extends SelectBase{
+    static contextType = RecordContext;
     render(){
         return(
             <Row>
@@ -12,7 +14,7 @@ export default class SelectInput extends SelectBase{
             <Form.Group>
             <Form.Label>{this.props.label}</Form.Label>
             <div className="mb-3">
-            <Form.Select disabled={this.props.disable} style={{width:this.props.size}} id={this.props.name+"Select"} required={this.props.required} onChange={(event:any)=>this.onChange(event)}  name={this.props.name} value={this.getStateValue()||this.props.value}>
+            <Form.Select disabled={this.props.disable} style={{width:this.props.size}} id={this.props.name+"Select"} required={this.props.required} onChange={(event:any)=>this.onChange(event)}  name={this.props.name} value={this.getStateValue()}>
             {
                 <option hidden={false}>{''}</option>
             }

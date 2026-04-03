@@ -1,8 +1,9 @@
 import { Col, Form, Row } from "react-bootstrap";
 import SelectInput from "../input/SelectInput";
+import { RecordContext } from "@/components/form/FormHandle";
 
 export default class ElectrodeSelect extends SelectInput{
-    
+    static contextType = RecordContext;
     render(){
         return(
             <Row>
@@ -10,7 +11,7 @@ export default class ElectrodeSelect extends SelectInput{
             <Form.Group>
             <Form.Label>{"Electrode"}</Form.Label>
             <div className="mb-3">
-            <Form.Select disabled={this.props.disable} style={{width:this.props.size}} id={this.props.name+"Text"} required={this.props.required} onChange={(event:any)=>this.onChange(event)}  name={this.props.name} value={this.props.value}>
+            <Form.Select disabled={this.props.disable} style={{width:this.props.size}} id={this.props.name+"Text"} required={this.props.required} onChange={(event:any)=>this.onChange(event)}  name={this.props.name} value={this.getStateValue()}>
             {
                 <option hidden={false}>{''}</option>
             }
