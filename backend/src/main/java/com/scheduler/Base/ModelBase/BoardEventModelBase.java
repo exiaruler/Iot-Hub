@@ -6,11 +6,12 @@ import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PreUpdate;
+
 @MappedSuperclass
-public class TaskEventModelBase {
+public class BoardEventModelBase {
     @EmbeddedId
     private TaskEventId id;
-     @Column
+    @Column
     private Instant createdDate=Instant.now();
     @Column
     private Instant updatedDate=Instant.now();
@@ -18,7 +19,7 @@ public class TaskEventModelBase {
     public void initId(long boardId,long deviceId){
         this.setId(new TaskEventId(boardId, deviceId));
     }
-     @PreUpdate
+    @PreUpdate
     protected void onUpdate() {
         this.setUpdatedDate(Instant.now());
     }

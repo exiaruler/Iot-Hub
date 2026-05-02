@@ -1,9 +1,12 @@
 package com.scheduler.app.backend.aREST.Service;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
 import com.scheduler.Base.Base;
+import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.app.backend.Task.Model.CompletedTask;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
@@ -24,13 +27,19 @@ public class DeviceService extends Base {
     
     public Device addDeviceSocket(Device entry,long boardId){
         Board board=boardRepo.getReferenceById(boardId);
-        if(board!=null){
+        String entryName=entry.getName();
+        long devExist=board.getDevice().stream().filter(dev->dev.getName().equals(entryName)).count();
+        if(board!=null && devExist == 0){
             entry.setBoard(board);
             Device save=deviceRepo.save(entry);
             String deviceId=board.getBoardId()+save.getId();
             save.setDeviceId(deviceId);
-            save=deviceRepo.save(entry);
-            entry=save;
+            save = deviceRepo.save(entry);
+            entry = save;
+        } else {
+            Map<String, String> errors = new HashMap<>();
+            errors.put("name", "Device already exists");
+            throw new ValidationException(errors);
         }
         return entry;
     }

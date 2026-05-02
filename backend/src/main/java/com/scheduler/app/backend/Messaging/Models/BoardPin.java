@@ -23,6 +23,7 @@ public class BoardPin extends TaskModelBase {
     @Column
     private int pinOrder;
 
+    
 
     public BoardPin() {
     }

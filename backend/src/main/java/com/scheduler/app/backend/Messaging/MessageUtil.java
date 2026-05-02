@@ -21,7 +21,7 @@ public class MessageUtil {
     }
 
     // convert board task to json string
-    public String objectToJson(BoardTask task) throws JsonProcessingException{
+    public String objectToJsonString(BoardTask task) throws JsonProcessingException{
         ObjectMapper mapper = new ObjectMapper();
         String json="";  
         try {

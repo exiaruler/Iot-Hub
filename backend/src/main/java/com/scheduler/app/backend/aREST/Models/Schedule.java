@@ -9,6 +9,8 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
+import javax.persistence.PostLoad;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -58,7 +60,7 @@ public class Schedule extends ModelBase {
     @JoinColumn(name="schedule_device_id")
     private Device device;
     // device id
-    @Column
+    @Transient
     private long deviceId;
     // link route from device
     @JsonBackReference("route-schedule")
@@ -66,7 +68,7 @@ public class Schedule extends ModelBase {
     @JoinColumn(name="schedule_route_id")
     private Route route;
     // route id
-    @Column
+    @Transient
     private long routeId;
     // link mode
     @JsonBackReference("schedule-mode")
@@ -74,9 +76,21 @@ public class Schedule extends ModelBase {
     @JoinColumn(name="schedule_mode_id")
     private Mode mode;
     // mode id
-    @Column
+    @Transient
     private long modeId;
     
+    @PostLoad
+    public void loadSchedule(){
+        long deviceId=0;
+        long routeId=0;
+        long modeId=0;
+        if(this.getDevice()!=null) deviceId=this.getDevice().getId();
+        if(this.getRoute()!=null) routeId=this.getRoute().getId();
+        if(this.getMode()!=null) modeId=this.getMode().getId();
+        this.deviceId=deviceId;
+        this.routeId=routeId;
+        this.modeId=modeId;
+    }
 
     public Schedule() {
     }

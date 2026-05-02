@@ -68,12 +68,16 @@ public class Device extends ModelBase{
     @JsonManagedReference("device-components")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "device",cascade =CascadeType.ALL)
     private List<Component> components=new ArrayList<>();
-  
+    // board operations
+    @JsonManagedReference("queue-device")
+    @OneToMany(fetch = FetchType.LAZY,mappedBy = "device", cascade =CascadeType.ALL)
+    private List<BoardQueue> boardOperations=new ArrayList<>();
+
 
     public Device() {
     }
 
-    public Device(Board board, String deviceId, String name, String state, String warning, String type, String subtype, boolean frameworkFollowed, boolean custom, boolean switchDevice, boolean animationActive, List<Route> routes, List<Schedule> schedules, List<Component> components) {
+    public Device(Board board, String deviceId, String name, String state, String warning, String type, String subtype, boolean frameworkFollowed, boolean custom, boolean switchDevice, boolean animationActive, List<Route> routes, List<Schedule> schedules, List<Component> components, List<BoardQueue> boardOperations) {
         this.board = board;
         this.deviceId = deviceId;
         this.name = name;
@@ -88,6 +92,7 @@ public class Device extends ModelBase{
         this.routes = routes;
         this.schedules = schedules;
         this.components = components;
+        this.boardOperations = boardOperations;
     }
 
     public Board getBoard() {
@@ -218,6 +223,14 @@ public class Device extends ModelBase{
         this.components = components;
     }
 
+    public List<BoardQueue> getBoardOperations() {
+        return this.boardOperations;
+    }
+
+    public void setBoardOperations(List<BoardQueue> boardOperations) {
+        this.boardOperations = boardOperations;
+    }
+
     public Device board(Board board) {
         setBoard(board);
         return this;
@@ -288,6 +301,11 @@ public class Device extends ModelBase{
         return this;
     }
 
+    public Device boardOperations(List<BoardQueue> boardOperations) {
+        setBoardOperations(boardOperations);
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -296,12 +314,12 @@ public class Device extends ModelBase{
             return false;
         }
         Device device = (Device) o;
-        return Objects.equals(board, device.board) && Objects.equals(deviceId, device.deviceId) && Objects.equals(name, device.name) && Objects.equals(state, device.state) && Objects.equals(warning, device.warning) && Objects.equals(type, device.type) && Objects.equals(subtype, device.subtype) && frameworkFollowed == device.frameworkFollowed && custom == device.custom && switchDevice == device.switchDevice && animationActive == device.animationActive && Objects.equals(routes, device.routes) && Objects.equals(schedules, device.schedules) && Objects.equals(components, device.components);
+        return Objects.equals(board, device.board) && Objects.equals(deviceId, device.deviceId) && Objects.equals(name, device.name) && Objects.equals(state, device.state) && Objects.equals(warning, device.warning) && Objects.equals(type, device.type) && Objects.equals(subtype, device.subtype) && frameworkFollowed == device.frameworkFollowed && custom == device.custom && switchDevice == device.switchDevice && animationActive == device.animationActive && Objects.equals(routes, device.routes) && Objects.equals(schedules, device.schedules) && Objects.equals(components, device.components) && Objects.equals(boardOperations, device.boardOperations);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(board, deviceId, name, state, warning, type, subtype, frameworkFollowed, custom, switchDevice, animationActive, routes, schedules, components);
+        return Objects.hash(board, deviceId, name, state, warning, type, subtype, frameworkFollowed, custom, switchDevice, animationActive, routes, schedules, components, boardOperations);
     }
 
     @Override
@@ -321,9 +339,8 @@ public class Device extends ModelBase{
             ", routes='" + getRoutes() + "'" +
             ", schedules='" + getSchedules() + "'" +
             ", components='" + getComponents() + "'" +
+            ", boardOperations='" + getBoardOperations() + "'" +
             "}";
     }
-   
-
 
 }

@@ -14,11 +14,11 @@ import javax.persistence.Lob;
 import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.scheduler.Base.ModelBase.BoardEventModelBase;
 import com.scheduler.Base.ModelBase.TaskEventId;
-import com.scheduler.Base.ModelBase.TaskEventModelBase;
 
 @Entity
-public class Task extends TaskEventModelBase {
+public class Task extends BoardEventModelBase {
     // application
     @Column
     private String application;

@@ -2,11 +2,14 @@ package com.scheduler.app.backend.aREST.Service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import com.scheduler.Base.Base;
+import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
@@ -28,15 +31,17 @@ public class BoardService extends Base {
     public final CommandService commandService;
     public final ScheduleService scheduleService;
     public final TaskService taskService;
+    public final BoardQueueService boardQueueService;
 
 
-    public BoardService(BoardRepo board, DeviceService deviceService,HardwareService hardwareService, CommandService commandService, ScheduleService scheduleService, TaskService taskService) {
+    public BoardService(BoardRepo board, DeviceService deviceService,HardwareService hardwareService, CommandService commandService, ScheduleService scheduleService, TaskService taskService, BoardQueueService boardQueueService) {
         this.board = board;
         this.hardwareService = hardwareService;
         this.deviceService = deviceService;
         this.commandService = commandService;
         this.scheduleService = scheduleService;
         this.taskService = taskService;
+        this.boardQueueService = boardQueueService;
     }
   
     private String genereateBoardId(long id){
@@ -46,23 +51,24 @@ public class BoardService extends Base {
     // socket board add
     public Board addBoardSocket(String name,long hardwareObj,String boardUniqueId){
         Board newBoard=new Board();
-        if(name==null||name==""){
-            throw new IllegalArgumentException("Board name is required");
-        }
+        Map<String, String> errors = new HashMap<>();
+        int nameExi=getDataInt("select count(name) from board where name="+quoteParam(name));
+        if(nameExi>0) errors.put("name", "board with the name "+name+" exists");
         newBoard.setName(name);
         newBoard.setSocket(true);
         Hardware hard=hardwareService.getBoard(hardwareObj);
         if (hard != null) {
             long id=hard.getId();
             newBoard.setHardware(hard);
-        }
+        }else errors.put("hardwareId", "Hardware does not exists");
         if(boardUniqueId!=null&&boardUniqueId!=""){
             Board exist=board.findBoardByBoardId(boardUniqueId);
             if(exist!=null){
-                throw new IllegalArgumentException("Board with the same unique id already exists");
+                errors.put("boardUniqueId", "board with that unique ID has been created");
             }
             newBoard.setBoardId(boardUniqueId);
         }
+        if(!errors.isEmpty()) throw new ValidationException(errors);
         Board save=board.save(newBoard);
         if(boardUniqueId==null||boardUniqueId==""){
             long id=save.getId();
@@ -124,6 +130,7 @@ public class BoardService extends Base {
             if(!exist.getActivated()){
                 exist.setActivated(true);
             }
+            executeQuery("delete from board_queue where board="+exist.getId());
             // check if there are any startup tasks. if so add startup tasks to the scheduler for the board to process
             if(exist.getDevice().size()>0&&exist.getDevice()!=null){
                 String devicesId=Arrays.toString(deviceService.getDevicesById(exist.getId())).replace("[","").replace("]","");
@@ -143,11 +150,11 @@ public class BoardService extends Base {
             // add htp request connection command
             if(com!=null){
                 BoardTask boTsk=com.getBoardCommand();
-                //long tskId=boTsk.taskIdGenerate(exist.getId());
-                //boTsk.setTaskId(1);
+                boTsk.initTaskId(update.getId());
                 boTsk.setDelayInterval(60000);
                 boTsk.setRunTarget(0);
                 taskLists.add(boTsk);
+                boardQueueService.addToQueueBoardTask(boTsk, update, null);
             }
             if(command!=null){
                 BoardTask routinewsConn=command.getBoardCommand();

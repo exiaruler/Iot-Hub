@@ -62,8 +62,12 @@ public class Route extends ModelBase{
     @JsonManagedReference("route-schedule")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "route", cascade =CascadeType.ALL)
     private List<Schedule> scheduledRoutes=new ArrayList<>();
+    // route/function currently in operations
+    @JsonManagedReference("queue-route")
+    @OneToMany(fetch = FetchType.LAZY,mappedBy = "route", cascade =CascadeType.ALL)
+    private List<BoardQueue> boardOperations=new ArrayList<>();
 
-
+    
 
     public Route() {
     }
@@ -74,7 +78,7 @@ public class Route extends ModelBase{
     }
     @PreUpdate
     public void preUpdate() {
-        //this.calculateCurrent();
+        
     }
     
     // calculate current to save

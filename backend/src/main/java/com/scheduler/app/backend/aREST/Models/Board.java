@@ -12,7 +12,9 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PostLoad;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -32,7 +34,7 @@ public class Board extends ModelBase {
     private String boardKey;
     // board name
     @Column
-    @NotBlank(message = "Require name")
+    @NotBlank(message = "name required")
     private String name;
     // SSID
     
@@ -99,14 +101,21 @@ public class Board extends ModelBase {
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "board", cascade =CascadeType.ALL)
     private List<BoardQueue> boardOperations=new ArrayList<>();
     // request-only hardware id used by controller payloads
-    @Column
+    @Transient
     private long hardwardId;
 
+    @PostLoad
+    public void loadBoard(){
+        long id=0;
+        if(this.getHardware()!=null) id=this.getHardware().getId();
+        this.hardwardId=id;
+    }
 
     public Board() {
     }
 
-    public Board(String boardId, String boardKey, String name, String ip, boolean status, boolean arest, boolean arestCommand, boolean socket, int periodicCheck, int ramUsage, boolean activated, String websocketId, boolean devMode, Instant lastConnectDateTime, long timeout, boolean restartTimeout, int tasksExecuted, List<Device> device, Section section, Hardware hardware, long hardwardId) {
+
+    public Board(String boardId, String boardKey, String name, String ip, boolean status, boolean arest, boolean arestCommand, boolean socket, int periodicCheck, int ramUsage, boolean activated, String websocketId, boolean devMode, Instant lastConnectDateTime, long timeout, boolean restartTimeout, int tasksExecuted, List<Device> device, Section section, Hardware hardware, List<BoardQueue> boardOperations, long hardwardId) {
         this.boardId = boardId;
         this.boardKey = boardKey;
         this.name = name;
@@ -127,8 +136,10 @@ public class Board extends ModelBase {
         this.device = device;
         this.section = section;
         this.hardware = hardware;
+        this.boardOperations = boardOperations;
         this.hardwardId = hardwardId;
     }
+
 
     public String getBoardId() {
         return this.boardId;
@@ -430,6 +441,19 @@ public class Board extends ModelBase {
         setHardwardId(hardwardId);
         return this;
     }
+    
+    public List<BoardQueue> getBoardOperations() {
+        return this.boardOperations;
+    }
+
+    public void setBoardOperations(List<BoardQueue> boardOperations) {
+        this.boardOperations = boardOperations;
+    }
+
+    public Board boardOperations(List<BoardQueue> boardOperations) {
+        setBoardOperations(boardOperations);
+        return this;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -439,12 +463,12 @@ public class Board extends ModelBase {
             return false;
         }
         Board board = (Board) o;
-        return Objects.equals(boardId, board.boardId) && Objects.equals(boardKey, board.boardKey) && Objects.equals(name, board.name) && Objects.equals(ip, board.ip) && status == board.status && arest == board.arest && arestCommand == board.arestCommand && socket == board.socket && periodicCheck == board.periodicCheck && ramUsage == board.ramUsage && activated == board.activated && Objects.equals(websocketId, board.websocketId) && devMode == board.devMode && Objects.equals(lastConnectDateTime, board.lastConnectDateTime) && Objects.equals(timeout, board.timeout) && restartTimeout == board.restartTimeout && tasksExecuted == board.tasksExecuted && Objects.equals(device, board.device) && Objects.equals(section, board.section) && Objects.equals(hardware, board.hardware) && hardwardId == board.hardwardId;
+        return Objects.equals(boardId, board.boardId) && Objects.equals(boardKey, board.boardKey) && Objects.equals(name, board.name) && Objects.equals(ip, board.ip) && status == board.status && arest == board.arest && arestCommand == board.arestCommand && socket == board.socket && periodicCheck == board.periodicCheck && ramUsage == board.ramUsage && activated == board.activated && Objects.equals(websocketId, board.websocketId) && devMode == board.devMode && Objects.equals(lastConnectDateTime, board.lastConnectDateTime) && timeout == board.timeout && restartTimeout == board.restartTimeout && tasksExecuted == board.tasksExecuted && Objects.equals(device, board.device) && Objects.equals(section, board.section) && Objects.equals(hardware, board.hardware) && Objects.equals(boardOperations, board.boardOperations) && hardwardId == board.hardwardId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(boardId, boardKey, name, ip, status, arest, arestCommand, socket, periodicCheck, ramUsage, activated, websocketId, devMode, lastConnectDateTime, timeout, restartTimeout, tasksExecuted, device, section, hardware, hardwardId);
+        return Objects.hash(boardId, boardKey, name, ip, status, arest, arestCommand, socket, periodicCheck, ramUsage, activated, websocketId, devMode, lastConnectDateTime, timeout, restartTimeout, tasksExecuted, device, section, hardware, boardOperations, hardwardId);
     }
 
     @Override
@@ -470,6 +494,7 @@ public class Board extends ModelBase {
             ", device='" + getDevice() + "'" +
             ", section='" + getSection() + "'" +
             ", hardware='" + getHardware() + "'" +
+            ", boardOperations='" + getBoardOperations() + "'" +
             ", hardwardId='" + getHardwardId() + "'" +
             "}";
     }

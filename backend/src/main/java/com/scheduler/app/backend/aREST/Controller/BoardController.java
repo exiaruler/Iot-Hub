@@ -3,6 +3,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,7 +37,7 @@ public class BoardController extends ControllerBase{
     }
     
     @PostMapping(value="/add-board-socket", consumes = "application/json")
-    public ResponseEntity<Board> addBoard(@RequestBody Board input) {
+    public ResponseEntity<Board> addBoard(@Valid @RequestBody Board input) {
         Board boardSave=boardService.addBoardSocket(input.getName(),input.getHardwardId(),input.getBoardId());
         return ResponseEntity.ok(boardSave);
     }
@@ -97,6 +99,7 @@ public class BoardController extends ControllerBase{
     // when board starts-up verify credentials
     @PostMapping("/startup")
     public ResponseEntity<DeviceCheck> startup(@RequestBody BoardRegister entity,@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("SSID")String ssid,@RequestHeader("mac-address")String macAddress) {
+        System.out.println("startup "+ entity.getBoardId());
         DeviceCheck check=boardService.startup(entity,ip,Integer.parseInt(ram),ssid,macAddress);
         if(check!=null){
             return ResponseEntity.ok(check);

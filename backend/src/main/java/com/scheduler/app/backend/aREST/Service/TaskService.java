@@ -159,7 +159,7 @@ public class TaskService extends Base{
                     // convert message to string for system tasks
                     String commStr="";
                     try {
-                        commStr=messageUtil.objectToJson(tempTask);
+                        commStr=messageUtil.objectToJsonString(tempTask);
                     } catch (JsonProcessingException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();

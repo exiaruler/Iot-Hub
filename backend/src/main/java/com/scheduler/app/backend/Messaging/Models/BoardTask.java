@@ -118,11 +118,17 @@ public class BoardTask extends TaskModelBase {
     public void initTaskId(long id){
         this.setTaskId(taskIdGenerate(id));
     }
+    private void setBoardTaskPins(){
+        for(BoardPin pin:pins){
+            if(pin.getBoardTask()==null) pin.setBoardTask(this);
+        }
+    }
     private void orderPins(){
         int count=1;
         if(this.pins!=null){
             for(int i=0; i<this.pins.size(); i++){
                 this.pins.get(i).setPinOrder(count);
+                //if(this.pins.get(i).getBoardTask()==null)this.pins.get(i).setBoardTask(this);
                 count++;
             }
         }
@@ -132,6 +138,7 @@ public class BoardTask extends TaskModelBase {
         if(this.input!=null){
             for(int i=0; i<this.input.size(); i++){
                 this.input.get(i).setOrderPosition(count);
+                //if(this.input.get(i).getBoardTaskInput()==null)this.input.get(i).setBoardTaskInput(this);
                 count++;
             }
         }
@@ -200,7 +207,7 @@ public class BoardTask extends TaskModelBase {
             }
             this.setTaskId(taskIdGenerate(deviceId));
         }
-
+        //this.setBoardTaskPins();
         orderPins();
         orderInput();
         orderOutput();

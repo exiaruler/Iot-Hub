@@ -4,12 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
 import org.springframework.stereotype.Service;
-
 import com.scheduler.Base.Base;
 import com.scheduler.Base.ResourceNotFoundException;
 import com.scheduler.Base.ModelBase.TaskEventId;
