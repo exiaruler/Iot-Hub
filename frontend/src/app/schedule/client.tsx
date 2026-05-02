@@ -6,7 +6,6 @@ import { Col, Row, Stack } from "react-bootstrap";
 import TableComponent from "../next-components/TableComponent";
 import { useRef, useState } from "react";
 import SelectInput from "../next-components/input/SelectInput";
-import FormHandle from "@/components/form/FormHandle";
 import SaveButton from "../next-components/buttons/SaveButton";
 import { RegularButton } from "../next-components/buttons/RegularButton";
 import NewButton from "../next-components/form/NewButton";
@@ -25,6 +24,7 @@ export default function Client({form,schedule,devices}:Props){
     const [devicesList,setDeviceList]=useState(devices);
     const [scheduleList,setScheduleList]=useState(schedule);
     const [deleteBtn,setDeleteBtn]=useState(true);
+    const [selectedSchedule,setSelectedSchedule]=useState<ObjectRecord>(null);
     const [functions,setFunctions]=useState([]);
     const [modes,setModes]=useState([]);
     const tabRef=useRef<TabGroup>(null);
@@ -126,7 +126,8 @@ export default function Client({form,schedule,devices}:Props){
         let form=formRef.current;
         if(!table?.sameRow){
             setRoutineHidden({...routineHidden,routine:false,startup:false});
-            form?.setRecord(record);
+            setSelectedSchedule(record);
+            //form?.setRecord(record);
             let functions=devices.find((rec:ObjectRecord)=>rec?.id==record.deviceId)?.routes||[];
             setFunctions(functions);
             if(record.startup)setRoutineHidden({...routineHidden,routine:true,startup:false});
@@ -178,7 +179,7 @@ export default function Client({form,schedule,devices}:Props){
         <TabComponent title={"Schedule"} eventKey={"form"}>
         <Row>
         <Col md={5}>
-        <Form  post={"/schedule/add-schedule-socket"} put={"/schedule/update-schedule/"} recordLayout={form} ref={formRef} onSubmit={submit} idKey={"id"}>
+        <Form record={selectedSchedule}  post={"/schedule/add-schedule-socket"} put={"/schedule/update-schedule/"} recordLayout={form} ref={formRef} onSubmit={submit} idKey={"id"}>
         <TextInput formRef={formRef} label={"Name"} type={"text"} rows={0} name={"name"} required={true}/>
         <SelectInput ref={deviceRef} formRef={formRef} name={"deviceId"} size={undefined} api={""} label="Device" valueKey={"id"} displayKey={"name"} options={devicesList} onChange={(event: any) => deviceSelectChange(event.target.value)} type={""} rows={0}/>
         <SelectInput ref={functionRef} formRef={formRef} name={"routeId"} warning={""} size={undefined} api={""} label="Function" valueKey={"id"} displayKey={"route"} options={functions} onChange={(event: any) => functionSelectChange(event.target.value)} type={""} rows={0}/>

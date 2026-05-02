@@ -1,0 +1,186 @@
+[
+    {
+        "id": 5,
+        "boardName": "ESP8266",
+        "maxRam": 80192,
+        "pins": [
+            {
+                "id": 37,
+                "boardPin": "D4",
+                "pin": 2
+            },
+            {
+                "id": 38,
+                "boardPin": "D5",
+                "pin": 14
+            },
+            {
+                "id": 39,
+                "boardPin": "D6",
+                "pin": 12
+            },
+            {
+                "id": 40,
+                "boardPin": "D7",
+                "pin": 13
+            },
+            {
+                "id": 41,
+                "boardPin": "D8",
+                "pin": 15
+            },
+            {
+                "id": 42,
+                "boardPin": "D0",
+                "pin": 16
+            },
+            {
+                "id": 43,
+                "boardPin": "D1",
+                "pin": 5
+            },
+            {
+                "id": 44,
+                "boardPin": "D2",
+                "pin": 4
+            },
+            {
+                "id": 45,
+                "boardPin": "D3",
+                "pin": 0
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "boardName": "ESP32",
+        "maxRam": 320000,
+        "pins": [
+            {
+                "id": 37,
+                "boardPin": "D13",
+                "pin": 15
+            },
+            {
+                "id": 38,
+                "boardPin": "D2",
+                "pin": 2
+            },
+            {
+                "id": 39,
+                "boardPin": "D4",
+                "pin": 4
+            },
+            {
+                "id": 40,
+                "boardPin": "RX2",
+                "pin": 16
+            },
+            {
+                "id": 41,
+                "boardPin": "TX2",
+                "pin": 17
+            },
+            {
+                "id": 42,
+                "boardPin": "D5",
+                "pin": 5
+            },
+            {
+                "id": 43,
+                "boardPin": "D18",
+                "pin": 18
+            },
+            {
+                "id": 44,
+                "boardPin": "D19",
+                "pin": 19
+            },
+            {
+                "id": 45,
+                "boardPin": "D21",
+                "pin": 21
+            },
+            {
+                "id": 45,
+                "boardPin": "RX0",
+                "pin": 3
+            },
+            {
+                "id": 45,
+                "boardPin": "TX0",
+                "pin": 1
+            },
+            {
+                "id": 45,
+                "boardPin": "D22",
+                "pin": 22
+            },
+            {
+                "id": 45,
+                "boardPin": "D23",
+                "pin": 23
+            },
+            {
+                "id": 45,
+                "boardPin": "D13",
+                "pin": 13
+            },
+            {
+                "id": 45,
+                "boardPin": "D12",
+                "pin": 12
+            },
+            {
+                "id": 45,
+                "boardPin": "D14",
+                "pin": 14
+            },
+            {
+                "id": 45,
+                "boardPin": "D27",
+                "pin": 27
+            },
+            {
+                "id": 45,
+                "boardPin": "D26",
+                "pin": 26
+            },
+            {
+                "id": 45,
+                "boardPin": "D25",
+                "pin": 25
+            },
+            {
+                "id": 45,
+                "boardPin": "D33",
+                "pin": 33
+            },
+            {
+                "id": 45,
+                "boardPin": "D32",
+                "pin": 32
+            },
+            {
+                "id": 45,
+                "boardPin": "D35",
+                "pin": 35
+            },
+            {
+                "id": 45,
+                "boardPin": "D34",
+                "pin": 34
+            },
+            {
+                "id": 45,
+                "boardPin": "VN",
+                "pin": 39
+            },
+            {
+                "id": 45,
+                "boardPin": "VP",
+                "pin": 16
+            }
+        ]
+    }
+]

@@ -1,6 +1,7 @@
 'use client'
 import { CheckInterface as InputInterface,State } from "./interface/check";
 import InputBase from "./InputBase";
+import { FormContext } from "@/components/form/FormHandle";
 // checkbox input
 export default class CheckBase extends InputBase{
     //declare props:InputInterface;
@@ -16,16 +17,19 @@ export default class CheckBase extends InputBase{
    // return state value
     public getStateValue():any{
         if(this.props.formRef){
-            let form=this.props.formRef.current;
+            const form=this.props.formRef.current;
             if(this.props.name&&form!=null&&JSON.stringify(form.state.record)!=='{}'&&form.state.record!=null){
-                const value=this.context as Record<string, any>;
-                return value[this.props.name];
+                const context=this.context as FormContext;
+                const rec=context.record;
+                if(rec!=null){
+                    return rec[this.props.name];
+                }
             }
         }else return this.value;
     }
 
     public onChange(event:React.ChangeEvent<HTMLInputElement>){
-        let value=event.target.checked;
+        const value=event.target.checked;
         this.setState({...this.state,value:value});
         this.value=value;
         if(this.props.formRef){

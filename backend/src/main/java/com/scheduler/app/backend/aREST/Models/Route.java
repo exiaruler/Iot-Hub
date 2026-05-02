@@ -11,6 +11,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -65,6 +67,16 @@ public class Route extends ModelBase{
 
     public Route() {
     }
+
+    @PrePersist
+    public void prePersist() {
+        this.calculateCurrent();
+    }
+    @PreUpdate
+    public void preUpdate() {
+        //this.calculateCurrent();
+    }
+    
     // calculate current to save
     public void calculateCurrent(){
         String elect=this.getElectrode();
@@ -181,13 +193,17 @@ public class Route extends ModelBase{
     }
     private int electrodeCalculate(String electrode,int current){
         if(electrode.equals("cathode")){
-            current=255-current;
+            if(current>0){
+                current=255-current;
+            }else current=current+255;
         }   
         return current;
     }
     private int electrodeCalculateDisplay(String electrode,int current){
         if(electrode.equals("cathode")){
-            current+=255;
+            if(current>0){
+                current=255-current;
+            }else current=255-current;
         }   
         return current;
     }
@@ -350,8 +366,8 @@ public class Route extends ModelBase{
         if (!(o instanceof Route)) {
             return false;
         }
-        Route route = (Route) o;
-        return Objects.equals(device, route.device) && Objects.equals(route, route.route) && modes == route.modes && Objects.equals(electrode, route.electrode) && Objects.equals(command, route.command) && commandId == route.commandId && switchDevice == route.switchDevice && Objects.equals(mode, route.mode) && Objects.equals(boardAction, route.boardAction) && Objects.equals(scheduledRoutes, route.scheduledRoutes);
+        Route other = (Route) o;
+        return Objects.equals(device, other.device) && Objects.equals(route, other.route) && modes == other.modes && Objects.equals(electrode, other.electrode) && Objects.equals(command, other.command) && commandId == other.commandId && switchDevice == other.switchDevice && Objects.equals(mode, other.mode) && Objects.equals(boardAction, other.boardAction) && Objects.equals(scheduledRoutes, other.scheduledRoutes);
     }
 
     @Override

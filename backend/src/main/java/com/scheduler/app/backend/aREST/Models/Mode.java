@@ -46,15 +46,17 @@ public class Mode extends ModelBase{
     private List<Schedule> scheduledModes=new ArrayList<>();    
 
 
+
     public Mode() {
     }
 
-    public Mode(Route route, String mode, boolean switchOff, List<Parameter> params, BoardTask boardAction) {
+    public Mode(Route route, String mode, boolean switchOff, List<Parameter> params, BoardTask boardAction, List<Schedule> scheduledModes) {
         this.route = route;
         this.mode = mode;
         this.switchOff = switchOff;
         this.params = params;
         this.boardAction = boardAction;
+        this.scheduledModes = scheduledModes;
     }
 
     public Route getRoute() {
@@ -101,6 +103,14 @@ public class Mode extends ModelBase{
         this.boardAction = boardAction;
     }
 
+    public List<Schedule> getScheduledModes() {
+        return this.scheduledModes;
+    }
+
+    public void setScheduledModes(List<Schedule> scheduledModes) {
+        this.scheduledModes = scheduledModes;
+    }
+
     public Mode route(Route route) {
         setRoute(route);
         return this;
@@ -126,6 +136,11 @@ public class Mode extends ModelBase{
         return this;
     }
 
+    public Mode scheduledModes(List<Schedule> scheduledModes) {
+        setScheduledModes(scheduledModes);
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -134,12 +149,12 @@ public class Mode extends ModelBase{
             return false;
         }
         Mode mode = (Mode) o;
-        return Objects.equals(route, mode.route) && Objects.equals(mode, mode.mode) && switchOff == mode.switchOff && Objects.equals(params, mode.params) && Objects.equals(boardAction, mode.boardAction);
+        return Objects.equals(route, mode.route) && Objects.equals(mode, mode.mode) && switchOff == mode.switchOff && Objects.equals(params, mode.params) && Objects.equals(boardAction, mode.boardAction) && Objects.equals(scheduledModes, mode.scheduledModes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(route, mode, switchOff, params, boardAction);
+        return Objects.hash(route, mode, switchOff, params, boardAction, scheduledModes);
     }
 
     @Override
@@ -150,8 +165,10 @@ public class Mode extends ModelBase{
             ", switchOff='" + isSwitchOff() + "'" +
             ", params='" + getParams() + "'" +
             ", boardAction='" + getBoardAction() + "'" +
+            ", scheduledModes='" + getScheduledModes() + "'" +
             "}";
     }
+    
     
     
 }

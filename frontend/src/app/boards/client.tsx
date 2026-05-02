@@ -3,27 +3,26 @@ import GridCard from "@/components/GridCard";
 import { Col, Row } from "react-bootstrap";
 import ModalBox from "@/components/modal/ModalBox";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from 'next/navigation';
 import FormModal from "../next-components/modal/FormModal";
 import TextInput from "../next-components/input/TextInput";
 import Form from "../next-components/form/Form";
 import SaveButton from "../next-components/buttons/SaveButton";
 import NewButton from "../next-components/form/NewButton";
 import SelectInput from "../next-components/input/SelectInput";
-import Content from "../next-components/layout/Content";
+import Content, { ContentRef, ObjectArray, ObjectRecord } from "../next-components/layout/Content";
 import Dev from "../next-components/user/dev";
 interface Props{
-    boards:Array<Record<string,any>>;
-    //addForm:Record<string,any>|null;
-    hardwares:Array<Record<string,any>>;
+    boards:ObjectArray;
+    hardwares:ObjectArray;
+    boardForm:ObjectRecord;
 }
 // user boards page
 export default function Client(props:Props){
-    const router = useRouter();
     const formRef=useRef<Form>(null);
     const modalRef=useRef<FormModal>(null);
     const gridRef:any=useRef(null);
-    const [boards,setBoards]:any=useState([]);
+    const contentRef=useRef<ContentRef>(null);
+    const [boards,setBoards]=useState<ObjectArray>([]);
    
     const submitHandle=()=>{
         const form=formRef.current;
@@ -41,7 +40,7 @@ export default function Client(props:Props){
             modalRef.current?.open();
         }else
         {
-            router.push('/boards/'+record.boardId);
+            contentRef.current?.router.push('/boards/'+record.boardId);
         }
     }
   
@@ -54,7 +53,7 @@ export default function Client(props:Props){
     },[setBoards])
     return(
         <div>
-        <Content>
+        <Content ref={contentRef}>
         <Row>
         <Col md={2} xs={2}></Col>
         <Col md={10} xs={14}>

@@ -1,9 +1,10 @@
 'use client'
 import { Component } from "react";
-interface Props{
+export interface Props{
     columnName:string;
     size?:any;
     key:string;
+    functionDisplay?:CallableFunction;
 }
 
 export default class ColumnBase extends Component<Props>{

@@ -13,7 +13,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -95,10 +94,12 @@ public class Board extends ModelBase {
     @ManyToOne
     @JoinColumn(name="hardware_id")
     private Hardware hardware;
-    // operation
-    
+    // Board queue
+    @JsonManagedReference("queue-board")
+    @OneToMany(fetch = FetchType.LAZY,mappedBy = "board", cascade =CascadeType.ALL)
+    private List<BoardQueue> boardOperations=new ArrayList<>();
     // request-only hardware id used by controller payloads
-    @Transient
+    @Column
     private long hardwardId;
 
 

@@ -80,7 +80,7 @@ export default class Form extends FormHandle{
     render(){
         return(
             <form onSubmit={(event:React.FormEvent<HTMLFormElement>)=>this.onsubmit(event)} >
-            <RecordContext.Provider value={this.state.record}>
+            <RecordContext.Provider value={{record:this.state.record,warnings:this.state.warnings,errors:this.state.warnings}}>
             {
                 this.props.children
             }

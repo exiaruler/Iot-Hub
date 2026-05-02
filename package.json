@@ -6,13 +6,14 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "update-frontend": "cp -r React-Core-Components/api frontend/src && cp -r React-Core-Components/base frontend/src && cp -r React-Core-Components/components frontend/src && cp -r React-Core-Components/pages frontend/src/client-pages && cp -r React-Core-Components/redux frontend/src && cp React-Core-Components/component.css frontend/src/app",
     "update-core": "cp -r frontend/src/components React-Core-Components && cp -r frontend/src/base React-Core-Components && cp -r frontend/src/api React-Core-Components && cp -r frontend/src/client-pages/pages React-Core-Components && cp -r frontend/src/redux React-Core-Components && cp frontend/src/app/component.css React-Core-Components",
-    "app-server": "cd .. && cd personal-website && npm run server",
+    "app-server": "cd .. && cd personal-website && cd server && npm run dev",
     "load-local":"cp config/local/backend/application.properties backend/src/main/resources && cp config/local/frontend/config.json frontend/",
     "load-dev-local":"cp config/dev/backend/application.properties backend/src/main/resources && cp config/dev/frontend/config.json frontend/",
     "dev-frontend": "npm run dev --prefix frontend",
     "deploy-backend-dev":"npm run load-dev-local && cd backend && gcloud config set project iot-proto-dev && gcloud config set run/region australia-southeast1 && gcloud run deploy proto-backend --source . && cd .. && npm run load-local",
     "deploy-app-dev":"npm run load-dev-local && cd frontend && gcloud config set project iot-proto-dev && gcloud run deploy proto-app --source . && cd .. && npm run load-local",
-    "dev": "concurrently \"npm run app-server\" \"npm run dev-frontend\""
+    "dev": "concurrently \"npm run app-server\" \"npm run dev-frontend\"",
+    "build-local-test":"npm run load-local && concurrently \"npm run app-server\" \"cd frontend && npm run rebuild && npm start\""
   },
   "author": "",
   "license": "ISC",

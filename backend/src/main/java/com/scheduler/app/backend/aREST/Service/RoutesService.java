@@ -47,78 +47,15 @@ public class RoutesService extends Base {
                 }
                 // set id to 0
                 List<Mode> modeList=route.getMode();
-                for(int i=0; i<modeList.size(); i++){
-                    BoardTask tsk=modeList.get(i).getBoardAction();
-                    int pinOrder=1,inCurr=1,outCurr=1;
-                    for(int p=0; p<tsk.getPins().size(); p++){
-                        BoardPin pin=tsk.getPins().get(p);
-                        pin.setId(0);
-                        pin.setBoardTask(tsk);
-                        pin.setPinOrder(pinOrder);
-                        tsk.getPins().set(p,pin);
-                        pinOrder++;
-                    }
-                    tsk.setId(0);
-                    // calculate current
-                    if(tsk.getInput().size()==tsk.getOutput().size()){
-                        int totLength=tsk.getOutput().size();
-                        for(int x=0; x<totLength; x++){
-                            InputCurrent in=tsk.getInput().get(x);
-                            in.setId(0);
-                            in.setOrderPosition(inCurr);
-                            in.setBoardTaskInput(tsk);
-                            if(route.getElectrode()=="anode") in.setCurrent(currentAnodeCalculate(in.getCurrent()));
-                            tsk.getInput().set(x, in);
-                            OutputCurrent out=tsk.getOutput().get(x);
-                            out.setOrderPosition(outCurr);
-                            out.setId(0);
-                            if(route.getElectrode()=="anode") out.setCurrent(currentAnodeCalculate(out.getCurrent()));
-                            tsk.getOutput().set(x,out);
-                            inCurr++;
-                            outCurr++;
-                        }
-                    }else
-                    {
-                        if(tsk.getInput().size()>0){
-                            //currentAnodeCalculate
-                            for(int a=0; a<tsk.getInput().size(); a++){
-                                InputCurrent in=tsk.getInput().get(a);
-                                in.setId(0);
-                                in.setOrderPosition(inCurr);
-                                in.setBoardTaskInput(tsk);
-                                if(route.getElectrode()=="anode"){
-                                    in.setCurrent(currentAnodeCalculate(in.getCurrent()));
-                                }
-                                tsk.getInput().set(a, in);
-                                inCurr++;
-                            }
-                        }
-                        if(tsk.getOutput().size()>0){
-                            for(int b=0; b<tsk.getOutput().size(); b++){
-                                OutputCurrent out=tsk.getOutput().get(b);
-                                out.setId(0);
-                                out.setOrderPosition(outCurr);
-                                out.setBoardTaskOutput(tsk);
-                                if(route.getElectrode()=="anode"){
-                                    out.setCurrent(currentAnodeCalculate(out.getCurrent()));
-                                }
-                                tsk.getOutput().set(b,out);
-                                outCurr++;
-                            }
-                        }
-                    }
-                    modeList.get(i).setBoardAction(tsk);
-                    
+                for(Mode mode:modeList){
+                    mode.getBoardAction().newInputs();
                 }
-            route.setMode(modeList);
-            route.calculateCurrent();
-            Route save=routeRepo.save(route);
-            route=save;
+                route.setMode(modeList);
+                //route.calculateCurrent();
+                Route save=routeRepo.save(route);
+                route=save;
             }
         }
-
-        
-
         return route;
     }
     
@@ -126,82 +63,41 @@ public class RoutesService extends Base {
         Route rec=null;
         if(routeRepo.existsById(id)){
             rec=routeRepo.findById(id).get();
-            Device dev=deviceRepo.findDeviceByDeviceId(rec.getDevice().getDeviceId());
             Command com=commandService.getCommand(entry.getCommandId());
-            if(dev!=null&&com!=null){
-                rec.setDevice(dev);
-                rec.setCommand(com);
-                if(rec.getMode().size()>0){
+            if(com!=null&&rec.getCommand().getId()==com.getId()){
+                rec.setRoute(entry.getRoute());
+                rec.setElectrode(entry.getElectrode());
+                if(entry.getMode().size()>0){
                     rec.setModes(true);
                 }
-                // set id to 0
-                List<Mode> modeList=rec.getMode();
-                for(int i=0; i<modeList.size(); i++){
-                    BoardTask tsk=modeList.get(i).getBoardAction();
-                    int pinOrder=1,inCurr=1,outCurr=1;
-                    for(int p=0; p<tsk.getPins().size(); p++){
-                        BoardPin pin=tsk.getPins().get(p);
-                        pin.setId(0);
-                        pin.setBoardTask(tsk);
-                        pin.setPinOrder(pinOrder);
-                        tsk.getPins().set(p,pin);
-                        pinOrder++;
+                rec.getMode().removeIf(exist->entry.getMode().stream().noneMatch(m->m.getId()==exist.getId()));
+                
+                List<Mode> existModeList=rec.getMode();
+                // updated list
+                List<Mode> updatedModeList=entry.getMode();
+                for(Mode mode:updatedModeList){
+                    Mode ex=existModeList.stream().filter(m->m.getId()==mode.getId()).findFirst().orElse(null);
+                    // update existing mode
+                    if(ex!=null){
+                        ex.setMode(mode.getMode());
+                        BoardTask act=mode.getBoardAction();
+                        act.setMode(ex);
+                        ex.setBoardAction(act);
                     }
-                    tsk.setId(0);
-                    // calculate current
-                    if(tsk.getInput().size()==tsk.getOutput().size()){
-                        int totLength=tsk.getOutput().size();
-                        for(int x=0; x<totLength; x++){
-                            InputCurrent in=tsk.getInput().get(x);
-                            in.setId(0);
-                            in.setOrderPosition(inCurr);
-                            in.setBoardTaskInput(tsk);
-                            if(rec.getElectrode()=="anode") in.setCurrent(currentAnodeCalculate(in.getCurrent()));
-                            tsk.getInput().set(x, in);
-                            OutputCurrent out=tsk.getOutput().get(x);
-                            out.setOrderPosition(outCurr);
-                            out.setId(0);
-                            if(rec.getElectrode()=="anode") out.setCurrent(currentAnodeCalculate(out.getCurrent()));
-                            tsk.getOutput().set(x,out);
-                            inCurr++;
-                            outCurr++;
-                        }
-                    }else
-                    {
-                        if(tsk.getInput().size()>0){
-                            //currentAnodeCalculate
-                            for(int a=0; a<tsk.getInput().size(); a++){
-                                InputCurrent in=tsk.getInput().get(a);
-                                in.setId(0);
-                                in.setOrderPosition(inCurr);
-                                in.setBoardTaskInput(tsk);
-                                if(rec.getElectrode()=="anode"){
-                                    in.setCurrent(currentAnodeCalculate(in.getCurrent()));
-                                }
-                                tsk.getInput().set(a, in);
-                                inCurr++;
-                            }
-                        }
-                        if(tsk.getOutput().size()>0){
-                            for(int b=0; b<tsk.getOutput().size(); b++){
-                                OutputCurrent out=tsk.getOutput().get(b);
-                                out.setId(0);
-                                out.setOrderPosition(outCurr);
-                                out.setBoardTaskOutput(tsk);
-                                if(rec.getElectrode()=="anode"){
-                                    out.setCurrent(currentAnodeCalculate(out.getCurrent()));
-                                }
-                                tsk.getOutput().set(b,out);
-                                outCurr++;
-                            }
-                        }
-                    }
-                    modeList.get(i).setBoardAction(tsk);
-                    
+                    else{
+                        mode.setRoute(rec);
+                        mode.getBoardAction().newInputs();
+                        rec.getMode().add(mode);
+                    }    
                 }
-            rec.calculateCurrent();
-            rec.setMode(modeList);
+                
+            }else
+            {
+                rec.setCommand(com);
+                rec.setCommandId(com.getId());
+                rec.getMode().clear();
             }
+            rec.calculateCurrent();
             rec=routeRepo.save(rec);
         }
         return rec;

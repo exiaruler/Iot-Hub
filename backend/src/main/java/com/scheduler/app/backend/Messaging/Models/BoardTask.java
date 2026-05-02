@@ -118,6 +118,59 @@ public class BoardTask extends TaskModelBase {
     public void initTaskId(long id){
         this.setTaskId(taskIdGenerate(id));
     }
+    private void orderPins(){
+        int count=1;
+        if(this.pins!=null){
+            for(int i=0; i<this.pins.size(); i++){
+                this.pins.get(i).setPinOrder(count);
+                count++;
+            }
+        }
+    }
+    private void orderInput(){
+        int count=1;
+        if(this.input!=null){
+            for(int i=0; i<this.input.size(); i++){
+                this.input.get(i).setOrderPosition(count);
+                count++;
+            }
+        }
+    }
+    private void orderOutput(){
+        int count=1;
+        if(this.output!=null){
+            for(int i=0; i<this.output.size(); i++){
+                this.output.get(i).setOrderPosition(count);
+                count++;
+            }
+        }
+    }
+    public void newInputs(){
+        this.setId(0);
+        if(this.pins != null) {
+            for(BoardPin pin : this.pins) {
+                pin.setBoardTask(this);
+                pin.setId(0);
+            }
+        }
+        if(this.input != null) {
+            for(InputCurrent curr : this.input) {
+                curr.setBoardTaskInput(this);
+                curr.setId(0);
+            }
+        }
+        if(this.output != null) {
+            for(OutputCurrent curr : this.output) {
+                curr.setBoardTaskOutput(this);
+                curr.setId(0);
+            }
+        }
+        if(this.variable != null) {
+            this.variable.setTask(this);
+            this.variable.setId(0);
+        }
+
+    }
     @PrePersist
     public void prePersist() {
         long deviceId=0;
@@ -128,6 +181,12 @@ public class BoardTask extends TaskModelBase {
             deviceId=this.getRoute().getDevice().getBoard().getId();
         }
         this.setTaskId(taskIdGenerate(deviceId));
+        orderPins();
+        orderInput();
+        orderOutput();
+        // remove ids on new entry
+        this.newInputs();
+        
     }
     @PreUpdate
     public void preUpdate(){
@@ -141,18 +200,13 @@ public class BoardTask extends TaskModelBase {
             }
             this.setTaskId(taskIdGenerate(deviceId));
         }
+
+        orderPins();
+        orderInput();
+        orderOutput();
     }
     public BoardTask() {
-        /* 
-        long deviceId=0;
-        if(this.getMode()!=null){
-            deviceId=this.getMode().getRoute().getDevice().getBoard().getId();
-        }
-        if(this.getRoute()!=null){
-            deviceId=this.getRoute().getDevice().getBoard().getId();
-        }
-        this.setTaskId(taskIdGenerate(deviceId));
-        */
+    
     }
 
     public BoardTask(BoardTask boardTask) {

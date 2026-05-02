@@ -13,7 +13,6 @@ import Content, { ContentRef } from "../next-components/layout/Content";
 export default function Client(){
 const base=new UiBase();
     const dispatch = useDispatch();
-    const contentRef=useRef<ContentRef>(null);
     const [form,setForm]=useState({
         username:"",
         password:""
@@ -29,7 +28,6 @@ const base=new UiBase();
     
     const submit=async(event:any)=>{
         event.preventDefault();
-        const content=contentRef.current;
         try{
           const login=await base.userApi.loginRemote(form);
           if(login.message==="Successfully Authenticated"){
@@ -68,7 +66,7 @@ const base=new UiBase();
       }
     return(
         <div>
-        <Content ref={contentRef}>
+        <Content >
         <Group>
         <Row >
         <Col xs={3} md={5}>

@@ -1,7 +1,7 @@
 import { Component, ReactNode } from "react";
 import checked from "../components/assets/checked.png";
 import Image from "next/image";
-interface Props{
+export interface Props{
     id?:string;
     width?:any,
     rowSelect?:boolean;

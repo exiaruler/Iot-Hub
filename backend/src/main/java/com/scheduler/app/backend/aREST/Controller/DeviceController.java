@@ -43,10 +43,6 @@ public class DeviceController extends ControllerBase {
     public Device getDevice(@PathVariable long id){
         return service.getDevice(id);
     }
-    @GetMapping(value="/get-device-unique/{id}")
-    public Device getDeviceUnique(@PathVariable String id){
-        return null;
-    }
     @DeleteMapping(value="/delete-device/{id}")
     public ResponseEntity<Void> deleteDevice(@PathVariable long id){
         String result=service.deleteDevice(id);

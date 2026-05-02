@@ -26,19 +26,34 @@ interface State{
     record:Record<string,any>|null;
     // layout of record
     recordLayout:Record<string,any>;
+    // field errors
+    errors:Record<string,any>;
+    // warning errors
+    warnings:Record<string,any>;
     // record id
     id:string|number;
     // form submission response
     statusResponse:number;
     submissionResponse:any;
 }
-export const RecordContext=createContext<Record<string,any>|null>(null);
+export interface FormContext{
+    record:Record<string,any>|null;
+    warnings:Record<string,any>|null;
+    errors:Record<string,any>|null;
+
+}
+export const RecordContext=createContext<FormContext>({record:null,warnings:{},errors:{}});
+export const ErrorContext=createContext<Record<string,any>|null>(null);
+export const WarningContext=createContext<Record<string,any>|null>(null);
+
 export default class FormHandle extends Component<Props,State>{
     constructor(props:Props) {
             super(props);
             this.state = {
                 record:null,
                 recordLayout:{},
+                errors:{},
+                warnings:{},
                 id:0,
                 statusResponse:0,
                 submissionResponse:null
@@ -59,7 +74,8 @@ export default class FormHandle extends Component<Props,State>{
     componentDidMount(): void {
         if(this.props.recordLayout){
             let rec=this.props.recordLayout;
-            this.setState({...this.state,recordLayout:this.props.recordLayout,record:rec});
+            const blankKeys=this.mapKeys(this.props.recordLayout);
+            this.setState({...this.state,recordLayout:this.props.recordLayout,record:rec,errors:blankKeys,warnings:blankKeys});
             this.recordLayoutString=JSON.stringify(this.props.recordLayout);
             this.record=rec;
             if(this.props.record){
@@ -83,7 +99,11 @@ export default class FormHandle extends Component<Props,State>{
             }
         }    
     }
-    
+    public mapKeys(layout:Record<string,any>):Record<string,any>{
+        const blankEntries = Object.keys(layout).map(key => [key, ""]);
+        const blankObject = Object.fromEntries(blankEntries);
+        return blankObject;
+    }
     public addInput(component:Component):void{
         let exists=this.inputFields.filter(((input:any)=>input===component))
         if(exists.length===0){
@@ -95,7 +115,10 @@ export default class FormHandle extends Component<Props,State>{
         let comp=this.inputFields.find((input:any)=>input.current.props.name==name)||null;
         if(comp!=null){
             let warn=comp.current;
-            warn.setWarning(error);
+            //warn.setWarning(error);
+        }
+        if(Object.hasOwn(this.state.warnings,name)){
+            this.setState({...this.state,warnings:{...this.state.warnings,[name]:error}})
         }
     }
    // update record value
@@ -154,7 +177,13 @@ export default class FormHandle extends Component<Props,State>{
         this.ok=false;
         this.record=this.getRecordLayout();
         this.clearWarnings();
-        this.setState({...this.state,record:this.getRecordLayout(),id:0,statusResponse:0,submissionResponse:null});
+        const exWarnings={...this.state.warnings};
+        const exErrors={...this.state.errors};
+        for( let key in exWarnings){
+            exWarnings[key]="";
+            exErrors[key]="";
+        }
+        this.setState({...this.state,record:this.getRecordLayout(),id:0,statusResponse:0,submissionResponse:null,errors:exErrors,warnings:exWarnings});
     }
     public clearWarnings():void{
         if(this.inputFields.length>0)this.inputFields.map((input)=>input.current.setWarning(""));
@@ -199,7 +228,7 @@ export default class FormHandle extends Component<Props,State>{
     render(){
         return(
             <form onSubmit={(event:any)=>this.onsubmit(event)}>
-            <RecordContext.Provider value={this.state.record}>
+            <RecordContext.Provider value={{record:this.state.record,warnings:this.state.warnings,errors:this.state.warnings}}>
             {
                 this.props.children
             }

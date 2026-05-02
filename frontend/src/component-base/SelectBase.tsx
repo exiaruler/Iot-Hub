@@ -36,13 +36,13 @@ export default class SelectBase extends InputBase{
     componentDidUpdate(prevProps: Readonly<InputInterface>, prevState: Readonly<State>, snapshot?: any): void {
         this.formHandleValueSetUpdate(prevProps);
         if(this.props.options!=prevState.options){
-            let cpy={...this.state};
+            const cpy={...this.state};
             cpy.options=this.props.options;
             this.setState(cpy);
         }
     }
     public clearOptions():void{
-        let cpy={...this.state};
+        const cpy={...this.state};
         cpy.options=[];
         this.setState(cpy);
     }
@@ -51,7 +51,7 @@ export default class SelectBase extends InputBase{
     }
     public setOptions():void{
         if(this.props.options){
-            let cpy={...this.state};
+            const cpy={...this.state};
             cpy.options=this.props.options;
             this.setState(cpy);
         }else if(this.props.api){
@@ -73,11 +73,11 @@ export default class SelectBase extends InputBase{
         return val;
     }
     public onChange(event:any):void{
-        let value=event.target.value;
+        const value=event.target.value;
         this.value=event.target.value;
-        let statecpy={...this.state};
+        const statecpy={...this.state};
         if(this.props.valueKey){
-            let objectValue=this.props.options.find((ob:any)=>ob[this.props.valueKey]==value)||"";
+            const objectValue=this.props.options.find((ob:any)=>ob[this.props.valueKey]==value)||"";
             statecpy.value=value;
             statecpy.displayValue=objectValue[this.props.displayKey];
             statecpy.objectValue=objectValue;
@@ -88,7 +88,7 @@ export default class SelectBase extends InputBase{
             statecpy.displayValue=value[this.props.displayKey];
         }
         if(this.props.formRef){
-            let form=this.props.formRef.current;
+            const form=this.props.formRef.current;
             form.onChangeRecord(this.props.name,value);
         }
         if(this.props.onChange){

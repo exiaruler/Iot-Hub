@@ -1,12 +1,13 @@
 'use client'
+import { ObjectArray } from "@/app/next-components/layout/Content";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { Card, CardBody, CardTitle, Col, Row } from "react-bootstrap"
 interface Props{
-    data:Array<Object>;
+    data:ObjectArray;
     valueKey:string;
     titleKey:string;
     bodyKey:string;
-    onClick?:any;
+    onClick?:CallableFunction;
     mdCol?:number;
     smCol?:number;
 }

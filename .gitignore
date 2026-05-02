@@ -1,3 +1,8 @@
 /React-Core-Components
 /config
 /node_modules
+/frontend/config.json
+/backend/src/main/resources/application.properties
+/backend/src/main/resources/json/commands.json
+/backend/src/main/resources/json/hardware.json
+/backend/src/main/resources/json/commandsSystem.json

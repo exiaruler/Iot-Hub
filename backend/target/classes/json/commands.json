@@ -1,0 +1,329 @@
+﻿[
+    {
+        "commandType": "action",
+        "displayName":"Set LED",
+        "command": "setled",
+        "className": "",
+        "params": true,
+        "totalParam": 3,
+        "hasMotor": false,
+        "commandParameter": [
+            {
+                "parameterOrder": 0,
+                "component": "ElectrodeSelect",
+                "label":"Electrode",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "electrode",
+                "className": ""
+            },
+            {
+                "parameterOrder": 0,
+                "component": "PinSelect",
+                "label":"Pin",
+                "type": null,
+                "pin": true,
+                "backgroundKey": "pins",
+                "subKey":"pin",
+                "className": "BoardTask"
+            },
+            {
+                "parameterOrder": 0,
+                "component": "CurrentInput",
+                "label":"Output",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "output",
+                "subKey":"current",
+                "className": "BoardTask"
+            }
+        ],
+        "boardCommand":{
+    "id": 0,
+    "taskId": null,
+    "task": "action",
+    "method": "setled",
+    "param": "",
+    "pin": -1,
+    "pins": [
+        {
+            "id": 0,
+            "pin": 0
+        }
+    ],
+    "pinsUsed": 0,
+    "input": [],
+    "output": [
+        {
+            "id": 0,
+            "current": 0,
+            "orderPosition": 0
+        }
+    ],
+    "rgb": false,
+    "startAngle": 0,
+    "moveAngle": 0,
+    "loops": 0,
+    "beginDelay": 0,
+    "delayInterval": 100,
+    "rgbRed": 0,
+    "rgbGreen": 0,
+    "rgbBlue": 0,
+    "rgbType": null,
+    "deduction": 5,
+    "runTarget": 0,
+    "targetAngle": -1,
+    "status": true,
+    "nextTask": -1,
+    "requestNext": false,
+    "systemTask": false,
+    "variable":null
+}
+    },
+    {
+        "commandType": "action",
+        "displayName":"Set RGB LED",
+        "command": "setrgb",
+        "className": "",
+        "params": true,
+        "totalParam": 5,
+        "hasMotor": false,
+        "commandParameter": [
+            {
+                "parameterOrder": 0,
+                "component": "ElectrodeSelect",
+                "label":"Electrode",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "electrode",
+                "className": ""
+            },
+            {
+                "parameterOrder": 0,
+                "component": "PinSelect",
+                "label":"Red Pin",
+                "type": null,
+                "pin": true,
+                "backgroundKey": "pins",
+                "subKey":"pin",
+                "className": "BoardTask"
+            },
+            {
+                "parameterOrder": 0,
+                "component": "PinSelect",
+                "label":"Green Pin",
+                "type": null,
+                "pin": true,
+                "backgroundKey": "pins",
+                "subKey":"pin",
+                "className": "BoardTask"
+            },
+            {
+                "parameterOrder": 0,
+                "component": "PinSelect",
+                "label":"Blue Pin",
+                "type": null,
+                "pin": true,
+                "backgroundKey": "pins",
+                "subKey":"pin",
+                "className": "BoardTask"
+            },
+            {
+                "parameterOrder": 0,
+                "component": "CurrentInput",
+                "label":"Red",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "output",
+                "subKey":"current",
+                "className": "BoardTask"
+            },
+            {
+                "parameterOrder": 0,
+                "component": "CurrentInput",
+                "label":"Green",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "output",
+                "subKey":"current",
+                "className": "BoardTask"
+            },
+            {
+                "parameterOrder": 0,
+                "component": "CurrentInput",
+                "label":"Blue",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "output",
+                "subKey":"current",
+                "className": "BoardTask"
+            }
+        ],
+        "boardCommand":{
+    "id": 0,
+    "taskId": null,
+    "task": "action",
+    "method": "setrgb",
+    "param": "",
+    "pin": -1,
+    "pins": [
+        {
+            "id": 0,
+            "pin": 0
+        },
+        {
+            "id": 0,
+            "pin": 0
+        },
+        {
+            "id": 0,
+            "pin": 0
+        }
+    ],
+    "pinsUsed": 0,
+    "input": [],
+    "output": [
+        {
+            "id": 0,
+            "current": 0,
+            "orderPosition": 0
+        },
+        {
+            "id": 0,
+            "current": 0,
+            "orderPosition": 0
+        },
+        {
+            "id": 0,
+            "current": 0,
+            "orderPosition": 0
+        }
+    ],
+    "rgb": true,
+    "startAngle": 0,
+    "moveAngle": 0,
+    "loops": 0,
+    "beginDelay": 0,
+    "delayInterval": 100,
+    "rgbRed": 0,
+    "rgbGreen": 0,
+    "rgbBlue": 0,
+    "rgbType": null,
+    "deduction": 5,
+    "runTarget": 0,
+    "targetAngle": -1,
+    "status": true,
+    "nextTask": -1,
+    "requestNext": false,
+    "systemTask": false,
+    "variable":null
+}
+    },
+    {
+        "commandType": "action",
+        "displayName":"Servo Move",
+        "command": "servomove",
+        "className": "",
+        "params": true,
+        "totalParam": 6,
+        "hasMotor": true,
+        "commandParameter": [
+            {
+                "parameterOrder": 1,
+                "component": "PinSelect",
+                "label":"Pin",
+                "type": null,
+                "pin": true,
+                "backgroundKey": "pins",
+                "subKey":"pin",
+                "className": "BoardTask"
+            },
+            {
+                "parameterOrder": 2,
+                "component": "AngleInput",
+                "label":"Start Angle Position",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "startAngle",
+                "className": "BoardTask"
+            },
+            {
+                "parameterOrder": 3,
+                "component": "AngleInput",
+                "label":"Move Angle Position",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "moveAngle",
+                "className": "BoardTask"
+            },
+            {
+                "parameterOrder": 4,
+                "component": "TimeInput",
+                "label":"Start Delay",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "beginDelay",
+                "className": "BoardTask",
+                "hour": false,
+                "mins": false,
+                "seconds": true
+            },
+            {
+                "parameterOrder": 5,
+                "component": "TimeInput",
+                "label":"Delay Between Loops",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "delayInterval",
+                "className": "BoardTask",
+                "hour": false,
+                "mins": false,
+                "seconds": true
+            },
+            {
+                "parameterOrder": 6,
+                "component": "NumberInput",
+                "label":"Loops",
+                "type": null,
+                "pin": false,
+                "backgroundKey": "loops",
+                "className": "BoardTask"
+            }
+        ],
+        "boardCommand":{
+    "id": 0,
+    "taskId": null,
+    "task": "action",
+    "method": "servomove",
+    "param": "",
+    "pin": -1,
+    "pins": [
+        {
+            "id": 0,
+            "pin": 0
+        }
+    ],
+    "pinsUsed": 0,
+    "input": [],
+    "output": [],
+    "rgb": false,
+    "startAngle": 0,
+    "moveAngle": 0,
+    "loops": 0,
+    "beginDelay": 0,
+    "delayInterval": 100,
+    "rgbRed": 0,
+    "rgbGreen": 0,
+    "rgbBlue": 0,
+    "rgbType": null,
+    "deduction": 5,
+    "runTarget": 1,
+    "targetAngle": -1,
+    "status": true,
+    "nextTask": -1,
+    "requestNext": false,
+    "systemTask": false,
+    "variable":null
+}
+    }
+]

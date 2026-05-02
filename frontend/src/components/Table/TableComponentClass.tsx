@@ -3,7 +3,7 @@ import Table from 'react-bootstrap/Table';
 import checked from "../assets/checked.png";
 import { Image } from "react-bootstrap";
 import TableBase from "../../component-base/TableBase";
-type Props={
+interface Props{
     id?:string;
     width?:any,
     rowSelect?:boolean;

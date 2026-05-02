@@ -3,11 +3,12 @@ import { Editor } from "@tinymce/tinymce-react";
 import { Component } from "react";
 import {Util} from "../../base/Util";
 import { Row, Col } from "react-bootstrap";
-import FormHandle from "../form/FormHandle";
+import FormHandle, { RecordContext } from "../form/FormHandle";
 import InputBase from "../../component-base/InputBase";
 
 export default class ContentInput extends InputBase{
     public util=new Util();
+    static contextType = RecordContext;
     public apiKey=this.util.tinyKey;
     
  

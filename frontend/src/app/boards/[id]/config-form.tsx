@@ -1,22 +1,22 @@
 'use client'
 import Form from "@/app/next-components/form/Form"
-import { Component, createRef, ReactNode, Ref, RefObject, useEffect, useRef } from "react"
+import { Component, createRef, ReactNode, Ref, RefObject, useEffect, useRef, useState } from "react"
 import TextInput from "@/app/next-components/input/TextInput";
 import SaveButton from "@/app/next-components/buttons/SaveButton";
 import CheckBoxInput from "@/app/next-components/input/CheckBoxInput";
 import { Row } from "react-bootstrap";
-import Content from "@/app/next-components/layout/Content";
-import { NextUIBase } from "@/NextUIBase";
+import Content, { ObjectRecord } from "@/app/next-components/layout/Content";
 import Dev from "@/app/next-components/user/dev";
 interface Props{
     submissionHandle:CallableFunction;
-    record:Record<string,any>|null;
+    record:ObjectRecord;
+    formLayout:ObjectRecord;
     modalRef:any;
 }
 export default function ConfigForm(props:Props){
     const formRef=useRef<Form>(null);
-    const inputFields=useRef<Array<Component>>([]);
-    const uiBase=new NextUIBase();
+    const [devShow,setDevShow]=useState(false);
+    const devCheckRef=useRef<CheckBoxInput>(null);
 
     const handleUpdate=()=>{
         const modal=props.modalRef.current;
@@ -28,46 +28,33 @@ export default function ConfigForm(props:Props){
             modal?.closeModal();
         }
     }
-    const addElement=(element:Component|null)=>{
-        const fields=uiBase.addInputRefComponent(inputFields,element);
-        inputFields.current=fields.current;
+    const showDev=()=>{
+        const check=devCheckRef.current;
+        const val=check?.value;
+        setDevShow(val);
     }
+    const showDevForm=()=>{
+        setDevShow(props.record?.devMode);
+    }
+   
+    
     useEffect(()=>{
-       uiBase.forceUpdateRefComponents(inputFields);
-    },[])
+       showDevForm();
+    },[setDevShow])
     return(
         <div>
         <Content>
         <Row>
-        <Form record={props.record} ref={formRef} onSubmit={handleUpdate} recordLayout={{
-                    "id": 0,
-                    "createdDate": "2026-02-11T02:43:30.2290526",
-                    "updatedDate": "2026-02-11T02:43:30.2290526",
-                    "boardId": null,
-                    "boardKey": null,
-                    "name": null,
-                    "ip": null,
-                    "status": false,
-                    "arest": false,
-                    "arestCommand": false,
-                    "socket": false,
-                    "periodicCheck": 60000,
-                    "ramUsage": 0,
-                    "activated": false,
-                    "websocketId": "",
-                    "devMode": false,
-                    "lastConnectDate": null,
-                    "lastConnectTime": null,
-                    "lastConnectDateTime": null,
-                    "timeout": 0,
-                    "restartTimeout": false,
-                    "tasksExecuted": 0,
-                    "device": [],
-                    "hardwardId": 0
-                }} idKey={"id"} put="/board/update-board/">
-                <TextInput ref={(element)=>addElement(element)} formRef={formRef} name={"name"} label={"Board Name"} rows={0}/>
-                <CheckBoxInput ref={(element)=>addElement(element)} formRef={formRef} name={"devMode"} label={"Dev Mode"} rows={0}/>
-                <CheckBoxInput ref={(element)=>addElement(element)} formRef={formRef} name={"restartTimeout"} label={"Restart Timeout"} rows={0}/>
+        <Form record={props.record} ref={formRef} onSubmit={handleUpdate} recordLayout={props.formLayout||{}} idKey={"id"} put="/board/update-board/">
+                <TextInput  formRef={formRef} name={"name"} label={"Board Name"} rows={0}/>
+                <CheckBoxInput onChange={showDev} ref={devCheckRef}  formRef={formRef} name={"devMode"} label={"Dev Mode"} rows={0}/>
+                {devShow?
+                <TextInput  formRef={formRef} name={"devUrl"} label={"URL"} rows={0}/>
+                :null}
+                {devShow?
+                <TextInput  formRef={formRef} name={"devWebsocketHost"} label={"Websocket Host"} rows={0}/>
+                :null}
+                <CheckBoxInput  formRef={formRef} name={"restartTimeout"} label={"Restart Timeout"} rows={0}/>
                 <SaveButton caption={"Save"} size={undefined}/>
                 </Form>
                 </Row>

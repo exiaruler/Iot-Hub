@@ -11,11 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scheduler.Base.ControllerBase;
-import com.scheduler.app.backend.InterfaceModels.Input.ScheduleInput;
 import com.scheduler.app.backend.aREST.Models.Schedule;
 import com.scheduler.app.backend.aREST.Service.ScheduleService;
 
@@ -33,7 +31,6 @@ public class ScheduleController extends ControllerBase {
 
     @PostMapping("/add-schedule-socket")
     public ResponseEntity<Schedule> addSchedule(@RequestBody Schedule payload) {
-        //TODO: process POST request
         Schedule add=service.addScheduleSocket(payload);
         return ResponseEntity.ok(add);
     }

@@ -52,7 +52,7 @@ export default class SubForm extends Form{
     render(){
         return(
             <div onChange={()=>this.formOnChange()} >
-            <RecordContext.Provider value={this.state.record}>
+            <RecordContext.Provider value={{record:this.state.record,warnings:this.state.warnings,errors:this.state.warnings}}>
             {
                 this.props.children
             }

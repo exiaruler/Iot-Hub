@@ -17,8 +17,10 @@ async function getBoard(id:string) {
 }
 export default async function Page({params}:any){
     const { id } = await params;
+    const query={};
     const data=await getBoard(id);
     return (
-        <Client board={data.board} boardHardware={data.boardHardware} deviceForm={data.deviceForm}/>
+        <Client board={data.board} boardHardware={data.boardHardware} deviceForm={data.deviceForm} query={query}/>
+       
     )
 }

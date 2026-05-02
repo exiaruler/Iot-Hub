@@ -9,6 +9,7 @@ import com.scheduler.Base.MapCast.MapCast;
 public class ControllerBase extends Base {
     public MapCast mapCast=new MapCast();
     public String objectClass="";
+    
     @GetMapping("/new-record")
     public Object getNewRecord() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         Object obj=null;

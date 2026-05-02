@@ -13,6 +13,8 @@ interface requestResponse{
     status:number;
     ok:boolean;
 }
+export type ObjectRecord = Record<string, any> | null;
+export type ObjectArray = ObjectRecord[];
 // override class
 export class NextBase extends Util{
     
@@ -49,8 +51,9 @@ export class NextBase extends Util{
             ok:false
         };
     }
-    public async fetchClientGet(url:string){
+    public async fetchClientGet(url:string,emptyResult?:null|[]){
         let response=null;
+        if(emptyResult) response=emptyResult;
         let encrypt="";
         let config=this.apiCallConfig('GET',null,false);
         encrypt=config.headers.encrypt;
@@ -61,7 +64,7 @@ export class NextBase extends Util{
                 //response=this.decryptValueToStringByKey(response,encrypt);
             }
         }catch(err){
-
+            return response;
         }
         return response;
     }

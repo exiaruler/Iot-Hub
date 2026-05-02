@@ -33,10 +33,8 @@ async function getData(boardId:string,deviceId:string,route:string) {
 }
 export default async function page({params}:any){
     const { board,device,route } = await params;
-    let data=await getData(board,device,route);
+    const data=await getData(board,device,route);
     return(
-        
         <Client boardHardware={data.boardHardware} electrodes={data.electrodes} device={data.device} record={data.functionRecord} board={data.board} commands={data.commands} newFunction={data.newFunction} newMode={data.newMode}/>
-        
     );
 }

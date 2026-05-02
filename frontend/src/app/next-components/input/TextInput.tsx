@@ -6,7 +6,6 @@ import { RecordContext } from "@/components/form/FormHandle";
 
 export default class TextInput extends InputBase{
     static contextType = RecordContext;
-
     render(){
         return(
             <Row>

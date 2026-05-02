@@ -5,7 +5,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let response=base.responseFormat();
     let encrypt=base.getProperties(req);
     req=base.getRequest(req);
-    //console.log('encrypt key '+encrypt);
     if(req.method=='GET'){
         const request=await base.fetchRequest('/board/getboards','GET',null,base.baseUrlIo);
         if(request.ok){
