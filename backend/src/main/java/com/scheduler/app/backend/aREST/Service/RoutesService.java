@@ -56,7 +56,7 @@ public class RoutesService extends Base {
         }
         return route;
     }
-    
+    // update route and modes
     public Route updateRoute(Route entry,Long id){
         Route rec=null;
         if(routeRepo.existsById(id)){
@@ -97,6 +97,16 @@ public class RoutesService extends Base {
                 rec.getMode().clear();
             }
             rec.calculateCurrent();
+            rec=routeRepo.save(rec);
+        }
+        return rec;
+    }
+    // route config update
+    public Route updateRouteConfig(Route entry,Long id){
+        Route rec=null;
+        if(routeRepo.existsById(id)){
+            rec=routeRepo.findById(id).get();
+            rec.setDefaultModeId(entry.getDefaultModeId());
             rec=routeRepo.save(rec);
         }
         return rec;

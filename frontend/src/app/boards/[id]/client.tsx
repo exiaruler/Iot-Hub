@@ -183,8 +183,8 @@ export default function Client(props:Props){
         <p>Are you sure you want to upload?</p>
         <p>Board will no longer receive commands from the Proto until new firmware is uploaded from IDE or manual reset</p>
         </ConfirmButton>
-        <RegularButton caption={"Delete Board"} size={undefined} type={undefined} onClick={openDelete}/>
         </Dev>
+        <RegularButton caption={"Delete Board"} size={undefined} type={undefined} onClick={openDelete}/>
        </Stack>
         </Col>    
         </Row>

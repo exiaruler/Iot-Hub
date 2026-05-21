@@ -9,7 +9,7 @@ public class BoardLogin extends DeviceCheck{
     // websocket url
     private String devWsUrl="";
     // login server failed
-    private boolean loginServerFail;
+    private boolean loginServerFail=false;
 
 
     public BoardLogin() {

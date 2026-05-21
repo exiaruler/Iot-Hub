@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.scheduler.Base.ControllerBase;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
+import com.scheduler.app.backend.Messaging.Board.Models.BoardLogin;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
 import com.scheduler.app.backend.Messaging.Board.Models.DeviceCheck;
 import com.scheduler.app.backend.aREST.Models.Board;
@@ -98,9 +99,9 @@ public class BoardController extends ControllerBase{
     }
     // when board starts-up verify credentials
     @PostMapping("/startup")
-    public ResponseEntity<DeviceCheck> startup(@RequestBody BoardRegister entity,@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("SSID")String ssid,@RequestHeader("mac-address")String macAddress) {
+    public ResponseEntity<BoardLogin> startup(@RequestBody BoardRegister entity,@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("SSID")String ssid,@RequestHeader("mac-address")String macAddress) {
         //System.out.println("startup "+ entity.getBoardId());
-        DeviceCheck check=boardService.startup(entity,ip,Integer.parseInt(ram),ssid,macAddress);
+        BoardLogin check=boardService.startup(entity,ip,Integer.parseInt(ram),ssid,macAddress);
         if(check!=null){
             return ResponseEntity.ok(check);
         }

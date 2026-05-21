@@ -123,8 +123,8 @@ public class BoardService extends Base {
     }
     // when board first powered on
     @Transactional
-    public DeviceCheck startup(BoardRegister register,String ip,int ram,String ssid,String macAddress){
-        DeviceCheck check=null;
+    public BoardLogin startup(BoardRegister register,String ip,int ram,String ssid,String macAddress){
+        BoardLogin check=null;
         String boardId=register.getBoardId().trim();
         Board exist=boardRepo.findBoardByBoardId(boardId);
         if(exist!=null){
@@ -132,7 +132,7 @@ public class BoardService extends Base {
             exist.setLastConnectDateTime(dt);
             taskService.purgeOldTasks(exist.getId());
             // verify password
-            check=createDeviceCheck(exist);
+            check=createBoardLogin(exist);
             if(exist.getIp()!=ip) exist.setIp(ip);
             exist.setRamUsage(ram);
             
@@ -190,9 +190,11 @@ public class BoardService extends Base {
         BoardLogin login=new BoardLogin();
         login.setBoardId(board.getBoardId());
         login.setId(board.getId());
-        login.setDevMode(board.getDevMode());
-        login.setDevServerUrl(board.getDevServerUrl());
-        login.setDevWsUrl(board.getDevWsUrl());
+        if(board.getDevMode()){
+            login.setDevMode(board.getDevMode());
+            login.setDevServerUrl(board.getDevServerUrl());
+            login.setDevWsUrl(board.getDevWsUrl());
+        }
         return login;
     }
     
