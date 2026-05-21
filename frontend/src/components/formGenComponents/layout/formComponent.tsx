@@ -12,7 +12,7 @@ import { FormAPI } from "../../../api/FormAPI";
 import UiBase from "../../../base/UiBase";
 import { ErrorGenOutput } from "../../../base/interfaces/Response/ErrorGen";
 import { ResponseOutput } from "../../../base/interfaces/Response/Response";
-import FormHandle from "../../form/FormHandle";
+import FormHandle from "../../../component-base/form/FormHandle";
 import Group from "../../Group";
 
 interface Props{

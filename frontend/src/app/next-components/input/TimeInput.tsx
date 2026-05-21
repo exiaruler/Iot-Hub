@@ -1,10 +1,10 @@
 'use client'
 import { Row, Col, Form, Stack } from "react-bootstrap";
 import TextInput from "./TextInput";
-import InputBase from "@/component-base/InputBase";
+import InputBase from "@/component-base/input/InputBase";
 import { InputInterface, State as BaseState } from "@/component-base/interface/input";
 import Warning from "@/components/formGenComponents/Warning";
-import { FormContext, RecordContext } from "@/components/form/FormHandle";
+import { FormContext, RecordContext } from "@/component-base/form/FormHandle";
 import { RegularButton } from "../buttons/RegularButton";
 
 interface Props extends InputInterface{

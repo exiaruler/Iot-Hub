@@ -38,9 +38,9 @@ public class Mode extends ModelBase{
     // Board Task
     @JsonManagedReference("boardtask-mode")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "mode", cascade = CascadeType.ALL)
-    // schedule mode
+    // schedule mode program
     private BoardTask boardAction;
-    //
+    // scheduled mode
     @JsonManagedReference("schedule-mode")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "mode",cascade =CascadeType.ALL)
     private List<Schedule> scheduledModes=new ArrayList<>();    
@@ -48,9 +48,7 @@ public class Mode extends ModelBase{
     @JsonManagedReference("queue-mode")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "mode",cascade =CascadeType.ALL)
     private List<BoardQueue> boardOperations=new ArrayList<>();
-
     
-
     public Mode() {
     }
 
@@ -64,8 +62,6 @@ public class Mode extends ModelBase{
         this.scheduledModes = scheduledModes;
         this.boardOperations = boardOperations;
     }
-
-    
 
     public Route getRoute() {
         return this.route;
@@ -119,6 +115,14 @@ public class Mode extends ModelBase{
         this.scheduledModes = scheduledModes;
     }
 
+    public List<BoardQueue> getBoardOperations() {
+        return this.boardOperations;
+    }
+
+    public void setBoardOperations(List<BoardQueue> boardOperations) {
+        this.boardOperations = boardOperations;
+    }
+
     public Mode route(Route route) {
         setRoute(route);
         return this;
@@ -148,15 +152,6 @@ public class Mode extends ModelBase{
         setScheduledModes(scheduledModes);
         return this;
     }
-
-    public List<BoardQueue> getBoardOperations() {
-        return this.boardOperations;
-    }
-
-    public void setBoardOperations(List<BoardQueue> boardOperations) {
-        this.boardOperations = boardOperations;
-    }
-    
 
     public Mode boardOperations(List<BoardQueue> boardOperations) {
         setBoardOperations(boardOperations);
@@ -191,6 +186,7 @@ public class Mode extends ModelBase{
             ", boardOperations='" + getBoardOperations() + "'" +
             "}";
     }
+
+
     
 }
-    

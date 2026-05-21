@@ -1,9 +1,9 @@
 'use client';
 
 import Warning from "@/components/formGenComponents/Warning";
-import SelectBase from "@/component-base/SelectBase";
+import SelectBase from "@/component-base/input/SelectBase";
 import { Col, Form, Row } from "react-bootstrap";
-import { RecordContext } from "@/components/form/FormHandle";
+import { RecordContext } from "@/component-base/form/FormHandle";
 
 export default class SelectInput extends SelectBase{
     static contextType = RecordContext;

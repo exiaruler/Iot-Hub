@@ -1,5 +1,7 @@
 package com.scheduler.app.backend.User.Models;
 
+import java.util.Set;
+
 import com.scheduler.Base.ModelBase.ModelBase;
 
 public class User extends ModelBase{
@@ -15,8 +17,8 @@ public class User extends ModelBase{
     private String email;
     // user timezone
     private String timezone;
-    // status
-    private boolean status;
-    // 
-    // role assigned
+    // active status
+    private boolean active;
+    // roles assigned
+    private Set<Role> roles;
 }

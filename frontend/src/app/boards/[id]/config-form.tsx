@@ -11,6 +11,7 @@ interface Props{
     submissionHandle:CallableFunction;
     record:ObjectRecord;
     formLayout:ObjectRecord;
+    activated:boolean;
     modalRef:any;
 }
 export default function ConfigForm(props:Props){
@@ -47,12 +48,12 @@ export default function ConfigForm(props:Props){
         <Row>
         <Form record={props.record} ref={formRef} onSubmit={handleUpdate} recordLayout={props.formLayout||{}} idKey={"id"} put="/board/update-board/">
                 <TextInput  formRef={formRef} name={"name"} label={"Board Name"} rows={0}/>
-                <CheckBoxInput onChange={showDev} ref={devCheckRef}  formRef={formRef} name={"devMode"} label={"Dev Mode"} rows={0}/>
+                <CheckBoxInput disable={!props.activated} onChange={showDev} ref={devCheckRef}  formRef={formRef} name={"devMode"} label={"Dev Mode"} rows={0}/>
                 {devShow?
-                <TextInput  formRef={formRef} name={"devUrl"} label={"URL"} rows={0}/>
+                <TextInput  formRef={formRef} name={"devServerUrl"} label={"URL"} rows={0}/>
                 :null}
                 {devShow?
-                <TextInput  formRef={formRef} name={"devWebsocketHost"} label={"Websocket Host"} rows={0}/>
+                <TextInput  formRef={formRef} name={"devWsUrl"} label={"Websocket Host"} rows={0}/>
                 :null}
                 <CheckBoxInput  formRef={formRef} name={"restartTimeout"} label={"Restart Timeout"} rows={0}/>
                 <SaveButton caption={"Save"} size={undefined}/>

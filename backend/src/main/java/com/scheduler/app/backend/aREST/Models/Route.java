@@ -11,8 +11,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -50,6 +52,20 @@ public class Route extends ModelBase{
     // switch device type
     @Column
     private boolean switchDevice=false;
+    // cycle calculation enabled
+    //private boolean cycleCalculation;
+    // default mode id
+    @Column
+    private long defaultModeId=0;
+    //  default mode
+    @Transient
+    private Mode defaultMode;
+    // selected mode id
+     @Column
+    private long selectedModeId=0;
+    // selected mode
+    @Transient
+    private Mode selectedMode;
     // list of modes
     @JsonManagedReference("route-mode")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "route", cascade =CascadeType.ALL)
@@ -67,8 +83,16 @@ public class Route extends ModelBase{
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "route", cascade =CascadeType.ALL)
     private List<BoardQueue> boardOperations=new ArrayList<>();
 
-    
-
+    @PostLoad
+    private void loadRoute(){
+        if(command!=null) commandId=command.getId();
+        if(selectedModeId>0){
+            selectedMode=mode.stream().filter(m->m.getId()==selectedModeId).findFirst().orElse(null);
+        }
+        if(defaultModeId>0){
+            defaultMode=mode.stream().filter(m->m.getId()==defaultModeId).findFirst().orElse(null);
+        }
+    }
     public Route() {
     }
 
@@ -80,7 +104,34 @@ public class Route extends ModelBase{
     public void preUpdate() {
         
     }
-    
+    public List<BoardTask> cycleModeCalculate(Mode mode) {
+        List<BoardTask> cycleModes=new ArrayList<>();
+        if(selectedMode!=null){
+            int selIndex=this.mode.indexOf(selectedMode);
+            List<Mode> subFirst=this.mode.subList(selIndex,this.mode.size());
+            if(subFirst.contains(mode)){
+                cycleModes=this.mode.subList(selIndex,this.mode.indexOf(mode)).stream().filter(m->m.getBoardAction()!=null).map(m->m.getBoardAction()).toList();
+            }else
+            {   
+                // add sub first
+                cycleModes.addAll(subFirst.stream().filter(m->m.getBoardAction()!=null).map(m->m.getBoardAction()).toList());
+                List<Mode> subSecond=this.mode.subList(0, selIndex);
+                for(int i=0; i<subSecond.size(); i++){
+                    Mode m=subSecond.get(i);
+                    if(!m.equals(mode)){
+                        if(m.getBoardAction()!=null)cycleModes.add(m.getBoardAction());
+                    }else
+                    {
+                        cycleModes.add(m.getBoardAction());
+                        break;
+                    }
+                }
+            }
+        }else if(defaultMode!=null){
+
+        }
+        return cycleModes;
+    }
     // calculate current to save
     public void calculateCurrent(){
         String elect=this.getElectrode();
@@ -212,7 +263,9 @@ public class Route extends ModelBase{
         return current;
     }
 
-    public Route(Device device, String route, boolean modes, String electrode, Command command, long commandId, boolean switchDevice, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes) {
+
+
+    public Route(Device device, String route, boolean modes, String electrode, Command command, long commandId, boolean switchDevice, long defaultModeId, Mode defaultMode, long selectedModeId, Mode selectedMode, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes, List<BoardQueue> boardOperations) {
         this.device = device;
         this.route = route;
         this.modes = modes;
@@ -220,10 +273,16 @@ public class Route extends ModelBase{
         this.command = command;
         this.commandId = commandId;
         this.switchDevice = switchDevice;
+        this.defaultModeId = defaultModeId;
+        this.defaultMode = defaultMode;
+        this.selectedModeId = selectedModeId;
+        this.selectedMode = selectedMode;
         this.mode = mode;
         this.boardAction = boardAction;
         this.scheduledRoutes = scheduledRoutes;
+        this.boardOperations = boardOperations;
     }
+   
 
     public Device getDevice() {
         return this.device;
@@ -363,6 +422,48 @@ public class Route extends ModelBase{
         return this;
     }
 
+    public List<BoardQueue> getBoardOperations() {
+        return this.boardOperations;
+    }
+
+    public void setBoardOperations(List<BoardQueue> boardOperations) {
+        this.boardOperations = boardOperations;
+    }
+
+    public long getDefaultModeId() {
+        return this.defaultModeId;
+    }
+
+    public void setDefaultModeId(long defaultModeId) {
+        this.defaultModeId = defaultModeId;
+    }
+
+    public Mode getDefaultMode() {
+        return this.defaultMode;
+    }
+
+    public void setDefaultMode(Mode defaultMode) {
+        this.defaultMode = defaultMode;
+    }
+
+    public long getSelectedModeId() {
+        return this.selectedModeId;
+    }
+
+    public void setSelectedModeId(long selectedModeId) {
+        this.selectedModeId = selectedModeId;
+    }
+
+    public Mode getSelectedMode() {
+        return this.selectedMode;
+    }
+
+    public void setSelectedMode(Mode selectedMode) {
+        this.selectedMode = selectedMode;
+    }
+
+
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -371,12 +472,26 @@ public class Route extends ModelBase{
             return false;
         }
         Route other = (Route) o;
-        return Objects.equals(device, other.device) && Objects.equals(route, other.route) && modes == other.modes && Objects.equals(electrode, other.electrode) && Objects.equals(command, other.command) && commandId == other.commandId && switchDevice == other.switchDevice && Objects.equals(mode, other.mode) && Objects.equals(boardAction, other.boardAction) && Objects.equals(scheduledRoutes, other.scheduledRoutes);
+        return Objects.equals(device, other.device)
+                && Objects.equals(route, other.route)
+                && modes == other.modes
+                && Objects.equals(electrode, other.electrode)
+                && Objects.equals(command, other.command)
+                && commandId == other.commandId
+                && switchDevice == other.switchDevice
+                && defaultModeId == other.defaultModeId
+                && selectedModeId == other.selectedModeId
+                && Objects.equals(defaultMode, other.defaultMode)
+                && Objects.equals(selectedMode, other.selectedMode)
+                && Objects.equals(mode, other.mode)
+                && Objects.equals(boardAction, other.boardAction)
+                && Objects.equals(scheduledRoutes, other.scheduledRoutes)
+                && Objects.equals(boardOperations, other.boardOperations);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(device, route, modes, electrode, command, commandId, switchDevice, mode, boardAction, scheduledRoutes);
+        return Objects.hash(device, route, modes, electrode, command, commandId, switchDevice, defaultModeId, selectedModeId, defaultMode, selectedMode, mode, boardAction, scheduledRoutes, boardOperations);
     }
 
     @Override
@@ -389,10 +504,16 @@ public class Route extends ModelBase{
             ", command='" + getCommand() + "'" +
             ", commandId='" + getCommandId() + "'" +
             ", switchDevice='" + isSwitchDevice() + "'" +
+            ", defaultModeId='" + getDefaultModeId() + "'" +
+            ", defaultMode='" + getDefaultMode() + "'" +
+            ", selectedModeId='" + getSelectedModeId() + "'" +
+            ", selectedMode='" + getSelectedMode() + "'" +
             ", mode='" + getMode() + "'" +
             ", boardAction='" + getBoardAction() + "'" +
             ", scheduledRoutes='" + getScheduledRoutes() + "'" +
+            ", boardOperations='" + getBoardOperations() + "'" +
             "}";
     }
+
     
 }

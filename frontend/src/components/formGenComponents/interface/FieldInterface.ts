@@ -1,4 +1,4 @@
-import FormHandle from "../../form/FormHandle";
+import FormHandle from "../../../component-base/form/FormHandle";
 
 export interface FieldInterface{
     label:string;

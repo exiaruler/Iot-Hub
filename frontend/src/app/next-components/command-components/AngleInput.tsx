@@ -3,7 +3,7 @@
 import { Row, Col, Form } from "react-bootstrap";
 import TextInput from "../input/TextInput";
 import Warning from "@/components/formGenComponents/Warning";
-import { RecordContext } from "@/components/form/FormHandle";
+import { RecordContext } from "@/component-base/form/FormHandle";
 
 export default class AngleInput extends TextInput{
     static contextType = RecordContext;

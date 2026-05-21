@@ -1,4 +1,4 @@
-import FormHandle from "../../components/form/FormHandle";
+import FormHandle from "../form/FormHandle";
 import { InputInterface } from "./input";
 
 export interface CheckInterface extends InputInterface{

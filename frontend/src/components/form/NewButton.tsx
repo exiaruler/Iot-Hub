@@ -1,6 +1,6 @@
 import { ButtonComponent } from "../../component-base/ButtonComponent"
 import { ButtonProps as base} from "../../component-base/ButtonComponent";
-import FormHandle from "./FormHandle";
+import FormHandle from "../../component-base/form/FormHandle";
 interface ButtonProps extends base{
     formRef:FormHandle|any;
 }

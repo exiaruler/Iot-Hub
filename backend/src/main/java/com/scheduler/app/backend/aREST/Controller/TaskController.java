@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.scheduler.Base.ControllerBase;
 import com.scheduler.Base.ModelBase.TaskEventId;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.InterfaceModels.Input.FunctionModeTestInput;
 import com.scheduler.app.backend.aREST.Models.Task;
 import com.scheduler.app.backend.aREST.Service.TaskService;
 
@@ -33,8 +33,16 @@ public class TaskController extends ControllerBase{
         String act=service.runCommand(board, command, action, system,false);
         return ResponseEntity.ok(act);
     }
-    
-    
+    // test command for route/function
+    @PostMapping(value="/test-function/{board}/{device}")
+    public ResponseEntity<Task> testFunction(@PathVariable String board, @PathVariable String device, @RequestBody FunctionModeTestInput input) {
+        long boardId = getDataLong("select id from board where board_id=" + quoteParam(board));
+        long deviceId = getDataLong("select id from device where device_id=" + quoteParam(device));
+        Task task = service.testModeFunction(input.getBoardTask(), boardId, deviceId,input.getElectrode());
+        if(task==null) return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(task);
+    }
+
     @GetMapping(value="/get-task/{id}")
     public Optional<Task> getTask(@PathVariable TaskEventId id){
         return service.getTask(id);

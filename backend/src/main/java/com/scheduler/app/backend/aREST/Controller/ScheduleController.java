@@ -38,6 +38,7 @@ public class ScheduleController extends ControllerBase {
     @PutMapping("update-schedule/{id}")
     public ResponseEntity<Schedule>  updateSchedule(@PathVariable long id, @RequestBody Schedule payload) {
         Schedule update=service.updatScheduleSocket(id, payload);
+        if(update==null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(update);
     }
     @GetMapping("/get-schedules")

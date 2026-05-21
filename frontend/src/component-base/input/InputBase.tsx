@@ -1,7 +1,7 @@
 'use client'
 import { Component, createRef } from "react";
-import { InputInterface,State } from "./interface/input";
-import { FormContext, RecordContext } from "@/components/form/FormHandle";
+import { InputInterface,State } from "../interface/input";
+import { FormContext, RecordContext } from "@/component-base/form/FormHandle";
 // input base handlers
 export default class InputBase extends Component<InputInterface,State>{
     public warningComponent:any;
@@ -47,13 +47,12 @@ export default class InputBase extends Component<InputInterface,State>{
         return this.value;
     }
     public getWarning():string{
-        
         if(this.props.formRef&&this.props.name){
             const context=this.context as FormContext;
             const warnings=context.warnings;
             if(warnings!=null){
-                const warning=warnings[this.props.name];
-                return warning;
+                const warn=warnings[this.props.name];
+                return warn;
             } return "";
         } else if(this.state.warning!==""){
             return this.state.warning;

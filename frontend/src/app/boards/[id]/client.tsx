@@ -143,19 +143,19 @@ export default function Client(props:Props){
         <div>
         <Row>
         <Col md={3} xs={9}>
-        <TextInput label={"Board ID"} type={""} rows={0} value={board?.boardId} readOnly={true}/>
-        <TextInput label={"Board Model"} type={""} rows={0} value={hardware?.boardName} readOnly={true}/>
-        <TextInput label={"Status"} type={""} rows={0} value={status(board?.activated)} readOnly={true}/>
+        <TextInput label={"Board ID"}  rows={0} value={board?.boardId} readOnly={true}/>
+        <TextInput label={"Board Model"}  rows={0} value={hardware?.boardName} readOnly={true}/>
+        <TextInput label={"Status"}  rows={0} value={status(board?.activated)} readOnly={true}/>
         </Col>
         <Col md={3} xs={9}>
-        <TextInput label={"RAM Usage"} type={""} rows={0} value={board?.ramUsage} readOnly={true}/>
-        <TextInput label={"Total RAM"} type={""} rows={0} value={hardware?.maxRam} readOnly={true}/>
-        <TextInput label={"Local IP"} type={""} rows={0} value={board?.ip} readOnly={true}/>
+        <TextInput label={"RAM Usage"}  rows={0} value={board?.ramUsage} readOnly={true}/>
+        <TextInput label={"Total RAM"}  rows={0} value={hardware?.maxRam} readOnly={true}/>
+        <TextInput label={"Local IP"}  rows={0} value={board?.ip} readOnly={true}/>
         </Col>
         <Col md={3} xs={9}>
-        <TextInput label={"Routine Check"} type={""} rows={0} value={board?.periodicCheck} readOnly={true}/>
-        <TextInput label={"Last Connection Date"} type={""} rows={0} value={showDate(board?.lastConnectDateTime)} readOnly={true}/>
-        <TextInput label={"Last Connection Time"} type={""} rows={0} value={showTime(board?.lastConnectDateTime)} readOnly={true}/>
+        <TextInput label={"Routine Check"}  rows={0} value={board?.periodicCheck} readOnly={true}/>
+        <TextInput label={"Last Connection Date"}  rows={0} value={showDate(board?.lastConnectDateTime)} readOnly={true}/>
+        <TextInput label={"Last Connection Time"}  rows={0} value={showTime(board?.lastConnectDateTime)} readOnly={true}/>
         </Col>
         </Row>
         <Row>
@@ -174,9 +174,9 @@ export default function Client(props:Props){
         </ConfirmButton>
         </Stack>
        <Stack direction="horizontal" gap={2} className="mt-3">
-        <RegularButton caption={"Change Password"} onClick={openChangePass} size={undefined} type={undefined}/>
+        <RegularButton caption={"Change Password"} onClick={openChangePass}/>
         <ModalButton ref={updateModalRef} buttonCaption={"Configurations"} title={"Configured Board"} submitCaption={"Save"}>
-        <ConfigForm formLayout={props.deviceForm} submissionHandle={handleUpdate} record={board} modalRef={updateModalRef}/>
+        <ConfigForm activated={activated} formLayout={props.deviceForm} submissionHandle={handleUpdate} record={board} modalRef={updateModalRef}/>
         </ModalButton>
         <Dev>
         <ConfirmButton disabled={!activated} buttonCaption={"Upload"} title={"Upload Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>

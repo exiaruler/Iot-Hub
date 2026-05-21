@@ -28,7 +28,7 @@ public class DeviceService extends Base {
     public Device addDeviceSocket(Device entry,long boardId){
         Board board=boardRepo.getReferenceById(boardId);
         String entryName=entry.getName();
-        long devExist=board.getDevice().stream().filter(dev->dev.getName().equals(entryName)).count();
+        long devExist=getDataInt("select count(name) from device where board_id="+board.getId()+" and name="+quoteParam(entryName));
         if(board!=null && devExist == 0){
             entry.setBoard(board);
             Device save=deviceRepo.save(entry);
@@ -38,10 +38,29 @@ public class DeviceService extends Base {
             entry = save;
         } else {
             Map<String, String> errors = new HashMap<>();
-            errors.put("name", "Device already exists");
-            throw new ValidationException(errors);
+            errors.put("name", "Device with name already exists on this board");
+            throw new ValidationException(errors,null);
         }
         return entry;
+    }
+    public Device updateDeviceSocket(Device entry,long id){
+        Device device=deviceRepo.findById(id).get();
+        if(device!=null){
+            Map<String, String> errors = new HashMap<>();
+            if(entry.getName() != null && !entry.getName().isEmpty()){
+                int devExist=getDataInt("select count(id) from device where name="+quoteParam(entry.getName())+" and board_id="+device.getBoard().getId());
+                if(devExist>0){
+                    errors.put("name", "Device with name already exists on this board");
+                }
+            }
+            if(!errors.isEmpty()){
+                throw new ValidationException(errors,null);
+            }
+
+            device.setName(entry.getName());
+            device=deviceRepo.save(device);
+        }
+        return device;
     }
   
     public Device updateDevice(long id,Device deviceObj){

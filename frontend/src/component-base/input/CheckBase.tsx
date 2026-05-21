@@ -1,7 +1,7 @@
 'use client'
-import { CheckInterface as InputInterface,State } from "./interface/check";
+import { CheckInterface as InputInterface,State } from "../interface/check";
 import InputBase from "./InputBase";
-import { FormContext } from "@/components/form/FormHandle";
+import { FormContext } from "@/component-base/form/FormHandle";
 // checkbox input
 export default class CheckBase extends InputBase{
     //declare props:InputInterface;

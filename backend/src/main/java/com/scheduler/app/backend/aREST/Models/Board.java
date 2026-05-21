@@ -36,9 +36,13 @@ public class Board extends ModelBase {
     @Column
     @NotBlank(message = "name required")
     private String name;
-    // SSID
-    
+    // SSID/wifi name
+    @Column
+    private String ssid;
     // mac address
+    @Column
+    private String macAddress;
+    // version
 
     // local ip address
     @Column
@@ -70,6 +74,12 @@ public class Board extends ModelBase {
     // development mode
     @Column
     private boolean devMode;
+    // devmode server url
+    @Column
+    private String devServerUrl="";
+    // devmode websocket url
+    @Column
+    private String devWsUrl="";
     // last connection date and time (HTTP or websocket)
     @Column(nullable = true)
     Instant lastConnectDateTime;
@@ -115,10 +125,13 @@ public class Board extends ModelBase {
     }
 
 
-    public Board(String boardId, String boardKey, String name, String ip, boolean status, boolean arest, boolean arestCommand, boolean socket, int periodicCheck, int ramUsage, boolean activated, String websocketId, boolean devMode, Instant lastConnectDateTime, long timeout, boolean restartTimeout, int tasksExecuted, List<Device> device, Section section, Hardware hardware, List<BoardQueue> boardOperations, long hardwardId) {
+
+    public Board(String boardId, String boardKey, String name, String ssid, String macAddress, String ip, boolean status, boolean arest, boolean arestCommand, boolean socket, int periodicCheck, int ramUsage, boolean activated, String websocketId, boolean devMode, String devServerUrl, String devWsUrl, Instant lastConnectDateTime, long timeout, boolean restartTimeout, int tasksExecuted, List<Device> device, Section section, Hardware hardware, List<BoardQueue> boardOperations, long hardwardId) {
         this.boardId = boardId;
         this.boardKey = boardKey;
         this.name = name;
+        this.ssid = ssid;
+        this.macAddress = macAddress;
         this.ip = ip;
         this.status = status;
         this.arest = arest;
@@ -129,6 +142,8 @@ public class Board extends ModelBase {
         this.activated = activated;
         this.websocketId = websocketId;
         this.devMode = devMode;
+        this.devServerUrl = devServerUrl;
+        this.devWsUrl = devWsUrl;
         this.lastConnectDateTime = lastConnectDateTime;
         this.timeout = timeout;
         this.restartTimeout = restartTimeout;
@@ -139,6 +154,7 @@ public class Board extends ModelBase {
         this.boardOperations = boardOperations;
         this.hardwardId = hardwardId;
     }
+    
 
 
     public String getBoardId() {
@@ -455,6 +471,39 @@ public class Board extends ModelBase {
         return this;
     }
 
+    public String getSsid() {
+        return this.ssid;
+    }
+
+    public void setSsid(String ssid) {
+        this.ssid = ssid;
+    }
+
+    public String getMacAddress() {
+        return this.macAddress;
+    }
+
+    public void setMacAddress(String macAddress) {
+        this.macAddress = macAddress;
+    }
+
+    public String getDevServerUrl() {
+        return this.devServerUrl;
+    }
+
+    public void setDevServerUrl(String devServerUrl) {
+        this.devServerUrl = devServerUrl;
+    }
+
+    public String getDevWsUrl() {
+        return this.devWsUrl;
+    }
+
+    public void setDevWsUrl(String devWsUrl) {
+        this.devWsUrl = devWsUrl;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -463,12 +512,12 @@ public class Board extends ModelBase {
             return false;
         }
         Board board = (Board) o;
-        return Objects.equals(boardId, board.boardId) && Objects.equals(boardKey, board.boardKey) && Objects.equals(name, board.name) && Objects.equals(ip, board.ip) && status == board.status && arest == board.arest && arestCommand == board.arestCommand && socket == board.socket && periodicCheck == board.periodicCheck && ramUsage == board.ramUsage && activated == board.activated && Objects.equals(websocketId, board.websocketId) && devMode == board.devMode && Objects.equals(lastConnectDateTime, board.lastConnectDateTime) && timeout == board.timeout && restartTimeout == board.restartTimeout && tasksExecuted == board.tasksExecuted && Objects.equals(device, board.device) && Objects.equals(section, board.section) && Objects.equals(hardware, board.hardware) && Objects.equals(boardOperations, board.boardOperations) && hardwardId == board.hardwardId;
+        return Objects.equals(boardId, board.boardId) && Objects.equals(boardKey, board.boardKey) && Objects.equals(name, board.name) && Objects.equals(ssid, board.ssid) && Objects.equals(macAddress, board.macAddress) && Objects.equals(ip, board.ip) && status == board.status && arest == board.arest && arestCommand == board.arestCommand && socket == board.socket && periodicCheck == board.periodicCheck && ramUsage == board.ramUsage && activated == board.activated && Objects.equals(websocketId, board.websocketId) && devMode == board.devMode && Objects.equals(devServerUrl, board.devServerUrl) && Objects.equals(devWsUrl, board.devWsUrl) && Objects.equals(lastConnectDateTime, board.lastConnectDateTime) && timeout == board.timeout && restartTimeout == board.restartTimeout && tasksExecuted == board.tasksExecuted && Objects.equals(device, board.device) && Objects.equals(section, board.section) && Objects.equals(hardware, board.hardware) && Objects.equals(boardOperations, board.boardOperations) && hardwardId == board.hardwardId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(boardId, boardKey, name, ip, status, arest, arestCommand, socket, periodicCheck, ramUsage, activated, websocketId, devMode, lastConnectDateTime, timeout, restartTimeout, tasksExecuted, device, section, hardware, boardOperations, hardwardId);
+        return Objects.hash(boardId, boardKey, name, ssid, macAddress, ip, status, arest, arestCommand, socket, periodicCheck, ramUsage, activated, websocketId, devMode, devServerUrl, devWsUrl, lastConnectDateTime, timeout, restartTimeout, tasksExecuted, device, section, hardware, boardOperations, hardwardId);
     }
 
     @Override
@@ -477,6 +526,8 @@ public class Board extends ModelBase {
             " boardId='" + getBoardId() + "'" +
             ", boardKey='" + getBoardKey() + "'" +
             ", name='" + getName() + "'" +
+            ", ssid='" + getSsid() + "'" +
+            ", macAddress='" + getMacAddress() + "'" +
             ", ip='" + getIp() + "'" +
             ", status='" + isStatus() + "'" +
             ", arest='" + isArest() + "'" +
@@ -487,6 +538,8 @@ public class Board extends ModelBase {
             ", activated='" + isActivated() + "'" +
             ", websocketId='" + getWebsocketId() + "'" +
             ", devMode='" + isDevMode() + "'" +
+            ", devServerUrl='" + getDevServerUrl() + "'" +
+            ", devWsUrl='" + getDevWsUrl() + "'" +
             ", lastConnectDateTime='" + getLastConnectDateTime() + "'" +
             ", timeout='" + getTimeout() + "'" +
             ", restartTimeout='" + isRestartTimeout() + "'" +

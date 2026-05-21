@@ -6,14 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import javax.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
+
 import com.scheduler.Base.Base;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
 import com.scheduler.app.backend.Hardware.Service.HardwareService;
+import com.scheduler.app.backend.Messaging.Board.Models.BoardLogin;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
 import com.scheduler.app.backend.Messaging.Board.Models.DeviceCheck;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
@@ -22,10 +26,9 @@ import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 
 
 @Service
-@Transactional
 public class BoardService extends Base {
     
-    private final BoardRepo board;
+    private final BoardRepo boardRepo;
     public final HardwareService hardwareService;
     private final DeviceService deviceService;
     public final CommandService commandService;
@@ -34,8 +37,8 @@ public class BoardService extends Base {
     public final BoardQueueService boardQueueService;
 
 
-    public BoardService(BoardRepo board, DeviceService deviceService,HardwareService hardwareService, CommandService commandService, ScheduleService scheduleService, TaskService taskService, BoardQueueService boardQueueService) {
-        this.board = board;
+    public BoardService(BoardRepo boardRepo, DeviceService deviceService,HardwareService hardwareService, CommandService commandService, ScheduleService scheduleService, TaskService taskService, BoardQueueService boardQueueService) {
+        this.boardRepo = boardRepo;
         this.hardwareService = hardwareService;
         this.deviceService = deviceService;
         this.commandService = commandService;
@@ -48,11 +51,18 @@ public class BoardService extends Base {
         String boardId=generateRandString(4)+id;
         return boardId;
     }
+    private int checkBoardName(String name){
+        int exist=0;
+        if(name!=null&&name!=""){
+            exist=getDataInt("select count(name) from board where name="+quoteParam(name));
+        }
+        return exist;
+    }
     // socket board add
     public Board addBoardSocket(String name,long hardwareObj,String boardUniqueId){
         Board newBoard=new Board();
         Map<String, String> errors = new HashMap<>();
-        int nameExi=getDataInt("select count(name) from board where name="+quoteParam(name));
+        int nameExi=checkBoardName(name);
         if(nameExi>0) errors.put("name", "board with the name "+name+" exists");
         newBoard.setName(name);
         newBoard.setSocket(true);
@@ -61,36 +71,33 @@ public class BoardService extends Base {
             long id=hard.getId();
             newBoard.setHardware(hard);
         }else errors.put("hardwareId", "Hardware does not exists");
-        if(boardUniqueId!=null&&boardUniqueId!=""){
-            Board exist=board.findBoardByBoardId(boardUniqueId);
+        // in development environemnt
+        if(boardUniqueId!=""&&boardUniqueId!=null){
+            Board exist=boardRepo.findBoardByBoardId(boardUniqueId);
             if(exist!=null){
-                errors.put("boardUniqueId", "board with that unique ID has been created");
+                errors.put("boardId", "board with that unique ID has been created");
             }
             newBoard.setBoardId(boardUniqueId);
         }
-        if(!errors.isEmpty()) throw new ValidationException(errors);
-        Board save=board.save(newBoard);
-        if(boardUniqueId==null||boardUniqueId==""){
+        if(!errors.isEmpty()) throw new ValidationException(errors,null);
+        Board save=boardRepo.save(newBoard);
+        if(boardUniqueId==""){
             long id=save.getId();
             save.setBoardId(genereateBoardId(id));
-            save=board.save(save);
+            save=boardRepo.save(save);
         }
         return save;
     }
-    public Object updateBoardArestCommand(Board boardRec){
-        return board.save(boardRec);
-    }
+ 
     public Board updateBoardObject(Board entry){
-        return board.save(entry);
+        return boardRepo.save(entry);
     }
-    public Board addBoard(Board entry){
-        return board.save(entry);
-    }
-
-    
+   
+    // occasional routine check
+    @Transactional
     public DeviceCheck routineCheck(long id,int ram,String ip){
         DeviceCheck check=null;
-        Board boardExist=board.findById(id).get();
+        Board boardExist=boardRepo.findById(id).get();
         if(boardExist!=null){
             Instant dt=Instant.now();
             boardExist.setLastConnectDateTime(dt);
@@ -110,14 +117,16 @@ public class BoardService extends Base {
                 // open websocket or message carrier to process startup commands
 
             }
-            board.save(boardExist);
+            boardRepo.save(boardExist);
         }
         return check;
     }
+    // when board first powered on
+    @Transactional
     public DeviceCheck startup(BoardRegister register,String ip,int ram,String ssid,String macAddress){
         DeviceCheck check=null;
         String boardId=register.getBoardId().trim();
-        Board exist=board.findBoardByBoardId(boardId);
+        Board exist=boardRepo.findBoardByBoardId(boardId);
         if(exist!=null){
             Instant dt=Instant.now();
             exist.setLastConnectDateTime(dt);
@@ -126,6 +135,7 @@ public class BoardService extends Base {
             check=createDeviceCheck(exist);
             if(exist.getIp()!=ip) exist.setIp(ip);
             exist.setRamUsage(ram);
+            
             // activate device to register
             if(!exist.getActivated()){
                 exist.setActivated(true);
@@ -140,15 +150,14 @@ public class BoardService extends Base {
                 }
             }
             scheduleService.startStartupSchedule(exist);
-            Board update=board.save(exist);
+            Board update=boardRepo.save(exist);
 
             Command com=commandService.getCommandByCommand("httprequestconnection", "schedule", true);
-            Command command=commandService.getCommandByCommand("wsconnectopen", "schedule",true);
             List <BoardTask> taskLists=new ArrayList<>();
             List <BoardTask> scheduledTasks=taskService.getNextTasks(exist.getId());
             if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
             // add htp request connection command
-            if(com!=null){
+            if(com!=null&&!exist.getDevMode()){
                 BoardTask boTsk=com.getBoardCommand();
                 boTsk.initTaskId(update.getId());
                 boTsk.setDelayInterval(60000);
@@ -156,13 +165,7 @@ public class BoardService extends Base {
                 taskLists.add(boTsk);
                 boardQueueService.addToQueueBoardTask(boTsk, update, null);
             }
-            if(command!=null){
-                BoardTask routinewsConn=command.getBoardCommand();
-                routinewsConn.setDelayInterval(100);
-                routinewsConn.setRunTarget(1);
-                routinewsConn.setParam("startup");
-                //taskLists.add(routinewsConn);
-            }
+            
             if(taskLists.size()>0&&taskLists.size()<50){
                 check.setTasks(taskLists);
             }else
@@ -179,16 +182,25 @@ public class BoardService extends Base {
         DeviceCheck newCheck=new DeviceCheck();
         newCheck.setBoardId(board.getBoardId());
         newCheck.setId(board.getId());
-        newCheck.setDevMode(board.getDevMode());
         newCheck.setRoutineCheck(board.getPeriodicCheck());
         newCheck.setCloseConnection(120000);
         return newCheck;
     }
+    private BoardLogin createBoardLogin(Board board){
+        BoardLogin login=new BoardLogin();
+        login.setBoardId(board.getBoardId());
+        login.setId(board.getId());
+        login.setDevMode(board.getDevMode());
+        login.setDevServerUrl(board.getDevServerUrl());
+        login.setDevWsUrl(board.getDevWsUrl());
+        return login;
+    }
     
     // save ws session id into database for use
+    @Transactional
     public Board setWsConnection(long id,String sessionId,int ram,boolean updateLastConnect){
         Board boardRec=null;
-        Optional<Board> findBoard=board.findById(id);
+        Optional<Board> findBoard=boardRepo.findById(id);
         if(findBoard.isPresent()){
             boardRec=findBoard.get();
             boardRec.setWebsocketId(sessionId);
@@ -200,57 +212,81 @@ public class BoardService extends Base {
                 boardRec.setRamUsage(ram);
             }
             
-            boardRec=board.save(boardRec);
+            boardRec=boardRepo.save(boardRec);
         }
         return boardRec;
     }
 
     public Board updateBoard(Board obj,long id){
-        Board rec=board.findById(id).get();
+        Board rec=boardRepo.findById(id).get();
+        HashMap<String, String> errors = new HashMap<>();
         if(rec!=null){
+            int nameExi=getDataInt("select count(name) from board where name="+quoteParam(obj.getName())+" and id!="+id);
+            if(nameExi>0){
+                errors.put("name", "Board name already exists");
+            }
             rec.setName(obj.getName());
             rec.setDevMode(obj.getDevMode());
+            if(rec.getDevMode()){
+                boolean emptyValid=true;
+                // validate dev mode url and ws host
+                if(obj.getDevServerUrl().equals("")) {
+                    errors.put("devServerUrl", "Development server url cannot be blank");
+                    emptyValid=false;
+                }
+                if(obj.getDevWsUrl().equals("")) {
+                    errors.put("devWsUrl", "Development WebSocket url cannot be blank");
+                    emptyValid=false;
+                }
+                if(emptyValid){
+                    rec.setDevServerUrl(obj.getDevServerUrl().trim());
+                    rec.setDevWsUrl(obj.getDevWsUrl().trim());
+                    if(!obj.getDevServerUrl().startsWith("http://")&&!obj.getDevServerUrl().startsWith("https://")){
+                        errors.put("devServerUrl", "Development server url must start with http:// or https://");
+                    }
+                    if(!obj.getDevWsUrl().startsWith("ws://")&&!obj.getDevWsUrl().startsWith("wss://")){
+                        errors.put("devWsUrl", "Development WebSocket url must start with ws:// or wss://");
+                    }
+                }
+            }
             rec.setRestartTimeout(obj.getRestartTimeout());
-            board.save(rec);
+            if(!errors.isEmpty()) throw new ValidationException(errors,null);
+            boardRepo.save(rec);
         }
         return rec;
     }
-    
+
     public List<Board> getBoards(){
-        List <Board> list=board.findAll();
+        List <Board> list=boardRepo.findAll();
         return list;
     }
     public Board getBoard(long id){
-        return board.findById(id).get();
+        return boardRepo.findById(id).get();
     }
     public Board getBoardById(long id){
-        return board.findById(id).get();
+        return boardRepo.findById(id).get();
     }
     public String deleteBoard(long id){
         String output="Does not exist";
-        if(board.existsById(id)){
-            Board item=board.getReferenceById(id);
-            board.deleteById(id);
+        if(boardRepo.existsById(id)){
+            Board item=boardRepo.getReferenceById(id);
+            boardRepo.deleteById(id);
             output="board remove "+item.getName();
         }
         return output;
     }
-    public void deleteAllBoards(){
-        board.deleteAll();
-        deviceService.deleteAllBoard();
-    }
    
     public Optional<Board> findBoard(long id){
-        return board.findById(id);
+        return boardRepo.findById(id);
     }
     public Hardware getBoardHardwareId(String id){
-        Hardware hardware=board.findBoardByBoardId(id).getHardware();
+        Hardware hardware=boardRepo.findBoardByBoardId(id).getHardware();
         //List<HardwarePins> pins=hardware.getPins().stream().sorted(Comparator.comparing(HardwarePins::getBoardPin)).collect(Collectors.toList());
         //hardware.setPins(pins);
         return hardware;
     }
     public Board getBoardByBoardId(String id){
-        return board.findBoardByBoardId(id);
+        return boardRepo.findBoardByBoardId(id);
     }
     
 }

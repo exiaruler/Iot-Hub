@@ -1,8 +1,8 @@
 'use client'
 import Warning from "@/components/formGenComponents/Warning";
-import InputBase from "@/component-base/InputBase";
+import InputBase from "@/component-base/input/InputBase";
 import { Row, Col, Form } from "react-bootstrap";
-import { RecordContext } from "@/components/form/FormHandle";
+import { RecordContext } from "@/component-base/form/FormHandle";
 
 export default class TextInput extends InputBase{
     static contextType = RecordContext;

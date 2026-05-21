@@ -8,6 +8,8 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.scheduler.Base.ModelBase.BoardEventModelBase;
 
@@ -45,6 +47,9 @@ public class BoardQueue extends BoardEventModelBase{
     // task is a repeat/target=0
     @Column
     private boolean taskRepeat;
+    // task delay
+    @Column(columnDefinition="COLUMN_TYPE default '0'")
+    private long delay;
     // expired
     @Column
     private boolean expired;
@@ -71,12 +76,16 @@ public class BoardQueue extends BoardEventModelBase{
         long deviceId=0;
         if(this.getDevice()!=null) deviceId=this.getDevice().getId();
         this.initId(this.getBoard().getId(),deviceId);
+        if(this.getRoute()!=null) delay=this.getRoute().getBoardAction().getDelayInterval();
+        if(this.getMode()!=null) delay=this.getMode().getBoardAction().getDelayInterval();
+        
     }
+
 
     public BoardQueue() {
     }
 
-    public BoardQueue(Board board, Device device, long boardTaskId, String taskName, boolean systemTask, boolean processed, boolean inBoardQueue, boolean systemQueue, boolean taskRepeat, boolean expired, Instant expiredDateTime, String commandJsonString, Route route, Mode mode) {
+    public BoardQueue(Board board, Device device, long boardTaskId, String taskName, boolean systemTask, boolean processed, boolean inBoardQueue, boolean systemQueue, boolean taskRepeat, long delay, boolean expired, Instant expiredDateTime, String commandJsonString, Route route, Mode mode) {
         this.board = board;
         this.device = device;
         this.boardTaskId = boardTaskId;
@@ -86,6 +95,7 @@ public class BoardQueue extends BoardEventModelBase{
         this.inBoardQueue = inBoardQueue;
         this.systemQueue = systemQueue;
         this.taskRepeat = taskRepeat;
+        this.delay = delay;
         this.expired = expired;
         this.expiredDateTime = expiredDateTime;
         this.commandJsonString = commandJsonString;
@@ -185,6 +195,14 @@ public class BoardQueue extends BoardEventModelBase{
         this.taskRepeat = taskRepeat;
     }
 
+    public long getDelay() {
+        return this.delay;
+    }
+
+    public void setDelay(long delay) {
+        this.delay = delay;
+    }
+
     public boolean isExpired() {
         return this.expired;
     }
@@ -274,6 +292,11 @@ public class BoardQueue extends BoardEventModelBase{
         return this;
     }
 
+    public BoardQueue delay(long delay) {
+        setDelay(delay);
+        return this;
+    }
+
     public BoardQueue expired(boolean expired) {
         setExpired(expired);
         return this;
@@ -307,12 +330,12 @@ public class BoardQueue extends BoardEventModelBase{
             return false;
         }
         BoardQueue boardQueue = (BoardQueue) o;
-        return Objects.equals(board, boardQueue.board) && Objects.equals(device, boardQueue.device) && boardTaskId == boardQueue.boardTaskId && Objects.equals(taskName, boardQueue.taskName) && systemTask == boardQueue.systemTask && processed == boardQueue.processed && inBoardQueue == boardQueue.inBoardQueue && systemQueue == boardQueue.systemQueue && taskRepeat == boardQueue.taskRepeat && expired == boardQueue.expired && Objects.equals(expiredDateTime, boardQueue.expiredDateTime) && Objects.equals(commandJsonString, boardQueue.commandJsonString) && Objects.equals(route, boardQueue.route) && Objects.equals(mode, boardQueue.mode);
+        return Objects.equals(board, boardQueue.board) && Objects.equals(device, boardQueue.device) && boardTaskId == boardQueue.boardTaskId && Objects.equals(taskName, boardQueue.taskName) && systemTask == boardQueue.systemTask && processed == boardQueue.processed && inBoardQueue == boardQueue.inBoardQueue && systemQueue == boardQueue.systemQueue && taskRepeat == boardQueue.taskRepeat && delay == boardQueue.delay && expired == boardQueue.expired && Objects.equals(expiredDateTime, boardQueue.expiredDateTime) && Objects.equals(commandJsonString, boardQueue.commandJsonString) && Objects.equals(route, boardQueue.route) && Objects.equals(mode, boardQueue.mode);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(board, device, boardTaskId, taskName, systemTask, processed, inBoardQueue, systemQueue, taskRepeat, expired, expiredDateTime, commandJsonString, route, mode);
+        return Objects.hash(board, device, boardTaskId, taskName, systemTask, processed, inBoardQueue, systemQueue, taskRepeat, delay, expired, expiredDateTime, commandJsonString, route, mode);
     }
 
     @Override
@@ -327,6 +350,7 @@ public class BoardQueue extends BoardEventModelBase{
             ", inBoardQueue='" + isInBoardQueue() + "'" +
             ", systemQueue='" + isSystemQueue() + "'" +
             ", taskRepeat='" + isTaskRepeat() + "'" +
+            ", delay='" + getDelay() + "'" +
             ", expired='" + isExpired() + "'" +
             ", expiredDateTime='" + getExpiredDateTime() + "'" +
             ", commandJsonString='" + getCommandJsonString() + "'" +
@@ -335,6 +359,5 @@ public class BoardQueue extends BoardEventModelBase{
             "}";
     }
     
-
 
 }

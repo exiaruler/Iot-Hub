@@ -19,6 +19,7 @@ import PinSubForm from "@/app/next-components/form/PinSubForm";
 import ModeSubForm from "@/app/next-components/form/ModeSubForm";
 import SelectInput from "@/app/next-components/input/SelectInput";
 import Content, { ContentRef, ObjectArray, ObjectRecord } from "@/app/next-components/layout/Content";
+import { mode } from "crypto-js";
 interface ComponentRender{
     component:any;
     config:any;
@@ -563,6 +564,18 @@ export default function Client({
         const form = formRef.current;
         const response=await form?.response;
         if(response.status===200)contentRef.current!.router.push('/boards/'+params?.board+'?device='+device?.name+"&tab=functions");
+    }
+
+    const testFunctionHandle=async(index:number)=>{
+        const content=contentRef.current;
+        const form=formRef.current;
+        const modes=form?.getRecordValue('mode');
+        if(modes.length>0){
+            const body={
+                electrode:form?.getRecordValue('electrode')
+            };
+            const request=await content?.util.fetchClientQuery("task/test-function/",'POST',body);
+        }
     }
     
     const loadData = (

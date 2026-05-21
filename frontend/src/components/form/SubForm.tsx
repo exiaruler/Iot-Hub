@@ -1,6 +1,6 @@
 'use client'
 import { Component, ReactNode } from "react";
-import FormHandle from "./FormHandle";
+import FormHandle from "../../component-base/form/FormHandle";
 type Props={
     children?:Array<ReactNode>;
     objectKey:string;

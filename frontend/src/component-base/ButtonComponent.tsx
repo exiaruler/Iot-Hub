@@ -6,7 +6,7 @@ export type Props={
     caption:string;
     variant?:string;
     onClick?:MouseEventHandler;
-    size:any;
+    size?:any;
     active?:boolean;
     disabled?:boolean;
     type?: "button" | "submit" | "reset" | undefined;
@@ -18,7 +18,7 @@ export interface ButtonProps{
     caption:string;
     variant?:string;
     onClick?:(event: React.MouseEvent<HTMLButtonElement>) => void;
-    size:any;
+    size?:any;
     active?:boolean;
     disabled?:boolean;
     type?: "button" | "submit" | "reset" | undefined;

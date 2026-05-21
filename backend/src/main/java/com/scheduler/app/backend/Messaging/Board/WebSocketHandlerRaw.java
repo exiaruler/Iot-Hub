@@ -33,6 +33,7 @@ import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
 import com.scheduler.app.backend.aREST.Models.Route;
 import com.scheduler.app.backend.aREST.Models.Task;
+import com.scheduler.app.backend.aREST.Service.BoardQueueService;
 import com.scheduler.app.backend.aREST.Service.BoardService;
 import com.scheduler.app.backend.aREST.Service.ScheduleService;
 import com.scheduler.app.backend.aREST.Service.TaskService;
@@ -45,6 +46,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     public final CommandService commandService;
     public final ScheduleService scheduleService;
     public final TaskService taskService;
+    public final BoardQueueService boardQueueService;
     
     // board Id and boardTask
     public static HashMap<Long,BoardTask> sentMessages=new HashMap<>();
@@ -53,12 +55,14 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     // commands not to log
     private String[] banComs={"reset","resetboard"};
 
-    public WebSocketHandlerRaw(BoardService boardService, CommandService commandService, ScheduleService scheduleService, TaskService taskService) {
+    public WebSocketHandlerRaw(BoardService boardService, CommandService commandService, ScheduleService scheduleService, TaskService taskService, BoardQueueService boardQueueService) {
         this.boardService = boardService;
         this.commandService = commandService;
         this.scheduleService = scheduleService;
         this.taskService = taskService;
+        this.boardQueueService = boardQueueService;
     }
+
     public List<String> getSessions(){
         Set<String> sessionsSet=sessions.keySet();
         List<String> toList=new ArrayList<>(sessionsSet);
@@ -295,9 +299,11 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                     List<Task> nextTasks=taskService.taskComplete(taskObj, device, route, mode);
                     resp.setSent(true);
                     resp.setNextTasks(nextTasks);
+                    // add task to board queue if it's schedule type
+                    boardQueueService.addToQueueTask(taskObj);
                     // log message sent
                     if(log){
-
+                        
                     }
                     // logic to decide to close websocket
                     Instant dtcurr=Instant.now();

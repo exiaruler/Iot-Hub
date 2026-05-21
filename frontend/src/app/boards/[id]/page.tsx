@@ -1,26 +1,19 @@
 import Client from "./client";
 import { NextBase } from "@/NextBase";
 async function getBoard(id:string) {
-  let dataResp={
-    board:null,
-    deviceForm:null,
-    boardHardware:null
-  };
   const base=new NextBase();
-  const boards=await base.fetchClientGet('/board/get-board-id/'+id);
-  const form=await base.fetchClientGet('/device/new-record');
-  const boardHarware=await base.fetchClientGet('/board/get-board-hardware/'+id);
-  dataResp.board=boards;
-  dataResp.deviceForm=form;
-  dataResp.boardHardware=boardHarware;
-  return dataResp;
+  const requests=await base.fetchGetApi([{api:'/board/get-board-id/'+id,key:'board'},
+    {api:'/device/new-record',key:'deviceForm'},
+    {api:'/board/get-board-hardware/'+id,key:'boardHardware'}
+  ]);
+  return requests;
 }
 export default async function Page({params}:any){
     const { id } = await params;
     const query={};
     const data=await getBoard(id);
     return (
-        <Client board={data.board} boardHardware={data.boardHardware} deviceForm={data.deviceForm} query={query}/>
+        <Client board={data?.board} boardHardware={data?.boardHardware} deviceForm={data?.deviceForm} query={query}/>
        
     )
 }

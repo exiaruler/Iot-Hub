@@ -1,5 +1,5 @@
 'use client'
-import FormHandle, { Props, RecordContext } from "@/components/form/FormHandle";
+import FormHandle, { Props, RecordContext } from "@/component-base/form/FormHandle";
 import { NextBase } from "../../../NextBase";
 interface PropsMod extends Props{
     putUrlArgument?:string;
@@ -56,6 +56,9 @@ export default class Form extends FormHandle{
                     this.statusResponse=status;
                     this.submissionResponse=dataResp;
                     this.setState({...this.state,statusResponse:status,submissionResponse:dataResp});
+                    if(!request.ok){
+                        this.renderValidation(dataResp);
+                    }
                 }else if(!this.props.streamOverride) this.setState({...this.state,statusResponse:400,submissionResponse:null});
             }
         }else
@@ -70,6 +73,9 @@ export default class Form extends FormHandle{
                     this.statusResponse=status;
                     this.submissionResponse=dataResp;
                     this.setState({...this.state,statusResponse:status,submissionResponse:dataResp});
+                    if(!request.ok){
+                        this.renderValidation(dataResp);
+                    }
                 }else if(!this.props.streamOverride) this.setState({...this.state,statusResponse:400,submissionResponse:null});
             }
         }

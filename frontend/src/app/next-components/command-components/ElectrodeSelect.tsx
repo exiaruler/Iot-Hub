@@ -1,6 +1,6 @@
 import { Col, Form, Row } from "react-bootstrap";
 import SelectInput from "../input/SelectInput";
-import { RecordContext } from "@/components/form/FormHandle";
+import { RecordContext } from "@/component-base/form/FormHandle";
 
 export default class ElectrodeSelect extends SelectInput{
     static contextType = RecordContext;

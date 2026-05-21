@@ -1,17 +1,20 @@
 package com.scheduler.app.backend.aREST.Service;
 
-import java.time.*;
+
+import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import org.springframework.scheduling.annotation.Async;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.scheduler.Base.Base;
+import com.scheduler.Base.Exception.ErrorException;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
@@ -24,8 +27,14 @@ import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
 import com.scheduler.app.backend.Messaging.Service.BoardTaskService;
 import com.scheduler.app.backend.Task.Model.CompletedTask;
 import com.scheduler.app.backend.Task.SchedulerTask;
-import com.scheduler.app.backend.aREST.Models.*;
-import com.scheduler.app.backend.aREST.Repo.*;
+import com.scheduler.app.backend.aREST.Models.Board;
+import com.scheduler.app.backend.aREST.Models.Device;
+import com.scheduler.app.backend.aREST.Models.Mode;
+import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Models.Schedule;
+import com.scheduler.app.backend.aREST.Models.Task;
+import com.scheduler.app.backend.aREST.Repo.ScheduleRepo;
+import com.scheduler.app.backend.aREST.Repo.TaskRepo;
 // crud on database. does not manipulate scheduler
 @Service
 public class TaskService extends Base{
@@ -60,6 +69,30 @@ public class TaskService extends Base{
         Task add=taskRepo.save(entry);
         addToScheduler();
         return add;
+    }
+    // test function mode for route/function
+    public Task testModeFunction(BoardTask boardTask,long boardId,long deviceId,String electrode){
+        Task tsk=new Task();
+        String jsonStr="";
+        // convert boardTask to json string
+        try {
+            boardTask.initTaskId(boardId);
+            boardTask.electrodeCalculate(electrode);
+            jsonStr=messageUtil.objectToJsonString(boardTask);
+        } catch (Exception e) {
+            throw new ErrorException("server error occured on that mode");
+        }
+        tsk.setBoard(boardId);
+        tsk.setDeviceId(deviceId);
+        tsk.initId(boardId, deviceId);
+        tsk.setActive(true);
+        tsk.setOneTimeJob(true);
+        tsk.setApplication(boardTask.getMethod()+" testing mode function");
+        tsk.setBoardTaskJson(jsonStr);
+        tsk=taskRepo.save(tsk);
+        scheduler.addTaskToQueue(tsk);
+        return tsk;
+
     }
     // board commands only
     public String runCommand(String board,String command,String action,boolean system,boolean systemTask){
@@ -231,7 +264,7 @@ public class TaskService extends Base{
         }
         //addToScheduler();   
     }
-
+    // use for http polling
     public List<BoardTask> getNextTasks(long id){
         List <BoardTask> taskLists=new ArrayList<>();
         List<Task> filterTasks=scheduler.queryQueueNow(id);
@@ -244,6 +277,7 @@ public class TaskService extends Base{
                         Route route=device.getRoutes().stream().filter(rec->rec.getId()==tsk.getRouteId()).findFirst().orElse(null);
                         BoardTask boardTask=null;
                         Mode mode=null;
+                        // if task has route and mode id get board task from there
                         if(tsk.getRouteId()>0){
                             if(tsk.getModeId()>0){
                                 mode=routesService.getMode(tsk.getModeId());
@@ -263,9 +297,10 @@ public class TaskService extends Base{
                             if(boardTask!=null)taskLists.add(boardTask);
                             List<Task> nextTasks=taskComplete(tsk, device, route, mode);
                             scheduler.batchRequeTasks(nextTasks);
-
+                            
                         }else if(tsk.getSystemTask()&&tsk.getBoardTaskJson()!="")
                         {
+                            // system task
                             boardTask=scheduler.boardTaskToObject(tsk.getBoardTaskJson());
                             List<Task> nextTasks=taskComplete(tsk, device, route,null);
                             scheduler.batchRequeTasks(nextTasks);
@@ -442,6 +477,9 @@ public class TaskService extends Base{
     // find all task in database
     public List<Task> getAllTask(){
         return taskRepo.findAll();
+    }
+    public List<Task> getTasksByBoard(long boardId,long deviceId){
+        return taskRepo.findAll().stream().filter(tsk->tsk.getBoard()==boardId || tsk.getDeviceId()==deviceId && tsk.getBoard()==boardId).toList();
     }
     // find task by active
     public List<Task> getAllTaskStat(boolean status){

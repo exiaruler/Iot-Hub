@@ -6,6 +6,7 @@ interface GetInput{
     key:string,
     result?:null|Array<any>
 }
+
 interface requestResponse{
     request:Response;
     encrypt:string;
@@ -131,7 +132,7 @@ export class NextBase extends Util{
         }
         return response;
     }
-    public async fetchGetApi(input:Array<GetInput>){
+    public async fetchGetApi(input:Array<GetInput>):Promise<ObjectRecord>{
         let result={};
         for(let i=0; i<input.length; i++){
             let req=input[i];
@@ -157,5 +158,6 @@ export class NextBase extends Util{
         }
         return result;
     }
+    
 
 }

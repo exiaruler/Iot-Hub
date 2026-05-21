@@ -123,6 +123,35 @@ public class BoardTask extends TaskModelBase {
             if(pin.getBoardTask()==null) pin.setBoardTask(this);
         }
     }
+    public void electrodeCalculate(String electrode){
+        if(electrode.equals("cathode")){
+            if(this.input!=null){
+                for(InputCurrent in:this.input){
+                    int current=in.getCurrent();
+                    if(current>0){
+                        current=255-current;
+                        in.setCurrent(current);
+                    }else{
+                        current=current+255;
+                        in.setCurrent(current);
+                    }
+                }
+            }
+            if(this.output!=null){
+                for(OutputCurrent out:this.output){
+                    int current=out.getCurrent();
+                    if(current>0){
+                        current=255-current;
+                        out.setCurrent(current);
+                    }else{
+                        current=current+255;
+                        out.setCurrent(current);
+                    }
+                }
+            }
+            
+        }   
+    }
     private void orderPins(){
         int count=1;
         if(this.pins!=null){
@@ -152,6 +181,7 @@ public class BoardTask extends TaskModelBase {
             }
         }
     }
+    // new entries to associated objects
     public void newInputs(){
         this.setId(0);
         if(this.pins != null) {
@@ -213,7 +243,7 @@ public class BoardTask extends TaskModelBase {
         orderOutput();
     }
     public BoardTask() {
-    
+        
     }
 
     public BoardTask(BoardTask boardTask) {

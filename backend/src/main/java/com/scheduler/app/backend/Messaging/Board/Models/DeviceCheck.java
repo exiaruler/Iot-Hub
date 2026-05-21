@@ -1,8 +1,9 @@
 package com.scheduler.app.backend.Messaging.Board.Models;
-import com.scheduler.app.backend.Messaging.Models.BoardTask;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+
+import com.scheduler.app.backend.Messaging.Models.BoardTask;
 // use for routine checks
 public class DeviceCheck{
     // board long id
@@ -19,21 +20,16 @@ public class DeviceCheck{
     private int closeConnection;
     // next task avaliable
     private boolean scheduleAvaliable;
-    // development mode and configurations
-    private boolean devMode;
-    // server url
-    private String devServerUrl="";
-    // websocket url
-    private String devWsPort="";
     // websocket headers
     // http headers
     // command tasks
     private List<BoardTask> tasks=new ArrayList<>();
     
+
     public DeviceCheck() {
     }
 
-    public DeviceCheck(long id, String boardId, boolean userActive, boolean updated, int routineCheck, int closeConnection, boolean scheduleAvaliable, boolean devMode, String devServerUrl, String devWsPort, List<BoardTask> tasks) {
+    public DeviceCheck(long id, String boardId, boolean userActive, boolean updated, int routineCheck, int closeConnection, boolean scheduleAvaliable, List<BoardTask> tasks) {
         this.id = id;
         this.boardId = boardId;
         this.userActive = userActive;
@@ -41,9 +37,6 @@ public class DeviceCheck{
         this.routineCheck = routineCheck;
         this.closeConnection = closeConnection;
         this.scheduleAvaliable = scheduleAvaliable;
-        this.devMode = devMode;
-        this.devServerUrl = devServerUrl;
-        this.devWsPort = devWsPort;
         this.tasks = tasks;
     }
 
@@ -115,34 +108,6 @@ public class DeviceCheck{
         this.scheduleAvaliable = scheduleAvaliable;
     }
 
-    public boolean isDevMode() {
-        return this.devMode;
-    }
-
-    public boolean getDevMode() {
-        return this.devMode;
-    }
-
-    public void setDevMode(boolean devMode) {
-        this.devMode = devMode;
-    }
-
-    public String getDevServerUrl() {
-        return this.devServerUrl;
-    }
-
-    public void setDevServerUrl(String devServerUrl) {
-        this.devServerUrl = devServerUrl;
-    }
-
-    public String getDevWsPort() {
-        return this.devWsPort;
-    }
-
-    public void setDevWsPort(String devWsPort) {
-        this.devWsPort = devWsPort;
-    }
-
     public List<BoardTask> getTasks() {
         return this.tasks;
     }
@@ -186,21 +151,6 @@ public class DeviceCheck{
         return this;
     }
 
-    public DeviceCheck devMode(boolean devMode) {
-        setDevMode(devMode);
-        return this;
-    }
-
-    public DeviceCheck devServerUrl(String devServerUrl) {
-        setDevServerUrl(devServerUrl);
-        return this;
-    }
-
-    public DeviceCheck devWsPort(String devWsPort) {
-        setDevWsPort(devWsPort);
-        return this;
-    }
-
     public DeviceCheck tasks(List<BoardTask> tasks) {
         setTasks(tasks);
         return this;
@@ -214,12 +164,12 @@ public class DeviceCheck{
             return false;
         }
         DeviceCheck deviceCheck = (DeviceCheck) o;
-        return id == deviceCheck.id && Objects.equals(boardId, deviceCheck.boardId) && userActive == deviceCheck.userActive && updated == deviceCheck.updated && routineCheck == deviceCheck.routineCheck && closeConnection == deviceCheck.closeConnection && scheduleAvaliable == deviceCheck.scheduleAvaliable && devMode == deviceCheck.devMode && Objects.equals(devServerUrl, deviceCheck.devServerUrl) && Objects.equals(devWsPort, deviceCheck.devWsPort) && Objects.equals(tasks, deviceCheck.tasks);
+        return id == deviceCheck.id && Objects.equals(boardId, deviceCheck.boardId) && userActive == deviceCheck.userActive && updated == deviceCheck.updated && routineCheck == deviceCheck.routineCheck && closeConnection == deviceCheck.closeConnection && scheduleAvaliable == deviceCheck.scheduleAvaliable && Objects.equals(tasks, deviceCheck.tasks);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, boardId, userActive, updated, routineCheck, closeConnection, scheduleAvaliable, devMode, devServerUrl, devWsPort, tasks);
+        return Objects.hash(id, boardId, userActive, updated, routineCheck, closeConnection, scheduleAvaliable, tasks);
     }
 
     @Override
@@ -232,14 +182,9 @@ public class DeviceCheck{
             ", routineCheck='" + getRoutineCheck() + "'" +
             ", closeConnection='" + getCloseConnection() + "'" +
             ", scheduleAvaliable='" + isScheduleAvaliable() + "'" +
-            ", devMode='" + isDevMode() + "'" +
-            ", devServerUrl='" + getDevServerUrl() + "'" +
-            ", devWsPort='" + getDevWsPort() + "'" +
             ", tasks='" + getTasks() + "'" +
             "}";
     }
     
-
-
 
 }

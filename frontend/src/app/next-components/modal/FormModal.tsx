@@ -4,7 +4,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "react-bootstrap";
 import Form from "../form/Form";
 import SaveButton from "../buttons/SaveButton";
 import { RegularButton } from "../buttons/RegularButton";
-import { Props } from "@/components/form/FormHandle";
+import { Props } from "@/component-base/form/FormHandle";
 import { Ref } from "react";
 interface FormModalProps extends Props{
     title:string;

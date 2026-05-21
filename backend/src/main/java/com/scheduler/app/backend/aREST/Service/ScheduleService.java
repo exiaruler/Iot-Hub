@@ -2,12 +2,16 @@ package com.scheduler.app.backend.aREST.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.stereotype.Service;
+
 import com.scheduler.Base.Base;
-import com.scheduler.Base.ResourceNotFoundException;
+import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.ModelBase.TaskEventId;
+import com.scheduler.Base.ResourceNotFoundException;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
@@ -122,6 +126,7 @@ public class ScheduleService extends Base{
     }
     public Schedule updatScheduleSocket(long id,Schedule schedule){
         Schedule existRec=scheRepo.findById(id).get();
+        HashMap <String,String> errors=new HashMap<>();
         boolean hasMotor=false;
         if(existRec!=null){
             existRec.setName(schedule.getName());
@@ -129,9 +134,10 @@ public class ScheduleService extends Base{
             existRec.setDevice(device);
             existRec.setModeRandom(schedule.getModeRandom());
             existRec.setStatus(schedule.getStatus());
-            if(schedule.getStartup()&&schedule.getRepeatTask()) new ResourceNotFoundException("Schedule task cannot have startup and status enabled");
+            if(schedule.getStartup()&&schedule.getRepeatTask()) errors.put("occurance", "Startup and repeat task cannot be enabled at the same time");
             existRec.setStartup(schedule.getStartup());
             existRec.setRepeatTask(schedule.getRepeatTask());
+            existRec.setTime(schedule.getTime());
             Optional<Route> routeQuery=device.getRoutes().stream().filter(rec->rec.getId()==schedule.getRouteId()).findFirst();
             if(routeQuery.isPresent()){
                     Route rou=routeQuery.get();
@@ -162,12 +168,13 @@ public class ScheduleService extends Base{
                         existRec.setModeId(0);
                         existRec.setMode(null);
                     }
-                scheRepo.save(existRec);
+                if(!errors.isEmpty()) throw new ValidationException(errors,null);
+                existRec=scheRepo.save(existRec);
                 if(schedule.getRepeatTask()){
                     taskService.setTaskSchedule(existRec.getTask(),true);
                 }  
             }
-        }else new ResourceNotFoundException("Schedule Record does not exist");
+        }else return null;
         return existRec;
     }
     
@@ -251,14 +258,7 @@ public class ScheduleService extends Base{
         }
         return exist;
     }
-    public Schedule updateScheduleTest(long id,Task task){
-        Schedule sche=scheRepo.getReferenceById(id);
-        if(sche!=null){
-            sche.setTask(task);
-            scheRepo.save(sche);
-        }
-        return sche;
-    }
+    
     // start task schedule start task
     public boolean startupTask(long id){
         boolean success=false;

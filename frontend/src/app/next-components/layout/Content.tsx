@@ -6,9 +6,7 @@ import { ReactNode, RefObject, Suspense, forwardRef, useImperativeHandle, useRef
 import { Container } from "react-bootstrap";
 import { useSelector } from "react-redux";
 export type {ObjectRecord} from "@/NextBase";
-//export type ObjectRecord = Record<string, any> | null;
 export type {ObjectArray} from "@/NextBase";
-//export type ObjectArray = ObjectRecord[];
 interface Props {
     children?: ReactNode;
 }
@@ -20,6 +18,7 @@ export interface ContentRef {
     forceUpdateRefComponents: (array: RefObject<Array<any>>) => void;
     getQuery:()=>URLSearchParams;
     getQueryField:(field:string)=>string|null;
+    convertMiliSecondsToTime:(mills:number)=>{ hours: number; minutes: number; seconds: number };
     login: boolean;
     user: Record<string, any>;
     location: string|null;
@@ -64,6 +63,14 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
             return query.get(field);
         }
         ,
+        convertMiliSecondsToTime:(mills:number):{ hours: number; minutes: number; seconds: number }=>{
+            const totalSeconds = Math.floor(mills / 1000);
+            const seconds = totalSeconds % 60;
+            const totalMinutes = Math.floor(totalSeconds / 60);
+            const minutes = totalMinutes % 60;
+            const hours = Math.floor(totalMinutes / 60);
+            return { hours, minutes, seconds };
+        },
         login,
         user,
         location,

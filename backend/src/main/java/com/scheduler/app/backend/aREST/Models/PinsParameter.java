@@ -2,21 +2,18 @@ package com.scheduler.app.backend.aREST.Models;
 
 import java.util.Objects;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-
 import com.scheduler.Base.ModelBase.ModelBase;
 
-@Entity
+//@Entity
 public class PinsParameter extends ModelBase {
     // pin
-    @Column
+  //  @Column
     private int pin;
     // key associated to background task
-    @Column
+  //  @Column
     private String key="";
     // pin order
-    @Column
+   // @Column
     private int pinOrder;
 
 

@@ -1,10 +1,10 @@
 import { Form } from "react-bootstrap";
-import WarningBase from "../../component-base/WarningBase";
+import WarningBase from "../../component-base/input/warning/WarningBase";
 
 export default class Warning extends WarningBase{
     render(){
         return(
-            <Form.Text id={this.props.name+"Warning"} >{this.warning}</Form.Text>
+            <Form.Text id={this.props.name+"Warning"} >{this.props.warning}</Form.Text>
         )
     }
 }

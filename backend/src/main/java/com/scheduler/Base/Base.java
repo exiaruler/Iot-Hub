@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.persistence.EntityManager;
@@ -28,6 +29,10 @@ public class Base{
     
     public String getModel(String module,String className){
         return pathBase+"."+module+"."+"Models"+"."+className;
+    }
+    public void throwValidationException(Map<String, String>  errors,Map<String, String>  warnings){
+        if(errors==null||warnings==null) return;
+        throwValidationException(errors, warnings);
     }
     public String getDataString(String query){
         String data="";

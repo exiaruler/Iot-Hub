@@ -1,9 +1,6 @@
 package com.scheduler.app.backend.aREST.Controller;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
-
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,19 +34,22 @@ public class BoardController extends ControllerBase{
     }
     
     @PostMapping(value="/add-board-socket", consumes = "application/json")
-    public ResponseEntity<Board> addBoard(@Valid @RequestBody Board input) {
+    public ResponseEntity<Board> addBoard(@RequestBody Board input) {
         Board boardSave=boardService.addBoardSocket(input.getName(),input.getHardwardId(),input.getBoardId());
         return ResponseEntity.ok(boardSave);
     }
     @PutMapping(value="/update-board/{id}", consumes = {"application/xml","application/json"})
     public ResponseEntity<Board> updateBoard(@RequestBody Board board,@PathVariable long id){
         Board update=boardService.updateBoard(board, id);
+        if(update==null){
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(update);
         
     }
     @GetMapping(value="/getboards")
-    public List<Board> all(){
-        return boardService.getBoards();
+    public ResponseEntity<List<Board>> all(){
+        return ResponseEntity.ok(boardService.getBoards());
     }
     @GetMapping(value="/getboard/{id}")
     public ResponseEntity<Optional<Board>> getBoard(@PathVariable long id){
@@ -92,14 +92,14 @@ public class BoardController extends ControllerBase{
     // routine status check by http request
     @GetMapping(value="/status-check/{id}")
     public ResponseEntity<DeviceCheck> routineCheck(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@PathVariable long id){
-        System.out.println("Connection check "+id+" "+LocalTime.now()+" "+ram+" "+ip);
+        //System.out.println("Connection check "+id+" "+LocalTime.now()+" "+ram+" "+ip);
         DeviceCheck check=boardService.routineCheck(id,Integer.parseInt(ram),ip);
         return ResponseEntity.ok(check);
     }
     // when board starts-up verify credentials
     @PostMapping("/startup")
     public ResponseEntity<DeviceCheck> startup(@RequestBody BoardRegister entity,@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("SSID")String ssid,@RequestHeader("mac-address")String macAddress) {
-        System.out.println("startup "+ entity.getBoardId());
+        //System.out.println("startup "+ entity.getBoardId());
         DeviceCheck check=boardService.startup(entity,ip,Integer.parseInt(ram),ssid,macAddress);
         if(check!=null){
             return ResponseEntity.ok(check);

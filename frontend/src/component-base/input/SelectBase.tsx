@@ -1,5 +1,5 @@
 import InputBase from "./InputBase";
-import { InputInterface as BaseInterface, State as BaseState } from "./interface/input";
+import { InputInterface as BaseInterface, State as BaseState } from "../interface/input";
 interface InputInterface extends BaseInterface{
     valueKey:string,
     displayKey:string,

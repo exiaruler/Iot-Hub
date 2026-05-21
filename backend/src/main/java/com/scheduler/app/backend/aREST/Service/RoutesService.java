@@ -23,6 +23,7 @@ public class RoutesService extends Base {
     private final DeviceRepo deviceRepo;
     private final CommandService commandService;
     private final ParameterService parameterService;
+    
     public RoutesService(RoutesRepo routeRepo, ModeRepo modeService, DeviceRepo deviceRepo, CommandService commandService, ParameterService parameterService) {
         this.routeRepo = routeRepo;
         this.modeService = modeService;
@@ -74,14 +75,15 @@ public class RoutesService extends Base {
                 List<Mode> updatedModeList=entry.getMode();
                 for(Mode mode:updatedModeList){
                     Mode ex=existModeList.stream().filter(m->m.getId()==mode.getId()).findFirst().orElse(null);
+                    //int exHash=ex.hashCode();
+                    //int newHash=mode.hashCode();
                     // update existing mode
                     if(ex!=null){
                         ex.setMode(mode.getMode());
                         BoardTask act=mode.getBoardAction();
                         act.setMode(ex);
                         ex.setBoardAction(act);
-                    }
-                    else{
+                    }else{
                         mode.setRoute(rec);
                         mode.getBoardAction().newInputs();
                         rec.getMode().add(mode);

@@ -3,8 +3,8 @@ import { Editor } from "@tinymce/tinymce-react";
 import { Component } from "react";
 import {Util} from "../../base/Util";
 import { Row, Col } from "react-bootstrap";
-import FormHandle, { RecordContext } from "../form/FormHandle";
-import InputBase from "../../component-base/InputBase";
+import FormHandle, { RecordContext } from "../../component-base/form/FormHandle";
+import InputBase from "../../component-base/input/InputBase";
 
 export default class ContentInput extends InputBase{
     public util=new Util();

@@ -20,12 +20,6 @@ export default function AddForm(props:Props){
             const data=form.submissionResponse;
             props.onUpdate(data);
             form.newRecord();
-        }else if(form!.statusResponse>400)
-        {
-            const data=form?.submissionResponse;
-            const errors=data.errors;
-            form?.setWarning('name',errors.name);
-            
         }
     }
 
@@ -34,8 +28,8 @@ export default function AddForm(props:Props){
         <Content>
         <Form ref={formRef} recordLayout={{id:0,name:""}} idKey={"id"} onSubmit={submitHandle} post={"/device/add-device/"+props.boardId}>
         <TextInput md={4} formRef={formRef} label={"Name"} required={true} name={"name"} type={"text"} rows={0}/>
-        <NewButton formRef={formRef} caption={"Clear"} size={undefined}/>
-        <SaveButton caption={"Add Device"} size={undefined}/>
+        <NewButton formRef={formRef} caption={"Clear"} size={undefined} />
+        <SaveButton caption={"Add Device"} />
         </Form>
         </Content>
         </div>

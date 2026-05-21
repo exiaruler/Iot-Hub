@@ -1,7 +1,7 @@
 'use client'
 import { Component } from "react";
 import { Row, Col, Form, Stack } from "react-bootstrap";
-import FormHandle from "../form/FormHandle";
+import FormHandle from "../../component-base/form/FormHandle";
 import { FormGenCheckBox } from "../formGenComponents/FormGenCheckBox";
 type Props={
     label:string;

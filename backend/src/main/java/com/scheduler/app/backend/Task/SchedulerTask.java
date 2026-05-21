@@ -130,7 +130,7 @@ public class SchedulerTask{
                         queue.remove(task);
                     }
     }
-    /* */
+    /* 
     @Scheduled(fixedRate = 60000)
     public void checkRunningQueue(){
         if(queueRun){
@@ -139,7 +139,7 @@ public class SchedulerTask{
                 Task task=queue.get(i);
                 Instant taskDt=task.getScheduledTime();
                 if(dt.isAfter(taskDt)&&checkTaskRunning(task)){
-                    /* 
+                    
                     if(task.getRetry()!=task.getSchedule().getRetries()){
                         runningQueue.remove(i);
                         int tries=task.getRetry();
@@ -150,12 +150,14 @@ public class SchedulerTask{
                             queueRun=false;
                         }
                     }
-                    */
+                    
                 }
             }
         }
     }
+    */
     // loop through array to update database
+    /* 
     @Scheduled(fixedRate = 100)
     public void runComplete(){
         if(!completeTaskQueue.isEmpty()){
@@ -172,7 +174,7 @@ public class SchedulerTask{
             }
         }
     }
-
+    */
     // check if the device or board is running to avoid clashing or strain on power
     public boolean checkTaskRunning(Task task){
         boolean result=false;
@@ -220,6 +222,7 @@ public class SchedulerTask{
     public void addToQueue(List<Task> currentList){
         queue=currentList;
     }
+    // add single task to the queue
     public void addTaskToQueue(Task task){
         queue.add(task);
     }

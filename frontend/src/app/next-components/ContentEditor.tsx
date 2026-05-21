@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from "react";
-import FormHandle from "@/components/form/FormHandle";
+import FormHandle from "@/component-base/form/FormHandle";
 import ContentInput from "@/components/input/ContentInput";
 import { SaveButton } from "@/components/Buttons/SaveButton";
 import { useSelector,useDispatch} from 'react-redux';

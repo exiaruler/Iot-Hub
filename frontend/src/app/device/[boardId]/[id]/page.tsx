@@ -1,13 +1,14 @@
-import { NextBase } from "@/NextBase";
+import { NextBase, ObjectRecord } from "@/NextBase";
 
 async function getDevice(id:string){
     const base=new NextBase();
-    let fetchApis:any=await base.fetchGetApi([
+    const fetchApis:ObjectRecord=await base.fetchGetApi([
     {api:'/device/get-device-unique-id/'+id,key:'device'},
   ]);
+  return fetchApis;
 }
 export default async function Page({params}:any){
-    const {id}=await params;
+    const {boardId,id}=await params;
 
     return(
         <>

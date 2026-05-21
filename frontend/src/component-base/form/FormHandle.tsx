@@ -20,12 +20,13 @@ export interface Props{
     // override of api response
     streamOverride?:boolean;
     debug?:boolean;
+    disableValidation?:boolean;
 }
 interface State{
     // record
     record:Record<string,any>|null;
     // layout of record
-    recordLayout:Record<string,any>;
+    recordLayout:Record<string,any>|string;
     // field errors
     errors:Record<string,any>;
     // warning errors
@@ -59,6 +60,7 @@ export default class FormHandle extends Component<Props,State>{
                 submissionResponse:null
             };
     }
+    public blankKeys:string="";
     public inputFields:Array<any>=[];
     // static record, use for call back events only
     public record:Record<string,any>|null=null;
@@ -75,8 +77,10 @@ export default class FormHandle extends Component<Props,State>{
         if(this.props.recordLayout){
             let rec=this.props.recordLayout;
             const blankKeys=this.mapKeys(this.props.recordLayout);
-            this.setState({...this.state,recordLayout:this.props.recordLayout,record:rec,errors:blankKeys,warnings:blankKeys});
+            this.blankKeys=JSON.stringify(blankKeys);
             this.recordLayoutString=JSON.stringify(this.props.recordLayout);
+            this.setState({...this.state,recordLayout:this.recordLayoutString,record:rec,errors:blankKeys,warnings:blankKeys});
+            
             this.record=rec;
             if(this.props.record){
                 this.setRecord(this.props.record);
@@ -112,13 +116,12 @@ export default class FormHandle extends Component<Props,State>{
     }
     // set prop warning in input field component
     public setWarning(name:string,error:string):void{
-        let comp=this.inputFields.find((input:any)=>input.current.props.name==name)||null;
-        if(comp!=null){
-            let warn=comp.current;
-            //warn.setWarning(error);
-        }
+    
         if(Object.hasOwn(this.state.warnings,name)){
-            this.setState({...this.state,warnings:{...this.state.warnings,[name]:error}})
+            let currWarn=this.state.warnings[name];
+            //if(currWarn!="") currWarn+="\n";
+            currWarn=error; 
+            this.setState({...this.state,warnings:{...this.state.warnings,[name]:currWarn}});
         }
     }
    // update record value
@@ -177,13 +180,7 @@ export default class FormHandle extends Component<Props,State>{
         this.ok=false;
         this.record=this.getRecordLayout();
         this.clearWarnings();
-        const exWarnings={...this.state.warnings};
-        const exErrors={...this.state.errors};
-        for( let key in exWarnings){
-            exWarnings[key]="";
-            exErrors[key]="";
-        }
-        this.setState({...this.state,record:this.getRecordLayout(),id:0,statusResponse:0,submissionResponse:null,errors:exErrors,warnings:exWarnings});
+        this.setState({...this.state,record:this.getRecordLayout(),id:0,statusResponse:0,submissionResponse:null,errors:JSON.parse(this.blankKeys),warnings:JSON.parse(this.blankKeys)});
     }
     public clearWarnings():void{
         if(this.inputFields.length>0)this.inputFields.map((input)=>input.current.setWarning(""));
@@ -199,10 +196,13 @@ export default class FormHandle extends Component<Props,State>{
                 if(request!=null&&!this.props.streamOverride){
                     const status=await request.status;
                     this.ok=request.ok;
-                    const dataResp=await request.json();
+                    const dataResp=await request.json;
                     this.statusResponse=status;
                     this.submissionResponse=dataResp;
                     this.setState({...this.state,statusResponse:status,submissionResponse:dataResp});
+                    if(!request.ok){
+                        this.renderValidation(dataResp);
+                    }
                 }else if(!this.props.streamOverride) this.setState({...this.state,statusResponse:400,submissionResponse:null});
             }
         }else
@@ -213,10 +213,13 @@ export default class FormHandle extends Component<Props,State>{
                 if(request!=null&&!this.props.streamOverride){
                     const status=await request.status;
                     this.ok=request.ok;
-                    const dataResp=await request.json();
+                    const dataResp=await request.json;
                     this.statusResponse=status;
                     this.submissionResponse=dataResp;
                     this.setState({...this.state,statusResponse:status,submissionResponse:dataResp});
+                    if(!request.ok){
+                        this.renderValidation(dataResp);
+                    }
                 }else if(!this.props.streamOverride) this.setState({...this.state,statusResponse:400,submissionResponse:null});
             }
         }
@@ -224,7 +227,17 @@ export default class FormHandle extends Component<Props,State>{
             this.props.onSubmit();
         }
     }
-
+    public renderValidation(validations: Record<string, any>):void{
+        if(this.props.disableValidation)return;
+        if(validations.errors){
+            const errors=validations.errors;
+            const formError=this.state.warnings;
+            for(let key in errors){
+                formError[key]=errors[key];
+                this.setState({...this.state,warnings:formError});
+            }
+        }
+    }
     render(){
         return(
             <form onSubmit={(event:any)=>this.onsubmit(event)}>

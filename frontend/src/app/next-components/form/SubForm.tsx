@@ -1,5 +1,5 @@
 'use client'
-import FormHandle, { Props, RecordContext } from "@/components/form/FormHandle";
+import FormHandle, { Props, RecordContext } from "@/component-base/form/FormHandle";
 import Form from "./Form";
 export interface PropsMod extends Props{
     objectKey?:string;

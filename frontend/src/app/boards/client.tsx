@@ -65,7 +65,7 @@ export default function Client(props:Props){
         </Col>   
         </Row>
         <ModalBox ref={modalRef} title={"Add Board"} submitCaption="Add" hideSubmit={true}>
-        <Form onSubmit={submitHandle} ref={formRef} recordLayout={{ id: 0, name: "", hardwardId:0 }} idKey={"id"} post={"/board/add-board-socket"}>
+        <Form onSubmit={submitHandle} ref={formRef} recordLayout={{ id: 0, name: "", hardwardId:0,boardId:"" }} idKey={"id"} post={"/board/add-board-socket"}>
         <Row>
         <Col md={7} xs={9}>
         <TextInput formRef={formRef} label={"Name"} name="name" type={"text"} rows={0} required={true}/>
