@@ -102,8 +102,9 @@ public class BoardService extends Base {
                 List <Long> devIds=new ArrayList<>();
                 bo.getDevice().stream().map(dev->devIds.add(dev.getId()));
                 bo.getBoardOperations().clear();
-                taskService.deactiveTask(devIds);
                 deviceService.routesService.updateRouteOffline(devIds);
+                boardRepo.save(bo);
+                taskService.deactiveTask(devIds);
             }
             System.out.println("offline board size "+offline.size());
         }

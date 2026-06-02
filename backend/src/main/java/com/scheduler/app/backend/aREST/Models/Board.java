@@ -108,7 +108,7 @@ public class Board extends ModelBase {
     private Hardware hardware;
     // Board queue
     @JsonManagedReference("queue-board")
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "board", cascade =CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY,mappedBy = "board", cascade =CascadeType.ALL, orphanRemoval = true)
     private List<BoardQueue> boardOperations=new ArrayList<>();
     // request-only hardware id used by controller payloads
     @Transient
