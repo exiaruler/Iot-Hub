@@ -3,15 +3,17 @@ package com.scheduler.app.backend.aREST.Models;
 import java.time.Instant;
 import java.util.Objects;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Embedded;
+import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.scheduler.Base.ModelBase.BoardEventModelBase;
@@ -91,6 +93,15 @@ public class Task extends BoardEventModelBase {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "schedule_id",referencedColumnName = "id")
     private Schedule schedule;
+
+    @PrePersist
+    private void prePersist(){
+        
+    }
+    @PreUpdate
+    private void preUpdate(){
+        
+    }
 
 
     public Task() {

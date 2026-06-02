@@ -1,7 +1,14 @@
 package com.scheduler.app.backend.Messaging.Board.Models;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 // used for board login response
+@JsonPropertyOrder({"id","devMode","devServerUrl","devWsUrl","loginServerFail",})
+@JsonFormat(shape = JsonFormat.Shape.ARRAY)
 public class BoardLogin extends DeviceCheck{
+    // board long id/ put it into board login
+    private long id;
     // dev mode
     private boolean devMode;
      // server url
@@ -15,11 +22,20 @@ public class BoardLogin extends DeviceCheck{
     public BoardLogin() {
     }
 
-    public BoardLogin(boolean devMode, String devServerUrl, String devWsUrl, boolean loginServerFail) {
+    public BoardLogin(long id, boolean devMode, String devServerUrl, String devWsUrl, boolean loginServerFail) {
+        this.id = id;
         this.devMode = devMode;
         this.devServerUrl = devServerUrl;
         this.devWsUrl = devWsUrl;
         this.loginServerFail = loginServerFail;
+    }
+
+    public long getId() {
+        return this.id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public boolean isDevMode() {
@@ -62,6 +78,11 @@ public class BoardLogin extends DeviceCheck{
         this.loginServerFail = loginServerFail;
     }
 
+    public BoardLogin id(long id) {
+        setId(id);
+        return this;
+    }
+
     public BoardLogin devMode(boolean devMode) {
         setDevMode(devMode);
         return this;
@@ -90,18 +111,19 @@ public class BoardLogin extends DeviceCheck{
             return false;
         }
         BoardLogin boardLogin = (BoardLogin) o;
-        return devMode == boardLogin.devMode && Objects.equals(devServerUrl, boardLogin.devServerUrl) && Objects.equals(devWsUrl, boardLogin.devWsUrl) && loginServerFail == boardLogin.loginServerFail;
+        return id == boardLogin.id && devMode == boardLogin.devMode && Objects.equals(devServerUrl, boardLogin.devServerUrl) && Objects.equals(devWsUrl, boardLogin.devWsUrl) && loginServerFail == boardLogin.loginServerFail;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(devMode, devServerUrl, devWsUrl, loginServerFail);
+        return Objects.hash(id, devMode, devServerUrl, devWsUrl, loginServerFail);
     }
 
     @Override
     public String toString() {
         return "{" +
-            " devMode='" + isDevMode() + "'" +
+            " id='" + getId() + "'" +
+            ", devMode='" + isDevMode() + "'" +
             ", devServerUrl='" + getDevServerUrl() + "'" +
             ", devWsUrl='" + getDevWsUrl() + "'" +
             ", loginServerFail='" + isLoginServerFail() + "'" +

@@ -66,6 +66,7 @@ public class ScheduleService extends Base{
         }else if(schedule!=null){   
             tsk=new Task();
             tsk.initId(device.getBoard().getId(),device.getId());
+            //tsk.setParentTask(tsk.getId());
             tsk.oneTimeJob(false);
             tsk.setApplication(application);
             tsk.setSchedule(schedule);

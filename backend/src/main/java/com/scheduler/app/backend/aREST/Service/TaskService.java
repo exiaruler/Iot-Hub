@@ -1,8 +1,8 @@
 package com.scheduler.app.backend.aREST.Service;
-
-
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +19,7 @@ import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.MessageUtil;
+import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
 import com.scheduler.app.backend.Messaging.Models.BoardPin;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.Messaging.Models.BoardVariable;
@@ -45,15 +46,17 @@ public class TaskService extends Base{
     private final RoutesService routesService;
     public final CommandService commandService;
     public final BoardTaskService boardTaskService;
+    public final BoardQueueService boardQueueService;
 
     private Random randomGenerator;
-    public TaskService(TaskRepo taskRepo, ScheduleRepo serviceSch, DeviceService deviceService, CommandService commandService, BoardTaskService boardTaskService, RoutesService routesService) {
+    public TaskService(TaskRepo taskRepo, ScheduleRepo serviceSch, DeviceService deviceService, CommandService commandService, BoardTaskService boardTaskService, RoutesService routesService, BoardQueueService boardQueueService) {
         this.taskRepo = taskRepo;
         this.serviceSch = serviceSch;
         this.deviceService = deviceService;
         this.routesService = routesService;
         this.commandService = commandService;
         this.boardTaskService = boardTaskService;
+        this.boardQueueService = boardQueueService;
         randomGenerator = new Random();
     }
     public Task saveTask(Task task){
@@ -63,7 +66,7 @@ public class TaskService extends Base{
         return new MessageUtil();
     }
     public Task addTask(Task entry){
-        Instant setDt=addDuration(1000);
+        Instant setDt=addDuration(1000,false);
         entry.setScheduledTime(setDt);
         entry.setActive(true);
         Task add=taskRepo.save(entry);
@@ -144,7 +147,7 @@ public class TaskService extends Base{
     // schedule task to scheduler
     public List<Task> setTaskSchedule(Task task,boolean addToSchedule){
         List<Task> modTasks=new ArrayList<>();
-        Instant scheDt=addDuration(task.getSchedule().getTime());
+        Instant scheDt=addDuration(task.getSchedule().getTime(),true);
         boolean active=task.getSchedule().getStatus();
         task.setScheduledTime(scheDt);
         task.setActive(active);
@@ -157,6 +160,7 @@ public class TaskService extends Base{
                 task.setModeId(ranMode.getId());
             }
         }
+        boardQueueService.addToQueueTask(task);
         task=taskRepo.save(task);
         modTasks.add(task);
         if(active){
@@ -164,7 +168,7 @@ public class TaskService extends Base{
             if(task.getSchedule().getRepeatTask()){
                 // add websocket connect command
                 // check if there an existing system connect task
-                TaskEventId parentTaskId=task.getParentTask();
+                TaskEventId parentTaskId=task.getId();
                 long boardId=task.getBoard();
                 long deviceId=task.getDeviceId();
                 String query="select count(*) from task where parent_board_id="+parentTaskId.getBoardId();
@@ -172,20 +176,19 @@ public class TaskService extends Base{
                 query+=" and parent_event_time="+quoteParam(parentTaskId.getEventTime().toString());
                 query+=" and system_task=true and board_id="+boardId;
                 query+=" and device_id="+deviceId;
-                query+=" and application="+quoteParam("schedule wsconnectopen");
-                long existId=taskRepo.findAll().stream().filter(rec->rec.getParentTask()==parentTaskId&&rec.getSystemTask()&&rec.getBoard()==boardId&&rec.getDeviceId()==deviceId&&rec.getApplication().equals("schedule wsconnectopen")).count();
-                System.out.println(query);
+                query+=" and application="+quoteParam("schedule httprequestconnection");
+                long existId=taskRepo.findAll().stream().filter(rec->rec.getParentTask()==parentTaskId&&rec.getSystemTask()&&rec.getBoard()==boardId&&rec.getDeviceId()==deviceId&&rec.getApplication().equals("schedule httprequestconnection")).count();
                 //long existId=getDataLong(query);
                 if(existId<1){
                     Task connectTask=new Task();
-                    Command wscom=commandService.getCommandByCommand("wsconnectopen", "schedule",true);
+                    Command wscom=commandService.getCommandByCommand("httprequestconnection", "schedule",true);
                     BoardTask tsk=wscom.getBoardCommand();
                     long delayTime=task.getSchedule().getTime();
                     BoardTask tempTask=new BoardTask(tsk);
                     tempTask.runTarget(1);
                     tempTask.setDelayInterval(delayTime);
                     tempTask.setVariable(new BoardVariable());
-                    tempTask.setId(0);
+                    tempTask.initTaskId(task.getBoard());
                     //long boardId=task.getBoard();
                     tempTask.initTaskId(boardId);
                     tempTask.setCommand(null);
@@ -197,7 +200,7 @@ public class TaskService extends Base{
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-                    connectTask.setApplication("schedule wsconnectopen");
+                    connectTask.setApplication("schedule httprequestconnection");
                     if(commStr!=""){
                         connectTask.setBoardTaskJson(commStr);
                     }
@@ -210,6 +213,7 @@ public class TaskService extends Base{
                     connectTask.setMotor(false);
                     connectTask.setActive(true);
                     taskRepo.save(connectTask);
+                    boardQueueService.addToQueueTask(connectTask);
                     modTasks.add(connectTask);      
                 }
                 
@@ -224,7 +228,7 @@ public class TaskService extends Base{
         List<Task> modTasks=new ArrayList<>();
         // disabled automated and startup schedule tasks
         scheduler.removeTasksByBoardId(boardId);
-        // purge 1 time jobs
+        // purge 1 time jobs from database
         List<Task> taskIds=taskRepo.getOneTimeJobs(boardId);
         if(taskIds.size()>0){
             for(int i=0; i<taskIds.size(); i++){
@@ -237,18 +241,20 @@ public class TaskService extends Base{
                 }
             }
         }
+        /* 
         List<Task> autoTaskIds=taskRepo.getRoutineJobs(boardId);
         if(autoTaskIds.size()>0){
             for(int x=0; x<autoTaskIds.size(); x++){
                 Task tsk=autoTaskIds.get(x);
                 if(tsk!=null){
-                    tsk.active(false);
+                    tsk.active(true);
                     taskRepo.save(tsk);
                     modTasks.add(tsk);
                 }
             }
         }
         addToScheduler();
+        */
         return modTasks;
     }
     public void deleteTask(Task task){
@@ -265,12 +271,12 @@ public class TaskService extends Base{
         //addToScheduler();   
     }
     // use for http polling
-    public List<BoardTask> getNextTasks(long id){
-        List <BoardTask> taskLists=new ArrayList<>();
+    public List<BoardTaskSerial> getNextTasks(long id){
+        List <BoardTaskSerial> taskLists=new ArrayList<>();
         List<Task> filterTasks=scheduler.queryQueueNow(id);
 
-            for(int i=0; i<filterTasks.size(); i++){
-                Task tsk=filterTasks.get(i);
+            for(Task tsk:filterTasks){
+                //Task tsk=filterTasks.get(i);
                 try {
                     if(tsk.getDeviceId()>0){
                         Device device=deviceService.getDevice(tsk.getDeviceId());
@@ -294,21 +300,46 @@ public class TaskService extends Base{
                             if(boardTask==null){
                                 boardTask=scheduler.boardTaskToObject(tsk.getBoardTaskJson());
                             }
-                            if(boardTask!=null)taskLists.add(boardTask);
+                            if(boardTask!=null)taskLists.add(new BoardTaskSerial(boardTask));
                             List<Task> nextTasks=taskComplete(tsk, device, route, mode);
-                            scheduler.batchRequeTasks(nextTasks);
+                            // add future connection tasks in the next task
+                            List<Task> sysNextTasks=nextTasks.stream().filter(t->t.getSystemTask()&&t.getParentTask().equals(tsk.getId())&&!t.getBoardTaskJson().equals("")).toList();
+                            List<Task> requeueTasks=nextTasks.stream().filter(t->t.getId().equals(tsk.getId())).toList();
+                            //System.out.println("sysNextTask "+sysNextTasks.size());
+                            //System.out.println("requeueTasks "+requeueTasks.size());
+                            //if(sysNextTasks.size()>0) filterTasks.addAll(sysNextTasks);
+                            
+                            if(sysNextTasks.size()>0){
+                                for(Task sysTask:sysNextTasks){
+                                    BoardTask nTsk=scheduler.boardTaskToObject(sysTask.getBoardTaskJson());
+                                    if(nTsk!=null){
+                                        taskLists.add(new BoardTaskSerial(nTsk));
+                                        taskRepo.deleteById(sysTask.getId());
+                                    }
+                                }
+                            }
+                            
+                            scheduler.batchRequeTasks(requeueTasks);
                             
                         }else if(tsk.getSystemTask()&&tsk.getBoardTaskJson()!="")
                         {
                             // system task
                             boardTask=scheduler.boardTaskToObject(tsk.getBoardTaskJson());
+                            Instant current=Instant.now();
+                            Instant tskTrig=tsk.getScheduledTime();
+                            long millis = Duration.between(tskTrig, current).toMillis();
+                            // modify delay interval if bigger than 1 second
+                            if(millis>1000){
+                                boardTask.setDelayInterval(boardTask.getDelayInterval()-millis);
+                            }
+                            //System.out.println(boardTask.getDelayInterval());
                             List<Task> nextTasks=taskComplete(tsk, device, route,null);
                             scheduler.batchRequeTasks(nextTasks);
-                            taskLists.add(boardTask);
+                            taskLists.add(new BoardTaskSerial(boardTask));
                         }
                     }else if(tsk.getDeviceId()==0){
                         BoardTask boTask=boardTaskService.getTaskByCommandId(tsk.getCommandId());
-                        if(boTask!=null)taskLists.add(boTask);
+                        if(boTask!=null)taskLists.add(new BoardTaskSerial(boTask));
                     }
                 } catch (Exception e) {
                     // TODO: handle exception
@@ -370,6 +401,18 @@ public class TaskService extends Base{
         }
         return task;
     }
+    // deactive route tasks
+    @Transactional
+    public void deactiveTask(List<Long> ids){
+        List<Task> tasks=taskRepo.getDeviceRoutineTasks(ids,true);
+        for(int i=0; i<tasks.size(); i++){
+            Task tsk=tasks.get(i);
+            tsk.setActive(false);
+            taskRepo.save(tsk);
+            tasks.set(i, tsk);
+        }
+        scheduler.batchRemove(tasks);
+    }
     
     // modify task when finished in scheduler
     public void modifyTaskFromScheduler(Task task,CompletedTask complete){
@@ -399,7 +442,7 @@ public class TaskService extends Base{
                 }
                 
                 if(task.getSchedule().getRepeatTask()){
-                    Instant schedule=addDuration(task.getSchedule().getTime());
+                    Instant schedule=addDuration(task.getSchedule().getTime(),false);
                     task.setScheduledTime(schedule);
                     task.setActive(true);
                 }
@@ -478,6 +521,10 @@ public class TaskService extends Base{
     public List<Task> getAllTask(){
         return taskRepo.findAll();
     }
+    // get tasks in scheduler
+    public List<Task> getTasksScheduler(){
+        return scheduler.getQueue();
+    }
     public List<Task> getTasksByBoard(long boardId,long deviceId){
         return taskRepo.findAll().stream().filter(tsk->tsk.getBoard()==boardId || tsk.getDeviceId()==deviceId && tsk.getBoard()==boardId).toList();
     }
@@ -523,13 +570,15 @@ public class TaskService extends Base{
         return res;
     }
     // schedule time for task
-    private Instant addDuration(long time){
+    private Instant addDuration(long time,boolean shave){
         Instant currenDateTime = Instant.now();
-        long sec=currenDateTime.getEpochSecond();
-        long nano=currenDateTime.getNano();
-        // setting for precise timing
-        //currenDateTime=currenDateTime.minusSeconds(sec).minusNanos(nano);
-        //currenDateTime=currenDateTime.minusNanos(nano);
+        long sec=ZonedDateTime.ofInstant(currenDateTime, ZoneId.systemDefault()).getSecond();
+        long nano=ZonedDateTime.ofInstant(currenDateTime, ZoneId.systemDefault()).getNano();
+        // shave of seconds and nano seconds
+        if(shave){
+            currenDateTime=currenDateTime.minusSeconds(sec);
+            currenDateTime=currenDateTime.minusNanos(nano);
+        }
         currenDateTime=currenDateTime.plus(time, ChronoUnit.MILLIS);
         return currenDateTime;
     }

@@ -31,7 +31,9 @@ public class RoutesService extends Base {
         this.commandService = commandService;
         this.parameterService = parameterService;
     }
-   
+    public void updateRouteOffline(List<Long> ids){
+        routeRepo.updateRoutesOffline(ids);
+    }
     // add route and mode socket
     public Route addRouteandModes(Route route,String deviceId){
         if(deviceId!=""){
@@ -101,7 +103,7 @@ public class RoutesService extends Base {
         }
         return rec;
     }
-    // route config update
+    // route/function config update
     public Route updateRouteConfig(Route entry,Long id){
         Route rec=null;
         if(routeRepo.existsById(id)){

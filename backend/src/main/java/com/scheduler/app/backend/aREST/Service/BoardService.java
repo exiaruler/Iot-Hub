@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -20,6 +21,7 @@ import com.scheduler.app.backend.Hardware.Service.HardwareService;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardLogin;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
 import com.scheduler.app.backend.Messaging.Board.Models.DeviceCheck;
+import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
@@ -92,6 +94,20 @@ public class BoardService extends Base {
     public Board updateBoardObject(Board entry){
         return boardRepo.save(entry);
     }
+    @Transactional
+    public void offlineBoard(){
+        List<Board> offline=boardRepo.getBoardsPassBy(60);
+        if(offline.size()>0){
+            for(Board bo:offline){
+                List <Long> devIds=new ArrayList<>();
+                bo.getDevice().stream().map(dev->devIds.add(dev.getId()));
+                bo.getBoardOperations().clear();
+                taskService.deactiveTask(devIds);
+                deviceService.routesService.updateRouteOffline(devIds);
+            }
+            System.out.println("offline board size "+offline.size());
+        }
+    }
    
     // occasional routine check
     @Transactional
@@ -106,17 +122,11 @@ public class BoardService extends Base {
             if(boardExist.getIp()!=ip&&ip!="") boardExist.setIp(ip);
             check=createDeviceCheck(boardExist);
             
-            List <BoardTask> taskLists=new ArrayList<>();
-            List <BoardTask> scheduledTasks=taskService.getNextTasks(boardExist.getId());
-            if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
-
-            if(taskLists.size()>0&&taskLists.size()<50){
-                check.setTasks(taskLists);
-            }else
-            {
-                // open websocket or message carrier to process startup commands
-
-            }
+            List <BoardTaskSerial> taskLists=new ArrayList<>();
+            List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(boardExist.getId());
+            if(scheduledTasks.size()>0)taskLists=scheduledTasks;
+            //System.out.println(taskLists.size());
+            check.setTasks(taskLists);
             boardRepo.save(boardExist);
         }
         return check;
@@ -145,16 +155,13 @@ public class BoardService extends Base {
             if(exist.getDevice().size()>0&&exist.getDevice()!=null){
                 String devicesId=Arrays.toString(deviceService.getDevicesById(exist.getId())).replace("[","").replace("]","");
                 int startUpCount=getDataInt("select count(id) from schedule where startup=true and device_id in ("+quoteParam(devicesId)+")");
-                if(startUpCount>0){
-                    check.setScheduleAvaliable(true);
-                }
             }
             scheduleService.startStartupSchedule(exist);
             Board update=boardRepo.save(exist);
 
             Command com=commandService.getCommandByCommand("httprequestconnection", "schedule", true);
-            List <BoardTask> taskLists=new ArrayList<>();
-            List <BoardTask> scheduledTasks=taskService.getNextTasks(exist.getId());
+            List <BoardTaskSerial> taskLists=new ArrayList<>();
+            List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(exist.getId());
             if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
             // add htp request connection command
             if(com!=null&&!exist.getDevMode()){
@@ -162,7 +169,7 @@ public class BoardService extends Base {
                 boTsk.initTaskId(update.getId());
                 boTsk.setDelayInterval(60000);
                 boTsk.setRunTarget(0);
-                taskLists.add(boTsk);
+                taskLists.add(new BoardTaskSerial(boTsk));
                 boardQueueService.addToQueueBoardTask(boTsk, update, null);
             }
             
@@ -180,15 +187,10 @@ public class BoardService extends Base {
      
     private DeviceCheck createDeviceCheck(Board board){
         DeviceCheck newCheck=new DeviceCheck();
-        newCheck.setBoardId(board.getBoardId());
-        newCheck.setId(board.getId());
-        newCheck.setRoutineCheck(board.getPeriodicCheck());
-        newCheck.setCloseConnection(120000);
         return newCheck;
     }
     private BoardLogin createBoardLogin(Board board){
         BoardLogin login=new BoardLogin();
-        login.setBoardId(board.getBoardId());
         login.setId(board.getId());
         if(board.getDevMode()){
             login.setDevMode(board.getDevMode());

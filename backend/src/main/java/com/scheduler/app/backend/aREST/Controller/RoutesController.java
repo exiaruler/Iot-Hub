@@ -45,6 +45,14 @@ public class RoutesController extends ControllerBase {
         Route update=service.updateRoute(entity, id);
         return ResponseEntity.ok(update);
     }
+    @PutMapping("/update-route-config/{id}")
+    public ResponseEntity<Route> updateRouteConfig(@PathVariable long id,@RequestBody Route entity) {
+        Route update=service.updateRouteConfig(entity, id);
+        if(update==null){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(update);
+    }
     @DeleteMapping("/delete-route/{id}")
     public ResponseEntity<Void> deleteRoute(@PathVariable long id){
         service.deleteRoute(id);

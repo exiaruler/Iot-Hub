@@ -16,7 +16,7 @@ public class BoardEventModelBase {
     @Column
     private Instant updatedDate=Instant.now();
 
-    public void initId(long boardId,long deviceId){
+    public final void initId(long boardId,long deviceId){
         this.setId(new TaskEventId(boardId, deviceId));
     }
     @PreUpdate

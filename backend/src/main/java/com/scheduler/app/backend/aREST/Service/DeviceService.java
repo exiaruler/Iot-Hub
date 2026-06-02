@@ -16,7 +16,7 @@ import com.scheduler.app.backend.aREST.Repo.DeviceRepo;
 @Service
 public class DeviceService extends Base {
     private final DeviceRepo deviceRepo;
-    private final RoutesService routesService;
+    public final RoutesService routesService;
     private final BoardRepo boardRepo;
 
     public DeviceService(DeviceRepo deviceRepo, RoutesService routesService, BoardRepo boardRepo) {

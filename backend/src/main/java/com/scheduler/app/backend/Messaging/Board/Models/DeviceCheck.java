@@ -3,155 +3,52 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.scheduler.app.backend.Messaging.Models.BoardTask;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
 // use for routine checks
+@JsonPropertyOrder({"taskTotal","tasks"})
+@JsonFormat(shape = JsonFormat.Shape.ARRAY)
 public class DeviceCheck{
-    // board long id
-    private long id;
-    // board id
-    private String boardId="";
-    // user is currently interfacing with device
-    private boolean userActive;
-    // server settings been updated
-    private boolean updated;
-    // time for regular board check
-    private int routineCheck;
-    // time to regulary close web socket connection
-    private int closeConnection;
-    // next task avaliable
-    private boolean scheduleAvaliable;
-    // websocket headers
-    // http headers
-    // command tasks
-    private List<BoardTask> tasks=new ArrayList<>();
     
-
+    // websocket headers/ be in loging
+    // http headers/ be in loing
+    // total number of tasks
+    private int taskTotal;
+    // command tasks
+    private List<BoardTaskSerial> tasks=new ArrayList<>();
+    
     public DeviceCheck() {
     }
 
-    public DeviceCheck(long id, String boardId, boolean userActive, boolean updated, int routineCheck, int closeConnection, boolean scheduleAvaliable, List<BoardTask> tasks) {
-        this.id = id;
-        this.boardId = boardId;
-        this.userActive = userActive;
-        this.updated = updated;
-        this.routineCheck = routineCheck;
-        this.closeConnection = closeConnection;
-        this.scheduleAvaliable = scheduleAvaliable;
+    public DeviceCheck(int taskTotal, List<BoardTaskSerial> tasks) {
+        this.taskTotal = taskTotal;
         this.tasks = tasks;
     }
 
-    public long getId() {
-        return this.id;
+    public int getTaskTotal() {
+        return this.taskTotal;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setTaskTotal(int taskTotal) {
+        this.taskTotal = taskTotal;
     }
 
-    public String getBoardId() {
-        return this.boardId;
-    }
-
-    public void setBoardId(String boardId) {
-        this.boardId = boardId;
-    }
-
-    public boolean isUserActive() {
-        return this.userActive;
-    }
-
-    public boolean getUserActive() {
-        return this.userActive;
-    }
-
-    public void setUserActive(boolean userActive) {
-        this.userActive = userActive;
-    }
-
-    public boolean isUpdated() {
-        return this.updated;
-    }
-
-    public boolean getUpdated() {
-        return this.updated;
-    }
-
-    public void setUpdated(boolean updated) {
-        this.updated = updated;
-    }
-
-    public int getRoutineCheck() {
-        return this.routineCheck;
-    }
-
-    public void setRoutineCheck(int routineCheck) {
-        this.routineCheck = routineCheck;
-    }
-
-    public int getCloseConnection() {
-        return this.closeConnection;
-    }
-
-    public void setCloseConnection(int closeConnection) {
-        this.closeConnection = closeConnection;
-    }
-
-    public boolean isScheduleAvaliable() {
-        return this.scheduleAvaliable;
-    }
-
-    public boolean getScheduleAvaliable() {
-        return this.scheduleAvaliable;
-    }
-
-    public void setScheduleAvaliable(boolean scheduleAvaliable) {
-        this.scheduleAvaliable = scheduleAvaliable;
-    }
-
-    public List<BoardTask> getTasks() {
+    public List<BoardTaskSerial> getTasks() {
         return this.tasks;
     }
 
-    public void setTasks(List<BoardTask> tasks) {
+    public void setTasks(List<BoardTaskSerial> tasks) {
+        this.setTaskTotal(tasks.size());
         this.tasks = tasks;
     }
 
-    public DeviceCheck id(long id) {
-        setId(id);
+    public DeviceCheck taskTotal(int taskTotal) {
+        setTaskTotal(taskTotal);
         return this;
     }
 
-    public DeviceCheck boardId(String boardId) {
-        setBoardId(boardId);
-        return this;
-    }
-
-    public DeviceCheck userActive(boolean userActive) {
-        setUserActive(userActive);
-        return this;
-    }
-
-    public DeviceCheck updated(boolean updated) {
-        setUpdated(updated);
-        return this;
-    }
-
-    public DeviceCheck routineCheck(int routineCheck) {
-        setRoutineCheck(routineCheck);
-        return this;
-    }
-
-    public DeviceCheck closeConnection(int closeConnection) {
-        setCloseConnection(closeConnection);
-        return this;
-    }
-
-    public DeviceCheck scheduleAvaliable(boolean scheduleAvaliable) {
-        setScheduleAvaliable(scheduleAvaliable);
-        return this;
-    }
-
-    public DeviceCheck tasks(List<BoardTask> tasks) {
+    public DeviceCheck tasks(List<BoardTaskSerial> tasks) {
         setTasks(tasks);
         return this;
     }
@@ -164,27 +61,22 @@ public class DeviceCheck{
             return false;
         }
         DeviceCheck deviceCheck = (DeviceCheck) o;
-        return id == deviceCheck.id && Objects.equals(boardId, deviceCheck.boardId) && userActive == deviceCheck.userActive && updated == deviceCheck.updated && routineCheck == deviceCheck.routineCheck && closeConnection == deviceCheck.closeConnection && scheduleAvaliable == deviceCheck.scheduleAvaliable && Objects.equals(tasks, deviceCheck.tasks);
+        return taskTotal == deviceCheck.taskTotal && Objects.equals(tasks, deviceCheck.tasks);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, boardId, userActive, updated, routineCheck, closeConnection, scheduleAvaliable, tasks);
+        return Objects.hash(taskTotal, tasks);
     }
 
     @Override
     public String toString() {
         return "{" +
-            " id='" + getId() + "'" +
-            ", boardId='" + getBoardId() + "'" +
-            ", userActive='" + isUserActive() + "'" +
-            ", updated='" + isUpdated() + "'" +
-            ", routineCheck='" + getRoutineCheck() + "'" +
-            ", closeConnection='" + getCloseConnection() + "'" +
-            ", scheduleAvaliable='" + isScheduleAvaliable() + "'" +
+            " taskTotal='" + getTaskTotal() + "'" +
             ", tasks='" + getTasks() + "'" +
             "}";
     }
+   
     
 
 }

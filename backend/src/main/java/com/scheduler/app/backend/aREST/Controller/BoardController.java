@@ -92,15 +92,20 @@ public class BoardController extends ControllerBase{
     // board routes
     // routine status check by http request
     @GetMapping(value="/status-check/{id}")
-    public ResponseEntity<DeviceCheck> routineCheck(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@PathVariable long id){
+    public ResponseEntity<DeviceCheck> routineCheck(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("free-heap")String heap,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@PathVariable long id){
         //System.out.println("Connection check "+id+" "+LocalTime.now()+" "+ram+" "+ip);
+        /* 
+        System.out.println(totalQueue);
+        System.out.println(taskTotal);
+        System.out.println(systemTotalTask);
+        System.out.println(heap);
+        */
         DeviceCheck check=boardService.routineCheck(id,Integer.parseInt(ram),ip);
         return ResponseEntity.ok(check);
     }
     // when board starts-up verify credentials
     @PostMapping("/startup")
-    public ResponseEntity<BoardLogin> startup(@RequestBody BoardRegister entity,@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("SSID")String ssid,@RequestHeader("mac-address")String macAddress) {
-        //System.out.println("startup "+ entity.getBoardId());
+    public ResponseEntity<BoardLogin> startup(@RequestBody BoardRegister entity,@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("SSID")String ssid,@RequestHeader("mac-address")String macAddress,@RequestHeader("free-heap")String heap,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue) {
         BoardLogin check=boardService.startup(entity,ip,Integer.parseInt(ram),ssid,macAddress);
         if(check!=null){
             return ResponseEntity.ok(check);

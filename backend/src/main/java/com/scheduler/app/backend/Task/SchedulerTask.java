@@ -68,9 +68,11 @@ public class SchedulerTask{
         if(running&&!queue.isEmpty()){
             start=true;
             Instant dt=Instant.now();
+            /* 
             System.out.println(dt);
             System.out.println("number of task that are pending in the queue "+queue.size());
             System.out.println("number of task that are running "+runningQueue.size());
+            */
             List<Task> scheduled=queue.stream().filter(rec->rec.getScheduledTime().equals(dt)||rec.getScheduledTime().isBefore(dt)).toList();
             if(scheduled.size()>0){
                 scheduled.stream().forEach(tas->processTask(tas));
@@ -130,51 +132,7 @@ public class SchedulerTask{
                         queue.remove(task);
                     }
     }
-    /* 
-    @Scheduled(fixedRate = 60000)
-    public void checkRunningQueue(){
-        if(queueRun){
-            Instant dt=Instant.now();
-            for(int i=0; i<runningQueue.size(); i++){
-                Task task=queue.get(i);
-                Instant taskDt=task.getScheduledTime();
-                if(dt.isAfter(taskDt)&&checkTaskRunning(task)){
-                    
-                    if(task.getRetry()!=task.getSchedule().getRetries()){
-                        runningQueue.remove(i);
-                        int tries=task.getRetry();
-                        tries++;
-                        task.setRetry(tries);
-                        queue.add(task);
-                        if(runningQueue.size()<0){
-                            queueRun=false;
-                        }
-                    }
-                    
-                }
-            }
-        }
-    }
-    */
-    // loop through array to update database
-    /* 
-    @Scheduled(fixedRate = 100)
-    public void runComplete(){
-        if(!completeTaskQueue.isEmpty()){
-            System.out.println("Number of completed task in queue "+completeTaskQueue.size());
-            for(int i=0; i<completeTaskQueue.size(); i++){
-                CompletedTask task=completeTaskQueue.get(i);
-                // if task involved a servo or motor remove from running task
-                if(task.getTask().isMotor()&&task.getDevice().getBoard().getSocket()){
-                    removeRunningTask(task.getTask());
-                }
-                //updateQueue(task.getTask());
-                taskService.modifyTaskFromScheduler(task.getTask(),task);
-                completeTaskQueue.remove(i);
-            }
-        }
-    }
-    */
+    
     // check if the device or board is running to avoid clashing or strain on power
     public boolean checkTaskRunning(Task task){
         boolean result=false;
@@ -276,6 +234,9 @@ public class SchedulerTask{
         List<Task> queryList=queue.stream().filter(rec->rec.getBoard()==id).toList();
         int delCount=0;
         if(queryList.size()>0){
+            queue.removeAll(queryList);
+            deleteAll=true;
+            /* 
             for(int i=0; i<queryList.size(); i++){
                 Task tsk=queryList.get(i);
                 int qIndex=queue.indexOf(tsk);
@@ -286,6 +247,7 @@ public class SchedulerTask{
                     }
                 }
             }
+            */
         }
         if(queryList.size()==delCount) deleteAll=true;
         return deleteAll;
@@ -293,7 +255,7 @@ public class SchedulerTask{
     public boolean batchRequeTasks(List<Task> batch){
         return queue.addAll(batch);
     }
-    private boolean batchRemove(List<Task> batch){
+    public boolean batchRemove(List<Task> batch){
         return queue.removeAll(batch);
     }
     public void clearRunningTask(){

@@ -19,6 +19,8 @@ import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.InterfaceModels.Input.FunctionModeTestInput;
 import com.scheduler.app.backend.aREST.Models.Task;
 import com.scheduler.app.backend.aREST.Service.TaskService;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping(value = "/task")
@@ -51,6 +53,11 @@ public class TaskController extends ControllerBase{
     public List<Task> getAllTask(){
         return service.getAllTask();
     }
+    @GetMapping("/get-tasks-schedule")
+    public List<Task> getMethodName() {
+        return service.getTasksScheduler();
+    }
+    
     @GetMapping(value="/get-all-task-bystatus/{status}")
     public List<Task> getAllTaskAct(@PathVariable boolean status){
         return service.getAllTaskStat(status);

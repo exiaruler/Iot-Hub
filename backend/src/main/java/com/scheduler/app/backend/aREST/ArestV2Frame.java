@@ -105,7 +105,6 @@ public class ArestV2Frame extends Base {
     public boolean testRoutes(String ip){
         boolean out=false;
         String rawRoutes=requestQuery(ip,"routes");
-        System.out.println(rawRoutes);
         String [] routeArr=rawRoutes.split("\\|\\|");
         String [] controlArr=routeArr[0].split("");
         if(controlArr[0].equals("\\|")){ out=true;}else out=false;

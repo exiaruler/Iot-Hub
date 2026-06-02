@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import com.scheduler.Base.Base;
@@ -131,10 +133,15 @@ public class BoardQueueService extends Base{
         }
         return queue;
     }
+    // remove expired tasks
+    @Transactional
+    public void removeExpired(){
+        boardQueueRepo.removeExpired(Instant.now());
+    }
 
     private Instant calculateExpiry(long delay){
         Instant curr=Instant.now();
-        curr.plusMillis(delay);
+        curr=curr.plusMillis(delay);
         return curr;
     }
     private String taskName(String method){
