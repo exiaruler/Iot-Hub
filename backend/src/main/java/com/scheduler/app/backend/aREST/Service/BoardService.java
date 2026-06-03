@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -18,10 +17,10 @@ import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
 import com.scheduler.app.backend.Hardware.Service.HardwareService;
+import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardLogin;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
 import com.scheduler.app.backend.Messaging.Board.Models.DeviceCheck;
-import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
@@ -99,11 +98,12 @@ public class BoardService extends Base {
         List<Board> offline=boardRepo.getBoardsPassBy(60);
         if(offline.size()>0){
             for(Board bo:offline){
+                Board board=boardRepo.findById(bo.getId()).get();
                 List <Long> devIds=new ArrayList<>();
-                bo.getDevice().stream().map(dev->devIds.add(dev.getId()));
-                bo.getBoardOperations().clear();
+                board.getDevice().stream().map(dev->devIds.add(dev.getId()));
+                board.getBoardOperations().clear();
                 deviceService.routesService.updateRouteOffline(devIds);
-                boardRepo.save(bo);
+                boardRepo.save(board);
                 taskService.deactiveTask(devIds);
             }
             System.out.println("offline board size "+offline.size());
