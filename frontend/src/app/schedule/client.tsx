@@ -38,16 +38,22 @@ export default function Client({form,schedule,devices}:Props){
         startup:false,
         routine:false
     })
-    const [scheduleType,setScheduleType]=useState("");
     const contentRef=useRef<ContentRef>(null);
     
     const submit=()=>{
         let form=formRef.current;
         const tabGroup=tabRef.current;
+        const table=tableRef.current;
+        const content=contentRef.current;
         if(form?.statusResponse==200){
             const data=form.submissionResponse;
-            setScheduleList((prev:any)=>[...prev.filter((rec:any)=>rec.id!=data.id),data]);
-            form.newRecord();
+            const index=table?.getRowIndex()||-1;
+            if(index>-1){
+                //setScheduleList((prev:ObjectArray)=>[...prev.slice(0, index), data, ...prev.slice(index + 1)]);
+                setScheduleList(content?.updateArrayByIndex(data,index,scheduleList)||scheduleList);
+            }else {
+                setScheduleList((prev:ObjectArray)=>[...prev.filter((rec:ObjectRecord)=>rec?.id!=data.id),data]);
+            }
             newRecord();
             tabGroup?.handleTabSwitch('schedule');
         }
@@ -95,9 +101,12 @@ export default function Client({form,schedule,devices}:Props){
         }else if(!routine?.value) setRoutineHidden({...routineHidden,startup:false,routine:false});
     }   
     const newRecord=()=>{
+        setSelectedSchedule(null);
+        const form=formRef.current;
         setRoutineHidden({...routineHidden,routine:false,startup:false});
         setFunctions([]);
         setModes([]);
+        form?.newRecord();
         setModeSelectView(true);
         setDeleteBtn(true);
         const table=tableRef.current;

@@ -11,14 +11,16 @@ interface Props extends InputInterface{
     seconds:boolean;
     mins:boolean;
     hour:boolean;
+    millsDisplay?:boolean;
 }
-interface State extends BaseState{
+export interface State extends BaseState{
     value:number;
     seconds:number;
     min:number;
     hour:number;
     buttonName:string;
     millsDisplay:boolean;
+    recordId:number|string;
 }
 
 // time input that converts seconds,mins and hours to milliseconds
@@ -40,7 +42,8 @@ export default class TimeInput extends InputBase{
                 hour:0,
                 warning:"",
                 buttonName:"Show Mills",
-                millsDisplay:false
+                millsDisplay:false,
+                recordId:""
         };
     }
     componentDidMount(): void {
@@ -51,10 +54,12 @@ export default class TimeInput extends InputBase{
     }
 
     componentDidUpdate(prevProps: Readonly<InputInterface>, prevState: Readonly<State>, snapshot?: any): void {
-        this.formHandleValueSetUpdate(prevProps);
+        this.formHandleValueSetUpdate(prevProps,prevState);
     }
+   
     public setTimeRead(timeValue:number,writeState:boolean=true):void{
         const time=this.convertMiliSecondsToTime(timeValue);
+        const form=this.props.formRef?.current;
         this.value=timeValue;
         this.seconds=time.seconds;
         this.min=time.minutes;
@@ -67,7 +72,8 @@ export default class TimeInput extends InputBase{
                 hour:time.hours,
                 warning:"",
                 buttonName:this.state.buttonName,
-                millsDisplay:this.state.millsDisplay
+                millsDisplay:this.state.millsDisplay,
+                recordId:form?.state.id||""
             };
             this.setState({...this.state,...state});
         }
@@ -131,26 +137,26 @@ export default class TimeInput extends InputBase{
     }
     
     // return error value
-    public formHandleValueSetUpdate(prevProps: Readonly<InputInterface>):void{
+    public formHandleValueSetUpdate(prevProps: Readonly<InputInterface>, prevState: Readonly<State>):void{
+        let val=0;
         if(prevProps.formRef&&this.props.formRef&&this.props.name){
             const prevCurr=prevProps.formRef.current||this.props.formRef.current;
             const curr=this.props.formRef.current;
             if(JSON.stringify(curr.props.record)!=='{}'&&curr.props.record!=null){
                 const pastId=prevCurr.state.id;
                 const currId=curr.props.record[prevCurr.props.idKey];
-                if(pastId!==currId){
-                    const val=curr.props.record[this.props.name];
-                    //this.setTimeRead(val);
+                if(pastId!==currId||prevState.recordId!=currId){
+                    val=curr.props.record[this.props.name];
+                   this.setTimeRead(val);
                 }
-
             }else{
-                const val=curr.props.recordLayout[this.props.name];
+                val=curr.props.recordLayout[this.props.name];
                 //this.setTimeRead(val);
             }
         }
     }
     
-    public convertMiliSecondsToTime(mills:number): { hours: number; minutes: number; seconds: number }{
+public convertMiliSecondsToTime(mills:number): { hours: number; minutes: number; seconds: number }{
         const totalSeconds = Math.floor(mills / 1000);
         const seconds = totalSeconds % 60;
         const totalMinutes = Math.floor(totalSeconds / 60);
@@ -158,6 +164,7 @@ export default class TimeInput extends InputBase{
         const hours = Math.floor(totalMinutes / 60);
         return { hours, minutes, seconds };
     }
+    
     public onChangeTime(seconds:number, mins:number, hours:number, event:React.ChangeEvent<HTMLInputElement>):void{
         let value = 0;
         const stateCpy = { ...this.state };
@@ -247,7 +254,9 @@ export default class TimeInput extends InputBase{
             <TextInput label={'Mills Time'} type={"number"} rows={0} required={this.props.required} value={this.getStateValue()} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>this.onChange(event)} name={this.props.name}/>
             </div>
             <div>
+            {!this.props.millsDisplay?
             <RegularButton type="button" caption={this.state.buttonName} size={undefined} onClick={this.millsFieldChange}/>
+            :null}
             </div>
             </Stack>
             </div>

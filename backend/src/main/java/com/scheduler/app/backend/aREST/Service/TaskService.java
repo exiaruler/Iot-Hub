@@ -386,9 +386,16 @@ public class TaskService extends Base{
                 task=null;
             }
         }else if(task.getSchedule()!=null){
-            // decide to deactive automated tasks if restart timeout enabled on board
+            // deactive automated tasks if offline period is met
             task=taskRepo.findById(task.getId()).get();
             boolean state=true;
+            Instant lastCon=board.getLastConnectDateTime();
+            Instant current=Instant.now();
+            long diff=Duration.between(lastCon, current).toMillis();
+            if(diff>=board.getOffline()){
+                state=false;
+            }
+            /* 
             if(board.getRestartTimeout()){
                 Instant currentDt=Instant.now();
                 long milDiff=Math.abs(Duration.between(currentDt, task.getScheduledTime()).toMillis());
@@ -396,6 +403,7 @@ public class TaskService extends Base{
                     state=false;
                 }
             }
+            */
             task.setActive(state);
             task=taskRepo.save(task);
         }
@@ -405,13 +413,12 @@ public class TaskService extends Base{
     @Transactional
     public void deactiveTask(List<Long> ids){
         List<Task> tasks=taskRepo.getDeviceRoutineTasks(ids,true);
+        scheduler.batchRemove(tasks);
         for(int i=0; i<tasks.size(); i++){
             Task tsk=tasks.get(i);
             tsk.setActive(false);
-            taskRepo.save(tsk);
-            tasks.set(i, tsk);
+            //taskRepo.save(tsk);
         }
-        scheduler.batchRemove(tasks);
     }
     
     // modify task when finished in scheduler

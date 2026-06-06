@@ -179,7 +179,7 @@ export default class FormHandle extends Component<Props,State>{
         this.response=null;
         this.ok=false;
         this.record=this.getRecordLayout();
-        this.clearWarnings();
+        //this.clearWarnings();
         this.setState({...this.state,record:this.getRecordLayout(),id:0,statusResponse:0,submissionResponse:null,errors:JSON.parse(this.blankKeys),warnings:JSON.parse(this.blankKeys)});
     }
     public clearWarnings():void{

@@ -9,6 +9,7 @@ import java.util.Random;
 import javax.persistence.EntityManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.Validator;
 
 import com.scheduler.Base.JsonObject.JsonObject;
@@ -18,6 +19,8 @@ import com.scheduler.app.backend.Messaging.Models.InputCurrent;
 import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
 // template class 
 public class Base{
+    @Value("${spring.flyway.enabled}")
+    private boolean dev;
     @Autowired
     private EntityManager entityManager;
     protected HttpUtil httpUtil=new HttpUtil();
@@ -29,6 +32,13 @@ public class Base{
     
     public String getModel(String module,String className){
         return pathBase+"."+module+"."+"Models"+"."+className;
+    }
+    public HashMap<String, String> mapErrors(Class<?> clazz){
+        HashMap<String, String> map=new HashMap<>();
+        java.util.stream.Stream.of(clazz.getDeclaredFields()).forEach(field->{
+            map.put(field.getName(), "");
+        });
+        return map;
     }
     public void throwValidationException(Map<String, String>  errors,Map<String, String>  warnings){
         if(errors==null||warnings==null) return;

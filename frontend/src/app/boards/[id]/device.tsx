@@ -31,7 +31,7 @@ export default function Device(props:Props){
     }
     const deleteFunctionHandle=async (deviceIndex:number)=>{
         const table=functionTblRef.current;
-        const selectedRow=table?.returnRow();
+        const selectedRow=table?.getRow();
         const content=contentRef.current!;
         if(selectedRow!=null){
             const id=selectedRow.id;

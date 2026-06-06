@@ -11,6 +11,7 @@ import com.scheduler.app.backend.Hardware.Service.HardwareService;
 public class StartupDataInitializer implements ApplicationRunner {
     private final CommandService commandService;
     private final HardwareService hardwareService;
+    
 
     public StartupDataInitializer(CommandService commandService, HardwareService hardwareService) {
         this.commandService = commandService;

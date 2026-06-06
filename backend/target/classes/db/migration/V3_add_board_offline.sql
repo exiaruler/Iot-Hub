@@ -1,0 +1,2 @@
+ALTER TABLE board
+ADD COLUMN offline bigint NOT NULL DEFAULT 3600000;

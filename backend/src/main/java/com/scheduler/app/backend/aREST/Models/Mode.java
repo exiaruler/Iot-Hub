@@ -31,6 +31,8 @@ public class Mode extends ModelBase{
     // switch off Mode
     @Column
     private boolean switchOff=false;    
+    // default mode
+    //private boolean defaultMode=false;
     // aREST command
     @JsonManagedReference("mode-params")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "mode",cascade =CascadeType.ALL)

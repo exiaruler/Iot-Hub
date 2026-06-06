@@ -28,7 +28,7 @@ export default class InputBase extends Component<InputInterface,State>{
     }
     
     componentDidUpdate(prevProps: Readonly<InputInterface>, prevState: Readonly<State>, snapshot?: any): void {
-        this.formHandleValueSetUpdate(prevProps);
+        this.formHandleValueSetUpdate(prevProps,prevState);
     }
     
     // return state value
@@ -66,7 +66,7 @@ export default class InputBase extends Component<InputInterface,State>{
         this.warning=warning;
     }
     // return error value
-    public formHandleValueSetUpdate(prevProps: Readonly<InputInterface>):void{
+    public formHandleValueSetUpdate(prevProps: Readonly<InputInterface>,prevState: Readonly<State>):void{
         if(prevProps.formRef&&this.props.formRef&&this.props.name){
             const prevCurr=prevProps.formRef.current||this.props.formRef.current;
             const curr=this.props.formRef.current;

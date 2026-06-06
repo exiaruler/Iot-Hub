@@ -7,6 +7,7 @@ import CheckBoxInput from "@/app/next-components/input/CheckBoxInput";
 import { Row } from "react-bootstrap";
 import Content, { ObjectRecord } from "@/app/next-components/layout/Content";
 import Dev from "@/app/next-components/user/dev";
+import TimeInput from "@/app/next-components/input/TimeInput";
 interface Props{
     submissionHandle:CallableFunction;
     record:ObjectRecord;
@@ -48,6 +49,10 @@ export default function ConfigForm(props:Props){
         <Row>
         <Form record={props.record} ref={formRef} onSubmit={handleUpdate} recordLayout={props.formLayout||{}} idKey={"id"} put="/board/update-board/">
                 <TextInput  formRef={formRef} name={"name"} label={"Board Name"} rows={0}/>
+                <Dev>
+                <TextInput  formRef={formRef} name={"boardId"} label={"Board ID"} rows={0}/>
+                </Dev>
+                <TimeInput formRef={formRef} name={"offline"} seconds={false} mins={true} hour={true} label={"Offline Timeout"} rows={0} millsDisplay={true}/>
                 <CheckBoxInput disable={!props.activated} onChange={showDev} ref={devCheckRef}  formRef={formRef} name={"devMode"} label={"Dev Mode"} rows={0}/>
                 {devShow?
                 <TextInput  formRef={formRef} name={"devServerUrl"} label={"URL"} rows={0}/>

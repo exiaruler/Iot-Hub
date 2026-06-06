@@ -2,12 +2,15 @@ package com.scheduler.Base;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import com.scheduler.Base.MapCast.MapCast;
 
 public class ControllerBase extends Base {
     public MapCast mapCast=new MapCast();
+    @Value("${spring.flyway.enabled}")
+    private boolean dev;
     public String objectClass="";
     
     @GetMapping("/new-record")

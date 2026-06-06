@@ -87,10 +87,10 @@ export default class TableBase extends Component<Props,State>{
         this.selectedRow=-1;
         this.sameRow=true;
     }
-    returnRow(){
+    getRow(){
         return this.state.selectRowRec;
     }
-    returnRowIndex(){
+    getRowIndex():number{
         return this.state.selectedRow;
     }
     doubleClick(){

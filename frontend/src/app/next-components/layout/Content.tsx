@@ -19,6 +19,8 @@ export interface ContentRef {
     getQuery:()=>URLSearchParams;
     getQueryField:(field:string)=>string|null;
     convertMiliSecondsToTime:(mills:number)=>{ hours: number; minutes: number; seconds: number };
+    updateArrayByIndex:(data:ObjectRecord,index:number,array:ObjectArray)=>ObjectArray;
+    pushToArray:(data:ObjectRecord,array:ObjectArray)=>ObjectArray;
     login: boolean;
     user: Record<string, any>;
     location: string|null;
@@ -41,6 +43,12 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
         generateKeyClient: () => {
             const key = util.generateEncryptKey();
             sessionStorage.setItem(util.originUrl + "-en", key);
+        },
+        updateArrayByIndex(data:ObjectRecord,index:number,array:ObjectArray): ObjectArray {
+            return [...array.slice(0, index), data, ...array.slice(index + 1)];
+        },
+        pushToArray(data:ObjectRecord,array:ObjectArray){
+            return [...array,data];
         },
         checkKey: () => {
             return sessionStorage.getItem(util.originUrl + "-en");

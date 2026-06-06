@@ -1,10 +1,10 @@
 'use client'
 
 import BackButton from "@/app/next-components/buttons/BackButton";
-import Content, { ContentRef, ObjectArray } from "@/app/next-components/layout/Content"
+import Content, { ContentRef, ObjectArray, ObjectRecord } from "@/app/next-components/layout/Content"
 import TableComponent from "@/app/next-components/TableComponent"
 import TableComponentColumn from "@/components/Table/TableComponentColumn";
-import { use, useRef } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { Col, Row } from "react-bootstrap"
 
 interface Props{
@@ -13,6 +13,8 @@ interface Props{
 }
 export default function Client(props:Props){
     const contentRef=useRef<ContentRef>(null);
+    const [queue,setQueue]=useState<Record<string, any>[]>(props.queue);
+    
     const convertTime=(dateTime:string)=>{
         return new Date(dateTime).toLocaleTimeString();
     }
@@ -41,6 +43,27 @@ export default function Client(props:Props){
         }
         return output || "0s";
     }
+    const updateQueue=()=>{
+        const dt=new Date();
+        const filteredQueue = queue.filter((q:ObjectRecord)=>{
+            return q?.expiredDateTime == null || new Date(q.expiredDateTime) > dt;
+        });
+        setQueue(filteredQueue);
+    }
+    const displayExpiry=(expriy:Date)=>{
+        let output="Non-Expiry";
+        if(expriy!=null){
+            const dt=new Date(expriy);
+            output=dt.toLocaleTimeString()+" "+dt.toLocaleDateString();
+
+        }
+        return output;
+        
+    }
+    useEffect(()=>{
+        setInterval(updateQueue,1000);
+    },[])
+
     return(
         <Content ref={contentRef}>
         <Row>
@@ -48,12 +71,13 @@ export default function Client(props:Props){
         <BackButton url={'/boards/'+props.boardId} />
         </Col>
         <Col md={10} xs={14}>
-        <TableComponent results={props.queue} idKey={"id"}>
+        <TableComponent results={queue} idKey={"id"}>
         <TableComponentColumn key={"boardTaskId"} columnName={"Task ID"}/>
         <TableComponentColumn key={"taskName"} columnName={"Task"}/>
         <TableComponentColumn key={"inBoardQueue"} columnName={"In Queue"}/>
         <TableComponentColumn key={"systemQueue"} columnName={"System Task"}/>
         <TableComponentColumn key={"delay"} columnName={"Occurrence"} functionDisplay={convertMillToDisplayTime}/>
+        <TableComponentColumn key={"expiredDateTime"} columnName={"Expiry"} functionDisplay={displayExpiry}/>
         <TableComponentColumn key={"createdDate"} columnName={"Created Date"} functionDisplay={convertDate}/>
         <TableComponentColumn key={"createdDate"} columnName={"Created Time"} functionDisplay={convertTime}/>
         </TableComponent>

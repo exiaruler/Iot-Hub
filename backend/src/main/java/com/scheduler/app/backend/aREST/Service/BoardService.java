@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import javax.transaction.Transactional;
 
@@ -95,17 +96,16 @@ public class BoardService extends Base {
     }
     @Transactional
     public void offlineBoard(){
-        List<Board> offline=boardRepo.getBoardsPassBy(60);
+        List<Board> offline=boardRepo.getBoardsPassBy();
         if(offline.size()>0){
             for(Board bo:offline){
-                Board board=boardRepo.findById(bo.getId()).get();
                 List <Long> devIds=new ArrayList<>();
-                board.getDevice().stream().map(dev->devIds.add(dev.getId()));
-                board.getBoardOperations().clear();
+                bo.getDevice().stream().map(dev->devIds.add(dev.getId()));
+                bo.getBoardOperations().clear();
                 deviceService.routesService.updateRouteOffline(devIds);
-                boardRepo.save(board);
-                taskService.deactiveTask(devIds);
+                //taskService.deactiveTask(devIds);
             }
+            boardRepo.saveAll(offline);
             System.out.println("offline board size "+offline.size());
         }
     }
@@ -134,7 +134,7 @@ public class BoardService extends Base {
     }
     // when board first powered on
     @Transactional
-    public BoardLogin startup(BoardRegister register,String ip,int ram,String ssid,String macAddress){
+    public BoardLogin startup(BoardRegister register,String ip,int ram,String ssid,String macAddress,int freeHeap,int heap,int systemTotalTask,int taskTotal,int totalQueue){
         BoardLogin check=null;
         String boardId=register.getBoardId().trim();
         Board exist=boardRepo.findBoardByBoardId(boardId);
@@ -146,7 +146,8 @@ public class BoardService extends Base {
             check=createBoardLogin(exist);
             if(exist.getIp()!=ip) exist.setIp(ip);
             exist.setRamUsage(ram);
-            
+            if(exist.getSsid()==null||exist.getSsid().equals("")||!exist.getSsid().equals(ssid)) exist.setSsid(ssid);
+            if(exist.getMacAddress()==null||exist.getMacAddress().equals("")||!exist.getMacAddress().equals(macAddress)) exist.setMacAddress(macAddress);
             // activate device to register
             if(!exist.getActivated()){
                 exist.setActivated(true);
@@ -230,6 +231,18 @@ public class BoardService extends Base {
             if(nameExi>0){
                 errors.put("name", "Board name already exists");
             }
+            int boardIdExi=getDataInt("select count(board_id) from board where board_id="+quoteParam(obj.getBoardId())+" and id!="+id);
+            if(boardIdExi>0){
+                errors.put("boardId", "Unique Board ID already exists");
+            }
+            if(obj.getBoardId().equals("")) errors.put("boardId", "Unique Board ID is required");
+            long min=TimeUnit.MILLISECONDS.toMinutes(obj.getOffline());
+            if(min>=30){
+                rec.setOffline(obj.getOffline());
+            } else {
+                errors.put("offline", "Offline time must be at least 30 minutes or more");
+            }
+            rec.setBoardId(obj.getBoardId().trim());
             rec.setName(obj.getName());
             rec.setDevMode(obj.getDevMode());
             if(rec.getDevMode()){

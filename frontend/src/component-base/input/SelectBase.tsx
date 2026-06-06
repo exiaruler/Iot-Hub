@@ -34,7 +34,7 @@ export default class SelectBase extends InputBase{
         this.formHandleValueSet();
     }
     componentDidUpdate(prevProps: Readonly<InputInterface>, prevState: Readonly<State>, snapshot?: any): void {
-        this.formHandleValueSetUpdate(prevProps);
+        this.formHandleValueSetUpdate(prevProps,prevState);
         if(this.props.options!=prevState.options){
             const cpy={...this.state};
             cpy.options=this.props.options;

@@ -8,6 +8,7 @@ import com.scheduler.app.backend.aREST.Models.*;
 import com.scheduler.app.backend.aREST.Service.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,8 @@ import com.scheduler.app.backend.Messaging.Service.BoardTaskService;
 // scheduler
 @Component
 public class SchedulerTask{
+    @Value("${spring.flyway.enabled}")
+    private boolean dev;
     // setting for queue to start
     public static boolean running=true;
     // start the queue when server starts or reboots
@@ -61,6 +64,7 @@ public class SchedulerTask{
     
     @Scheduled(fixedRate = 1000)
     public void runSche(){
+
         if(queue.isEmpty()&&!start){
             boolean active=taskService.addToScheduler();
             start=true;
@@ -68,11 +72,11 @@ public class SchedulerTask{
         if(running&&!queue.isEmpty()){
             start=true;
             Instant dt=Instant.now();
-            /* 
-            System.out.println(dt);
-            System.out.println("number of task that are pending in the queue "+queue.size());
-            System.out.println("number of task that are running "+runningQueue.size());
-            */
+            if(!dev){
+                System.out.println(dt);
+                System.out.println("number of task that are pending in the queue "+queue.size());
+                System.out.println("number of task that are running "+runningQueue.size());
+            }
             List<Task> scheduled=queue.stream().filter(rec->rec.getScheduledTime().equals(dt)||rec.getScheduledTime().isBefore(dt)).toList();
             if(scheduled.size()>0){
                 scheduled.stream().forEach(tas->processTask(tas));

@@ -16,6 +16,6 @@ public interface BoardRepo extends JpaRepository<Board, Long>{
     Board findBoardByIp(@Param("ip")String ip);
 
     // retrieve boards that were last connected under these specification
-    @Query(value = "select * from proto_local.board where TIMESTAMPDIFF(MINUTE,last_connect_date_time,NOW()) >=?1",nativeQuery = true)
-    List<Board> getBoardsPassBy(int minute);
+    @Query(value = "select * from board where TIMESTAMPDIFF(MINUTE,last_connect_date_time,NOW()) >= FLOOR(offline/60000)",nativeQuery = true)
+    List<Board> getBoardsPassBy();
 }

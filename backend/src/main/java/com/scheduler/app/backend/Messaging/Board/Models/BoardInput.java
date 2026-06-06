@@ -11,7 +11,7 @@ public class BoardInput {
     // queue size
     private int queueSize;
     // system queue size
-    private int systemQueueSize;
+    private int sysQueueSize;
     // ip address
     private String ip;
     // board run time
@@ -25,12 +25,12 @@ public class BoardInput {
     public BoardInput() {
     }
 
-    public BoardInput(long board, String action, int ramSpace, int queueSize, int systemQueueSize, String ip, long boardRunning, BoardInputTask task) {
+    public BoardInput(long board, String action, int ramSpace, int queueSize, int sysQueueSize, String ip, long boardRunning, BoardInputTask task) {
         this.board = board;
         this.action = action;
         this.ramSpace = ramSpace;
         this.queueSize = queueSize;
-        this.systemQueueSize = systemQueueSize;
+        this.sysQueueSize = sysQueueSize;
         this.ip = ip;
         this.boardRunning = boardRunning;
         this.task = task;
@@ -68,12 +68,12 @@ public class BoardInput {
         this.queueSize = queueSize;
     }
 
-    public int getSystemQueueSize() {
-        return this.systemQueueSize;
+    public int getSysQueueSize() {
+        return this.sysQueueSize;
     }
 
-    public void setSystemQueueSize(int systemQueueSize) {
-        this.systemQueueSize = systemQueueSize;
+    public void setSysQueueSize(int sysQueueSize) {
+        this.sysQueueSize = sysQueueSize;
     }
 
     public String getIp() {
@@ -120,8 +120,8 @@ public class BoardInput {
         return this;
     }
 
-    public BoardInput systemQueueSize(int systemQueueSize) {
-        setSystemQueueSize(systemQueueSize);
+    public BoardInput sysQueueSize(int sysQueueSize) {
+        setSysQueueSize(sysQueueSize);
         return this;
     }
 
@@ -148,12 +148,12 @@ public class BoardInput {
             return false;
         }
         BoardInput boardInput = (BoardInput) o;
-        return board == boardInput.board && Objects.equals(action, boardInput.action) && ramSpace == boardInput.ramSpace && queueSize == boardInput.queueSize && systemQueueSize == boardInput.systemQueueSize && Objects.equals(ip, boardInput.ip) && boardRunning == boardInput.boardRunning && Objects.equals(task, boardInput.task);
+        return board == boardInput.board && Objects.equals(action, boardInput.action) && ramSpace == boardInput.ramSpace && queueSize == boardInput.queueSize && sysQueueSize == boardInput.sysQueueSize && Objects.equals(ip, boardInput.ip) && boardRunning == boardInput.boardRunning && Objects.equals(task, boardInput.task);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(board, action, ramSpace, queueSize, systemQueueSize, ip, boardRunning, task);
+        return Objects.hash(board, action, ramSpace, queueSize, sysQueueSize, ip, boardRunning, task);
     }
 
     @Override
@@ -163,7 +163,7 @@ public class BoardInput {
             ", action='" + getAction() + "'" +
             ", ramSpace='" + getRamSpace() + "'" +
             ", queueSize='" + getQueueSize() + "'" +
-            ", systemQueueSize='" + getSystemQueueSize() + "'" +
+            ", sysQueueSize='" + getSysQueueSize() + "'" +
             ", ip='" + getIp() + "'" +
             ", boardRunning='" + getBoardRunning() + "'" +
             ", task='" + getTask() + "'" +
