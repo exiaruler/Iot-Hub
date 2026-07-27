@@ -125,6 +125,10 @@ export default function Client(props:Props){
         const content=contentRef.current;
         content?.router.push('/boards/queue/'+board?.boardId);
     }
+    const goToTasks=()=>{
+        const content=contentRef.current;
+        content?.router.push('/boards/task-queue/'+board?.boardId);
+    }
     useEffect(()=>{
         loadForms(props.deviceForm);
         boardActive();
@@ -162,6 +166,7 @@ export default function Client(props:Props){
         <Col>
         <Stack direction="horizontal" gap={2} className="mt-3">
         <RegularButton caption={"Operations"} size={undefined} onClick={goToQueue} disabled={!activated}/>
+        <RegularButton caption={"Board Tasks"} disabled={!activated} onClick={goToTasks}/>
         <ConfirmButton disabled={!activated} buttonCaption={"Reset"} title={"Reset Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart')}>
         <p>Are you sure you want to restart board?</p>
         </ConfirmButton>

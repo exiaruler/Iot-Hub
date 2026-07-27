@@ -19,6 +19,7 @@ export interface ContentRef {
     getQuery:()=>URLSearchParams;
     getQueryField:(field:string)=>string|null;
     convertMiliSecondsToTime:(mills:number)=>{ hours: number; minutes: number; seconds: number };
+    convertMillisecondsToTimeString:(mills:number)=>string;
     updateArrayByIndex:(data:ObjectRecord,index:number,array:ObjectArray)=>ObjectArray;
     pushToArray:(data:ObjectRecord,array:ObjectArray)=>ObjectArray;
     login: boolean;
@@ -79,6 +80,10 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
             const hours = Math.floor(totalMinutes / 60);
             return { hours, minutes, seconds };
         },
+        convertMillisecondsToTimeString:(mills:number):string=>{
+            const { hours, minutes, seconds } = convertMiliSecondsToTime(mills);
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        },
         login,
         user,
         location,
@@ -94,4 +99,13 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     );
 });
 export default Content;
+
+function convertMiliSecondsToTime(mills: number): { hours: any; minutes: any; seconds: any; } {
+    const totalSeconds = Math.floor(mills / 1000);
+    const seconds = totalSeconds % 60;
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const minutes = totalMinutes % 60;
+    const hours = Math.floor(totalMinutes / 60);
+    return { hours, minutes, seconds };
+}
 

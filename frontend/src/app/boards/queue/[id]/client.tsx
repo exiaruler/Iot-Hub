@@ -77,7 +77,7 @@ export default function Client(props:Props){
         <TableComponentColumn key={"inBoardQueue"} columnName={"In Queue"}/>
         <TableComponentColumn key={"systemQueue"} columnName={"System Task"}/>
         <TableComponentColumn key={"delay"} columnName={"Occurrence"} functionDisplay={convertMillToDisplayTime}/>
-        <TableComponentColumn key={"expiredDateTime"} columnName={"Expiry"} functionDisplay={displayExpiry}/>
+        <TableComponentColumn key={"expiredDateTime"} columnName={"Task Occurrence"} functionDisplay={displayExpiry}/>
         <TableComponentColumn key={"createdDate"} columnName={"Created Date"} functionDisplay={convertDate}/>
         <TableComponentColumn key={"createdDate"} columnName={"Created Time"} functionDisplay={convertTime}/>
         </TableComponent>

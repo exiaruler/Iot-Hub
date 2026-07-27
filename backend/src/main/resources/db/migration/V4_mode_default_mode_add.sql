@@ -1,0 +1,2 @@
+ALTER TABLE mode
+ADD COLUMN default_mode BIT NOT NULL DEFAULT false;

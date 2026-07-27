@@ -34,12 +34,14 @@ import com.scheduler.app.backend.aREST.Models.Mode;
 import com.scheduler.app.backend.aREST.Models.Route;
 import com.scheduler.app.backend.aREST.Models.Schedule;
 import com.scheduler.app.backend.aREST.Models.Task;
+import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 import com.scheduler.app.backend.aREST.Repo.ScheduleRepo;
 import com.scheduler.app.backend.aREST.Repo.TaskRepo;
 // crud on database. does not manipulate scheduler
 @Service
 public class TaskService extends Base{
     private final TaskRepo taskRepo;
+    private final BoardRepo boardRepo;
     private SchedulerTask scheduler=new SchedulerTask();
     private final ScheduleRepo serviceSch;
     private final DeviceService deviceService;
@@ -47,10 +49,12 @@ public class TaskService extends Base{
     public final CommandService commandService;
     public final BoardTaskService boardTaskService;
     public final BoardQueueService boardQueueService;
+    
 
     private Random randomGenerator;
-    public TaskService(TaskRepo taskRepo, ScheduleRepo serviceSch, DeviceService deviceService, CommandService commandService, BoardTaskService boardTaskService, RoutesService routesService, BoardQueueService boardQueueService) {
+    public TaskService(TaskRepo taskRepo, ScheduleRepo serviceSch, DeviceService deviceService, CommandService commandService, BoardTaskService boardTaskService, RoutesService routesService, BoardQueueService boardQueueService, BoardRepo boardRepo) {
         this.taskRepo = taskRepo;
+        this.boardRepo = boardRepo;
         this.serviceSch = serviceSch;
         this.deviceService = deviceService;
         this.routesService = routesService;
@@ -181,8 +185,7 @@ public class TaskService extends Base{
                 //long existId=getDataLong(query);
                 if(existId<1){
                     Task connectTask=new Task();
-                    Command wscom=commandService.getCommandByCommand("httprequestconnection", "schedule",true);
-                    BoardTask tsk=wscom.getBoardCommand();
+                    BoardTask tsk=commandService.getRequestConnection();
                     long delayTime=task.getSchedule().getTime();
                     BoardTask tempTask=new BoardTask(tsk);
                     tempTask.runTarget(1);
@@ -289,6 +292,7 @@ public class TaskService extends Base{
                                 mode=routesService.getMode(tsk.getModeId());
                                 if(mode!=null){
                                     boardTask=mode.getBoardAction();
+                                    route.setSelectedModeId(mode.getId());
                                 }
                             }else
                             {
@@ -300,6 +304,7 @@ public class TaskService extends Base{
                             if(boardTask==null){
                                 boardTask=scheduler.boardTaskToObject(tsk.getBoardTaskJson());
                             }
+                            routesService.save(route);
                             if(boardTask!=null)taskLists.add(new BoardTaskSerial(boardTask));
                             List<Task> nextTasks=taskComplete(tsk, device, route, mode);
                             // add future connection tasks in the next task
@@ -523,6 +528,21 @@ public class TaskService extends Base{
     }
     public Optional<Task> getTask(TaskEventId id){
         return taskRepo.findById(id);
+    }
+    // get tasks by board and device
+    public List<Task> getTasksByBoardDevice(String boardId,boolean active,String deviceId){
+        List <Task> tasks=new ArrayList<>();
+        long boardLonId=getDataLong("select id from board where board_id="+quoteParam(boardId));
+        Board board=boardRepo.findById(boardLonId).orElse(null);
+        if(board!=null){
+            List<Long> deviceIds=board.getDevice().stream().map(d->d.getId()).toList();
+            if(deviceId!=null && !deviceId.isEmpty()){
+                long devId=getDataLong("select id from device where device_id="+quoteParam(deviceId));
+                deviceIds=deviceIds.stream().filter(id->id==devId).toList();
+            }
+            tasks=taskRepo.getDeviceRoutineTasks(deviceIds, active);
+        }
+        return tasks;
     }
     // find all task in database
     public List<Task> getAllTask(){

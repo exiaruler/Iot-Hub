@@ -5,5 +5,6 @@ export default interface Props {
     eventKey:  any | undefined;
     children?: React.ReactNode;
     disabled?: boolean;
-    // ...other props
+    hidden?:boolean;
+    others?:any;
 }

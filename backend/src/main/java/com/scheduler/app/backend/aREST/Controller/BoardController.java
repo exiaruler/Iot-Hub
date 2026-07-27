@@ -45,7 +45,7 @@ public class BoardController extends ControllerBase{
         if(update==null){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(update);
+        return ResponseEntity.ok(board);
         
     }
     @GetMapping(value="/getboards")
@@ -103,10 +103,19 @@ public class BoardController extends ControllerBase{
         DeviceCheck check=boardService.routineCheck(id,Integer.parseInt(ram),ip);
         return ResponseEntity.ok(check);
     }
+
+    // get latest firmware update
+    @GetMapping(value="/get-update")
+    public String getUpdate(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("free-heap")String heap,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@PathVariable long id) {
+        return new String();
+    }
+    // get upload firmware update/ dev/local use only
+    
+
     // when board starts-up verify credentials
     @PostMapping("/startup")
     public ResponseEntity<BoardLogin> startup(@RequestBody BoardRegister entity,@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("SSID")String ssid,@RequestHeader("mac-address")String macAddress,@RequestHeader("free-heap")String freeHeap,@RequestHeader("heap")String heap,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@RequestHeader("version")String version,@RequestHeader("millis")String millis) {
-        BoardLogin check=boardService.startup(entity,ip,Integer.parseInt(ram),ssid,macAddress,Integer.parseInt(freeHeap),Integer.parseInt(heap),Integer.parseInt(systemTotalTask),Integer.parseInt(taskTotal),Integer.parseInt(totalQueue));
+        BoardLogin check=boardService.startup(entity,ip,Integer.parseInt(ram),ssid,macAddress,Integer.parseInt(freeHeap),Integer.parseInt(heap),Integer.parseInt(systemTotalTask),Integer.parseInt(taskTotal),Integer.parseInt(totalQueue),Integer.parseInt(millis));
         if(check!=null){
             return ResponseEntity.ok(check);
         }

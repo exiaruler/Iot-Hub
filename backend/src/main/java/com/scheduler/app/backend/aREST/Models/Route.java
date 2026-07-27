@@ -12,6 +12,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PostLoad;
+import javax.persistence.PostPersist;
+import javax.persistence.PostUpdate;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
@@ -93,17 +95,22 @@ public class Route extends ModelBase{
             defaultMode=mode.stream().filter(m->m.getId()==defaultModeId).findFirst().orElse(null);
         }
     }
-    public Route() {
+    public void setDefaultMode(){
+        Mode defMo=mode.stream().filter(mo->mo.getDefaultMode()).findFirst().orElse(null);
+        if(defMo!=null){
+            this.defaultModeId=defMo.getId();
+        }
     }
-
     @PrePersist
-    public void prePersist() {
+    private void prePersist() {
         this.calculateCurrent();
+        this.setDefaultMode();
     }
     @PreUpdate
-    public void preUpdate() {
-        
+    protected void preUpdate() {
+        this.setDefaultMode();
     }
+    
     public List<BoardTask> cycleModeCalculate(Mode mode) {
         List<BoardTask> cycleModes=new ArrayList<>();
         if(selectedMode!=null){
@@ -263,7 +270,8 @@ public class Route extends ModelBase{
         return current;
     }
 
-
+    public Route() {
+    }
 
     public Route(Device device, String route, boolean modes, String electrode, Command command, long commandId, boolean switchDevice, long defaultModeId, Mode defaultMode, long selectedModeId, Mode selectedMode, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes, List<BoardQueue> boardOperations) {
         this.device = device;

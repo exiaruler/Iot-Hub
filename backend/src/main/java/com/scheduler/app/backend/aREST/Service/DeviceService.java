@@ -1,12 +1,13 @@
 package com.scheduler.app.backend.aREST.Service;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import com.scheduler.Base.Base;
 import com.scheduler.Base.Exception.ValidationException;
+import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Task.Model.CompletedTask;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
@@ -14,8 +15,9 @@ import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 import com.scheduler.app.backend.aREST.Repo.DeviceRepo;
 
 @Service
-public class DeviceService extends Base {
-    private final DeviceRepo deviceRepo;
+public class DeviceService extends BaseService<Device, Long> {
+    @Autowired
+    private DeviceRepo deviceRepo;
     public final RoutesService routesService;
     private final BoardRepo boardRepo;
 
@@ -24,45 +26,63 @@ public class DeviceService extends Base {
         this.routesService = routesService;
         this.boardRepo = boardRepo;
     }
-    
+    @Override
+    protected JpaRepository<Device, Long> repository() {
+        return deviceRepo;
+    }
+     @Override
+    protected void beforeSave(Device entity, Map<String, String> errors, Map<String, String> warnings) {
+        if (entity.getName() != null) {
+            entity.setName(entity.getName().trim());
+        }
+
+        boolean existingDevice = entity.getId() > 0 && deviceRepo.existsById(entity.getId());
+        Board board = entity.getBoard();
+
+        if (existingDevice) {
+            Device persistedDevice = deviceRepo.getReferenceById(entity.getId());
+            board = persistedDevice.getBoard();
+            entity.setBoard(board);
+            entity.setDeviceId(persistedDevice.getDeviceId());
+        }
+
+        if (board == null) {
+            errors.put("board", "Device must belong to a board");
+        } else if (entity.getName() != null && !entity.getName().isEmpty()) {
+            long duplicateCount = getDataInt("select count(id) from device where board_id="
+                    + board.getId() + " and name=" + quoteParam(entity.getName())
+                    + " and id<>" + entity.getId());
+            if (duplicateCount > 0) {
+                errors.put("name", "Device with name already exists on this board");
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException(errors, null);
+        }
+    }
+
+    @Override
+    protected void afterSave(Device entity) {
+        if (entity.getDeviceId() == null || entity.getDeviceId().isEmpty()) {
+            entity.setDeviceId(entity.getBoard().getBoardId() + entity.getId());
+            deviceRepo.save(entity);
+        }
+    }
+
     public Device addDeviceSocket(Device entry,long boardId){
         Board board=boardRepo.getReferenceById(boardId);
-        String entryName=entry.getName();
-        long devExist=getDataInt("select count(name) from device where board_id="+board.getId()+" and name="+quoteParam(entryName));
-        if(board!=null && devExist == 0){
-            entry.setBoard(board);
-            Device save=deviceRepo.save(entry);
-            String deviceId=board.getBoardId()+save.getId();
-            save.setDeviceId(deviceId);
-            save = deviceRepo.save(entry);
-            entry = save;
-        } else {
-            Map<String, String> errors = new HashMap<>();
-            errors.put("name", "Device with name already exists on this board");
-            throw new ValidationException(errors,null);
-        }
-        return entry;
+        entry.setBoard(board);
+        return save(entry);
     }
     public Device updateDeviceSocket(Device entry,long id){
-        Device device=deviceRepo.findById(id).get();
-        if(device!=null){
-            Map<String, String> errors = new HashMap<>();
-            if(entry.getName() != null && !entry.getName().isEmpty()){
-                int devExist=getDataInt("select count(id) from device where name="+quoteParam(entry.getName())+" and board_id="+device.getBoard().getId());
-                if(devExist>0){
-                    errors.put("name", "Device with name already exists on this board");
-                }
-            }
-            if(!errors.isEmpty()){
-                throw new ValidationException(errors,null);
-            }
-
-            device.setName(entry.getName());
-            device=deviceRepo.save(device);
+        if (!deviceRepo.existsById(id)) {
+            return null;
         }
-        return device;
+        entry.setId(id);
+        return save(entry);
     }
-  
+    /*
     public Device updateDevice(long id,Device deviceObj){
         Device updateDev=deviceRepo.getReferenceById(id);
         if(updateDev!=null){
@@ -71,6 +91,7 @@ public class DeviceService extends Base {
         }
         return updateDev;
     }
+    */
     public List<Device> getAllDevice(){
         return deviceRepo.findAll();
     }
@@ -121,6 +142,7 @@ public class DeviceService extends Base {
        }
 
     }
+
     
 }
 

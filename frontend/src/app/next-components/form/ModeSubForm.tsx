@@ -21,6 +21,7 @@ export default class ModeSubForm extends SubForm{
                     if(arr.hasOwnProperty(index!)){
                         // modify boardAction except pins
                         arr[index!].mode=this.record?.mode;
+                        arr[index!].defaultMode=this.record?.defaultMode;
                         const boardAct=this.record?.boardAction;
                         const keys=Object.keys(boardAct||{});
                         keys.forEach((key:string)=>{

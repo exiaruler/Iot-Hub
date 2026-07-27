@@ -1,6 +1,7 @@
 'use client'
-import FormHandle, { Props, RecordContext } from "@/component-base/form/FormHandle";
+import FormHandle, { FormContext, Props, RecordContext } from "@/component-base/form/FormHandle";
 import Form from "./Form";
+import Warning from "@/components/formGenComponents/Warning";
 export interface PropsMod extends Props{
     objectKey?:string;
     formRef?:FormHandle|any;
@@ -11,7 +12,8 @@ export interface PropsMod extends Props{
 }
 export default class SubForm extends Form{
     declare props:PropsMod;
-
+    static contextType = RecordContext;
+    // form on change handle
     public formOnChange():void{
         if(this.props.formRef){
             // for single object on that key
@@ -49,6 +51,18 @@ export default class SubForm extends Form{
             }
         }
     }
+    // return warning from context
+    public getWarning():string{
+        let warn="";
+        if(this.props.formRef&&this.props.objectKey){
+            const context=this.context as FormContext;
+            const warnings=context.warnings;
+            if(warnings!=null){
+                warn=warnings[this.props.objectKey];
+            }
+        }
+        return warn;
+    }
     render(){
         return(
             <div onChange={()=>this.formOnChange()} >
@@ -56,6 +70,7 @@ export default class SubForm extends Form{
             {
                 this.props.children
             }
+            <Warning name={this.props.objectKey||''} warning={this.getWarning()}/>
             </RecordContext.Provider>
             </div>
         )

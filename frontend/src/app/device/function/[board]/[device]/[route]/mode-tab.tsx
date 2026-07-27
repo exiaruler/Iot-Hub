@@ -6,11 +6,12 @@ import Form from "@/app/next-components/form/Form";
 import ModeSubForm from "@/app/next-components/form/ModeSubForm";
 import NewButton from "@/app/next-components/form/NewButton";
 import SubForm from "@/app/next-components/form/SubForm";
+import CheckBoxInput from "@/app/next-components/input/CheckBoxInput";
 import TextInput from "@/app/next-components/input/TextInput";
-import { ContentRef, ObjectRecord } from "@/app/next-components/layout/Content";
+import { ObjectRecord } from "@/app/next-components/layout/Content";
 import DeleteBox from "@/components/modal/DeleteBox";
 import TabComponent from "@/components/Tab/TabComponent";
-import React, { createRef, ReactNode, Ref, RefObject } from "react";
+import React, { ReactNode, RefObject } from "react";
 import { Col, Row } from "react-bootstrap";
 
 interface ModeTabProps {
@@ -25,9 +26,9 @@ interface ModeTabProps {
     mainFormRef: RefObject<Form | null>;
     // Children: the compArr built in the parent
     children?: ReactNode;
-    // Internal sub-form ref — created here but exposed so parent can push to formsCompRef
-    modeSubFormRef: RefObject<Form | null>;
-    boardActRef: RefObject<Form | null>;
+    // Internal sub-form refs
+    modeSubFormRef: RefObject<ModeSubForm | null>;
+    boardActRef: RefObject<SubForm | null>;
     // board info for DeleteBox
     boardId: string;
     baseUrl: string;
@@ -85,6 +86,12 @@ export default function ModeTab({
                                 onModeNameChange?.(e, tabIndex)
                             }
                             name="mode"
+                        />
+                        <CheckBoxInput
+                            formRef={modeSubFormRef}
+                            name={"defaultMode"}
+                            label={"Default Mode"}
+                            rows={0}
                         />
                         <SubForm
                             id="BoardAct-Form"

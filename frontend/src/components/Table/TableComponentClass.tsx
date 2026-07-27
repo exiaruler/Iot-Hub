@@ -1,4 +1,4 @@
-import { Component, ReactNode } from "react";
+import { ReactNode } from "react";
 import Table from 'react-bootstrap/Table';
 import checked from "../assets/checked.png";
 import { Image } from "react-bootstrap";

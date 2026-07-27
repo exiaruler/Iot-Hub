@@ -85,8 +85,8 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     }
     public String uponConnect(Board board) throws JsonProcessingException{
         String jsonString="";
-        Command command=commandService.getCommandByCommand("status", "action",true);
-        BoardTask comTask=command.getBoardCommand();
+        //Command command=commandService.getCommandByCommand("status", "action",true);
+        BoardTask comTask=commandService.getStatus();
         comTask.initTaskId(board.getId());
         comTask=pruneBoardTask(comTask);
         jsonString=objectToJson(comTask);
@@ -154,8 +154,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                     // set a state in the board to stop processing message when board starting up
                     taskService.purgeOldTasks(boardId);
                     // system route
-                    Command command=commandService.getCommandByCommand("wsconnectopen", "schedule",true);
-                    BoardTask routinewsConn=command.getBoardCommand();
+                    BoardTask routinewsConn=commandService.getWSConnection();
                     routinewsConn.initTaskId(boardId);
                     routinewsConn.setDelayInterval(board.getPeriodicCheck());
                     routinewsConn.setVariable(new BoardVariable());
@@ -196,8 +195,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
             else
             {
                 // board does not exist send board reset command to wipe board configuration
-                Command restCommand=commandService.getCommandByCommand("resetboard", "action",true);
-                BoardTask reset=restCommand.getBoardCommand();
+                BoardTask reset=commandService.getTaskByCommand("resetboard", "action", true);
                 reset.setVariable(new BoardVariable());
                 String resetMsg = objectToJson(reset);
                 if(resetMsg!=""){

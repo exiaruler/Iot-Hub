@@ -12,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PostLoad;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -31,8 +32,9 @@ public class Mode extends ModelBase{
     // switch off Mode
     @Column
     private boolean switchOff=false;    
-    // default mode
-    //private boolean defaultMode=false;
+    // default mode selection
+    @Column
+    private boolean defaultMode;
     // aREST command
     @JsonManagedReference("mode-params")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "mode",cascade =CascadeType.ALL)
@@ -50,15 +52,25 @@ public class Mode extends ModelBase{
     @JsonManagedReference("queue-mode")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "mode",cascade =CascadeType.ALL)
     private List<BoardQueue> boardOperations=new ArrayList<>();
+
+    @PostLoad
+    private void loadMode(){
+        // show default mode selection
+        if(route.getDefaultModeId()==this.getId()){
+            defaultMode=true;
+        }
+    }
     
     public Mode() {
     }
 
 
-    public Mode(Route route, String mode, boolean switchOff, List<Parameter> params, BoardTask boardAction, List<Schedule> scheduledModes, List<BoardQueue> boardOperations) {
+
+    public Mode(Route route, String mode, boolean switchOff, boolean defaultMode, List<Parameter> params, BoardTask boardAction, List<Schedule> scheduledModes, List<BoardQueue> boardOperations) {
         this.route = route;
         this.mode = mode;
         this.switchOff = switchOff;
+        this.defaultMode = defaultMode;
         this.params = params;
         this.boardAction = boardAction;
         this.scheduledModes = scheduledModes;
@@ -91,6 +103,18 @@ public class Mode extends ModelBase{
 
     public void setSwitchOff(boolean switchOff) {
         this.switchOff = switchOff;
+    }
+
+    public boolean isDefaultMode() {
+        return this.defaultMode;
+    }
+
+    public boolean getDefaultMode() {
+        return this.defaultMode;
+    }
+
+    public void setDefaultMode(boolean defaultMode) {
+        this.defaultMode = defaultMode;
     }
 
     public List<Parameter> getParams() {
@@ -140,6 +164,11 @@ public class Mode extends ModelBase{
         return this;
     }
 
+    public Mode defaultMode(boolean defaultMode) {
+        setDefaultMode(defaultMode);
+        return this;
+    }
+
     public Mode params(List<Parameter> params) {
         setParams(params);
         return this;
@@ -168,12 +197,12 @@ public class Mode extends ModelBase{
             return false;
         }
         Mode mode = (Mode) o;
-        return Objects.equals(route, mode.route) && Objects.equals(mode, mode.mode) && switchOff == mode.switchOff && Objects.equals(params, mode.params) && Objects.equals(boardAction, mode.boardAction) && Objects.equals(scheduledModes, mode.scheduledModes) && Objects.equals(boardOperations, mode.boardOperations);
+        return Objects.equals(route, mode.route) && Objects.equals(mode, mode.mode) && switchOff == mode.switchOff && defaultMode == mode.defaultMode && Objects.equals(params, mode.params) && Objects.equals(boardAction, mode.boardAction) && Objects.equals(scheduledModes, mode.scheduledModes) && Objects.equals(boardOperations, mode.boardOperations);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(route, mode, switchOff, params, boardAction, scheduledModes, boardOperations);
+        return Objects.hash(route, mode, switchOff, defaultMode, params, boardAction, scheduledModes, boardOperations);
     }
 
     @Override
@@ -182,12 +211,14 @@ public class Mode extends ModelBase{
             " route='" + getRoute() + "'" +
             ", mode='" + getMode() + "'" +
             ", switchOff='" + isSwitchOff() + "'" +
+            ", defaultMode='" + isDefaultMode() + "'" +
             ", params='" + getParams() + "'" +
             ", boardAction='" + getBoardAction() + "'" +
             ", scheduledModes='" + getScheduledModes() + "'" +
             ", boardOperations='" + getBoardOperations() + "'" +
             "}";
     }
+    
 
 
     

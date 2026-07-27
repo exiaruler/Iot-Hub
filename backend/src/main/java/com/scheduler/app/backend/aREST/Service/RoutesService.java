@@ -1,13 +1,21 @@
 package com.scheduler.app.backend.aREST.Service;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.scheduler.Base.Base;
+import com.scheduler.Base.Exception.ValidationException;
+import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
+import com.scheduler.app.backend.Firmware.Model.Firmware;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
@@ -17,13 +25,18 @@ import com.scheduler.app.backend.aREST.Repo.ModeRepo;
 import com.scheduler.app.backend.aREST.Repo.RoutesRepo;
 // Functio and modes
 @Service
-public class RoutesService extends Base {
-    private final RoutesRepo routeRepo;
+public class RoutesService extends BaseService<Route, Long> {
+    @Autowired
+    private RoutesRepo routeRepo;
+
     private final ModeRepo modeService;
     private final DeviceRepo deviceRepo;
     private final CommandService commandService;
     private final ParameterService parameterService;
-    
+    @Override
+    protected JpaRepository<Route, Long> repository() {
+        return routeRepo;
+    }
     public RoutesService(RoutesRepo routeRepo, ModeRepo modeService, DeviceRepo deviceRepo, CommandService commandService, ParameterService parameterService) {
         this.routeRepo = routeRepo;
         this.modeService = modeService;
@@ -34,25 +47,105 @@ public class RoutesService extends Base {
     public void updateRouteOffline(List<Long> ids){
         routeRepo.updateRoutesOffline(ids);
     }
+
+    public List<Route> saveBatch(List<Route> routes){
+        return routeRepo.saveAll(routes);
+    }
+    /* */
+    @Override
+    protected void beforeSave(Route entity, Map<String, String> errors, Map<String, String> warnings) {
+        boolean exRec=routeRepo.existsById(entity.getId());
+        // validate default mode
+        if(entity.getMode().size()>0){
+            boolean defModeSel=false;
+            for(Mode mode:entity.getMode()){
+                if(!exRec) mode.getBoardAction().newInputs();
+                if(defModeSel&&mode.getDefaultMode()){
+                    errors.put("mode","Cannot have more than 1 enabled default mode. Please uncheck "+mode.getMode());
+                    break;
+                }
+                if(mode.getDefaultMode()&&!defModeSel){
+                    defModeSel=true;
+                }
+            }
+            if(!defModeSel) errors.put("mode","Please select 1 mode to be default");
+            if(entity.getMode().size()>0){
+                entity.setModes(true);
+            }
+        }
+
+        if(errors.size()>0) throw new ValidationException(errors, null);
+
+        if(!exRec){
+            Command com=commandService.getCommand(entity.getCommandId());
+            if(com!=null)entity.setCommand(com);
+        }else
+        {
+            Route rec=routeRepo.findById(entity.getId()).get();
+            Command com=commandService.getCommand(entity.getCommandId());
+            if(com!=null && rec.getCommand().getId()==com.getId()){
+                // BaseService saves the entity supplied to this method, not rec.
+                // Reconcile the persisted modes into that entity so the changes
+                // below are included in the subsequent save.
+                List<Mode> updatedModeList=new ArrayList<>(entity.getMode());
+                List<Mode> existModeList=rec.getMode();
+
+                entity.setCommand(com);
+                entity.setCommandId(com.getId());
+                if(entity.getMode().size()>0){
+                    entity.setModes(true);
+                }
+                existModeList.removeIf(exist->updatedModeList.stream().noneMatch(m->m.getId()==exist.getId()));
+                
+                // Use the persisted mode instances for existing modes, then put
+                // the reconciled collection back onto the incoming entity.
+                boolean defModeSel=false;
+                for(Mode mode:updatedModeList){
+                    Mode ex=existModeList.stream().filter(m->m.getId()==mode.getId()).findFirst().orElse(null);
+                    if(defModeSel&&mode.getDefaultMode()){
+                        errors.put("mode","Cannot have more than 1 enabled default mode. Please uncheck "+mode.getMode());
+                        break;
+                    }
+                    if(mode.getDefaultMode()&&!defModeSel){
+                        defModeSel=true;
+                    }
+                    // update existing mode
+                    if(ex!=null){
+                        ex.setMode(mode.getMode());
+                        BoardTask act=mode.getBoardAction();
+                        ex.setDefaultMode(mode.getDefaultMode());
+                        if(act!=null){
+                            act.setMode(ex);
+                            ex.setBoardAction(act);
+                        }
+                    }else{
+                        mode.setRoute(entity);
+                        if(mode.getBoardAction()!=null) mode.getBoardAction().newInputs();
+                        existModeList.add(mode);
+                    }    
+                }
+                if(!defModeSel) errors.put("mode","Please select 1 mode to be default");
+                entity.setMode(existModeList);
+            }else
+            {
+                entity.setCommand(com);
+                entity.setCommandId(com != null ? com.getId() : 0);
+                entity.getMode().clear();
+            }
+            if(errors.size()>0) throw new ValidationException(errors, null);
+            entity.calculateCurrent();
+            entity.setDefaultMode();
+            entity.setDevice(rec.getDevice());
+        }
+
+    }
     // add route and mode socket
     public Route addRouteandModes(Route route,String deviceId){
         if(deviceId!=""){
             Device dev=deviceRepo.findDeviceByDeviceId(deviceId);
-            Command com=commandService.getCommand(route.getCommandId());
-            if(dev!=null&&com!=null){
+            if(dev!=null){
                 route.setDevice(dev);
-                route.setCommand(com);
-                if(route.getMode().size()>0){
-                    route.setModes(true);
-                }
-                // set id to 0
-                List<Mode> modeList=route.getMode();
-                for(Mode mode:modeList){
-                    mode.getBoardAction().newInputs();
-                }
-                route.setMode(modeList);
-                //route.calculateCurrent();
-                Route save=routeRepo.save(route);
+                Route save=this.save(route);
                 route=save;
             }
         }
@@ -62,44 +155,10 @@ public class RoutesService extends Base {
     public Route updateRoute(Route entry,Long id){
         Route rec=null;
         if(routeRepo.existsById(id)){
-            rec=routeRepo.findById(id).get();
-            Command com=commandService.getCommand(entry.getCommandId());
-            if(com!=null&&rec.getCommand().getId()==com.getId()){
-                rec.setRoute(entry.getRoute());
-                rec.setElectrode(entry.getElectrode());
-                if(entry.getMode().size()>0){
-                    rec.setModes(true);
-                }
-                rec.getMode().removeIf(exist->entry.getMode().stream().noneMatch(m->m.getId()==exist.getId()));
-                
-                List<Mode> existModeList=rec.getMode();
-                // updated list
-                List<Mode> updatedModeList=entry.getMode();
-                for(Mode mode:updatedModeList){
-                    Mode ex=existModeList.stream().filter(m->m.getId()==mode.getId()).findFirst().orElse(null);
-                    //int exHash=ex.hashCode();
-                    //int newHash=mode.hashCode();
-                    // update existing mode
-                    if(ex!=null){
-                        ex.setMode(mode.getMode());
-                        BoardTask act=mode.getBoardAction();
-                        act.setMode(ex);
-                        ex.setBoardAction(act);
-                    }else{
-                        mode.setRoute(rec);
-                        mode.getBoardAction().newInputs();
-                        rec.getMode().add(mode);
-                    }    
-                }
-                
-            }else
-            {
-                rec.setCommand(com);
-                rec.setCommandId(com.getId());
-                rec.getMode().clear();
-            }
-            rec.calculateCurrent();
-            rec=routeRepo.save(rec);
+            // The route ID belongs to the URL.  Ensure beforeSave receives it
+            // even when the request body does not include an id field.
+            //entry.setId(id);
+            rec=this.save(entry);
         }
         return rec;
     }
@@ -114,7 +173,7 @@ public class RoutesService extends Base {
         return rec;
     }
     public void deleteRoute(long id){
-        routeRepo.deleteById(id);
+        this.delete(id);
     }
 
     // routes
@@ -142,6 +201,8 @@ public class RoutesService extends Base {
     public Mode getMode(long id){
         return modeService.findById(id).get();
     }
+   
+
     
 
     

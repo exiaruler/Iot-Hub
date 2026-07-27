@@ -8,6 +8,7 @@ import TableComponentColumn from "@/components/Table/TableComponentColumn";
 import { Row, Col } from "react-bootstrap";
 import { useEffect, useRef } from "react";
 import Content, { ContentRef, ObjectRecord } from "@/app/next-components/layout/Content";
+import TextInput from "@/app/next-components/input/TextInput";
 interface Props{
     active:boolean;
     device:ObjectRecord;
@@ -60,6 +61,11 @@ export default function Device(props:Props){
                 <TabComponent title={"Overview"} eventKey={"overview"}>
                 <Row>
                 <Col>
+                {
+                    props.device?.routes.map((rou:ObjectRecord,key:number)=>
+                        <TextInput key={key} readOnly={true} value={rou?.selectedMode?.mode} label={rou?.route} rows={0}/>
+                    )
+                }
                 <RegularButton caption={"Update Device"} size={undefined} type={undefined}/>
                 <RegularButton caption={"Delete Device"} onClick={()=>props.deleteDeviceMethod(props.index)} size={undefined} type={undefined}/>
                 </Col>

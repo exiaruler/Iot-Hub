@@ -39,6 +39,7 @@ public class BoardTaskService extends Base{
     public BoardTask addBoardTask(BoardTask task){
         return boardTaskRepo.save(task);
     }
+    // get task
     public BoardTask getTask(String comm,String type,boolean system){
         BoardTask tsk=boardTaskRepo.getBoardTaskByCommand(comm, type, system);
         return tsk;

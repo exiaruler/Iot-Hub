@@ -20,6 +20,7 @@ import ModeSubForm from "@/app/next-components/form/ModeSubForm";
 import SelectInput from "@/app/next-components/input/SelectInput";
 import Content, { ContentRef, ObjectArray, ObjectRecord } from "@/app/next-components/layout/Content";
 import { mode } from "crypto-js";
+import CheckBoxInput from "@/app/next-components/input/CheckBoxInput";
 interface ComponentRender{
     component:any;
     config:any;
@@ -146,10 +147,10 @@ export default function Client({
                     boardrec=moderec.boardAction;
                     pinrec=boardrec.pins[config.index];
                 }
-                const modeComRef=createRef<Form>();
-                const boardActionRef=createRef<Form>();
+                const modeComRef=createRef<PinSubForm>();
+                const boardActionRef=createRef<SubForm>();
                 const recLayout={...currentCommandObj?.boardCommand[config.name][config.index]};
-                const subModeComRef=createRef<Form>();
+                const subModeComRef=createRef<SubForm>();
                 const recordLayNew={...newMode};
                 let parentForm=<PinSubForm recordLayout={recordLayNew||{}}
                 idKey="id"
@@ -360,8 +361,8 @@ export default function Client({
         // loop through mode to create mode tabs
         for(let ix=0; ix<modes.length;ix++){
             let compArr=[];
-            const ref=createRef<Form>();
-            const modeComRef=createRef<Form>();
+            const ref=createRef<ModeSubForm>();
+            const modeComRef=createRef<SubForm>();
             const modeRec=modes[ix];
             for(let i=0; i<componentsInput.length; i++){
                 const component=componentsInput[i];
@@ -373,7 +374,7 @@ export default function Client({
 
                 }else if(config.subName!=""&&commandObj!=null){
                     const recLayout={...commandObj.boardCommand[config.name][config.index]};
-                    const subModeComRef=createRef<Form>();
+                    const subModeComRef=createRef<SubForm>();
                     let subForm=<SubForm array={true} ref={subModeComRef} index={config.index} record={modeRec?.boardAction[config.name][i]} objectKey={config.name} recordLayout={recLayout||{}} idKey={"id"} formRef={modeComRef}>
                         {
                             React.createElement(comp,{key:i,label:config.label,
@@ -409,6 +410,7 @@ export default function Client({
             rows={0}
             onChange={(event:React.ChangeEvent<HTMLSelectElement>,num:number=(currentModes))=>modeHandleChange(event.target.value,num)}
             name="mode"/>
+            <CheckBoxInput formRef={ref} name={'defaultMode'} label={"Default Mode"} rows={0}/>
             <SubForm record={modeRec?.boardAction} id="BoardAct-Form" recordLayout={boardAct||{}} idKey="id" ref={modeComRef} objectKey={"boardAction"} formRef={ref}>
             {
                 compArr
@@ -458,8 +460,8 @@ export default function Client({
         let currentModes=modeTabCounter.current;
         const form=formRef.current;
         const modes:Record<string,any>[]=form?.record?.mode;
-        const ref=createRef<Form>();
-        const modeComRef=createRef<Form>();
+        const ref=createRef<ModeSubForm>();
+        const modeComRef=createRef<SubForm>();
         let compArr=[];
         const commandObj=currentCommandToJson();
         let boardAct={...commandObj.boardCommand};
@@ -478,7 +480,7 @@ export default function Client({
 
             }else if(config.subName!=""&&commandObj!=null){
                 const recLayout={...commandObj.boardCommand[config.name][config.index]};
-                const subModeComRef=createRef<Form>();
+                const subModeComRef=createRef<SubForm>();
                 let subForm=<SubForm array={true} ref={subModeComRef} index={config.index} objectKey={config.name} recordLayout={recLayout||{}} idKey={"id"} formRef={modeComRef}>
                     {
                         React.createElement(comp,{key:i,label:config.label,
@@ -512,6 +514,7 @@ export default function Client({
             required={true}
             rows={0}
             name="mode"/>
+            <CheckBoxInput formRef={ref} name={"defaultMode"} label={"Default Mode"} rows={0}/>
             <SubForm id="BoardAct-Form" recordLayout={boardAct||{}} idKey="id" ref={modeComRef} objectKey={"boardAction"} formRef={ref}>
             {
                 compArr
@@ -686,7 +689,15 @@ export default function Client({
                                         )}
                                     </TabGroup>
                                 </TabComponent>
-                            )}
+                            )
+                            }
+                            {addMode&&false?
+                            <TabComponent title={"Sequence"} eventKey={"transition"}>
+                            <Row>
+                            <CheckBoxInput label={"Mode Loop Through"} rows={0}/>
+                            </Row>
+                            </TabComponent>
+                            :null}
                         </TabGroup>
                         
                     </Form>

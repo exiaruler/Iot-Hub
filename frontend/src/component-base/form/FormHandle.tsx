@@ -167,6 +167,7 @@ export default class FormHandle extends Component<Props,State>{
         }
         return value;
     }
+    // set record
     public setRecord(rec:Record<string, any>):void{
         if(rec){
             this.setState({...this.state,record:rec,id:rec[this.props.idKey]});
@@ -179,7 +180,6 @@ export default class FormHandle extends Component<Props,State>{
         this.response=null;
         this.ok=false;
         this.record=this.getRecordLayout();
-        //this.clearWarnings();
         this.setState({...this.state,record:this.getRecordLayout(),id:0,statusResponse:0,submissionResponse:null,errors:JSON.parse(this.blankKeys),warnings:JSON.parse(this.blankKeys)});
     }
     public clearWarnings():void{

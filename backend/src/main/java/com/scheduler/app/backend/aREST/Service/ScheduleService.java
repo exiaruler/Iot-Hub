@@ -2,15 +2,18 @@ package com.scheduler.app.backend.aREST.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import com.scheduler.Base.Base;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.ModelBase.TaskEventId;
+import com.scheduler.Base.Service.BaseService;
 import com.scheduler.Base.ResourceNotFoundException;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
@@ -21,8 +24,9 @@ import com.scheduler.app.backend.aREST.Models.Task;
 import com.scheduler.app.backend.aREST.Repo.ScheduleRepo;
 
 @Service
-public class ScheduleService extends Base{
-    private final ScheduleRepo scheRepo;
+public class ScheduleService extends BaseService<Schedule, Long> {
+    @Autowired
+    private ScheduleRepo scheRepo;
     public final TaskService taskService;
     public final DeviceService deviceService;
     public final RoutesService routeService;
@@ -32,6 +36,10 @@ public class ScheduleService extends Base{
         this.taskService = taskService;
         this.deviceService = deviceService;
         this.routeService = routeService;
+    }
+    @Override
+    protected JpaRepository<Schedule, Long> repository() {
+        return scheRepo;
     }
     public List<Schedule> getAllSchedule(){
         return scheRepo.findAll();
@@ -84,101 +92,87 @@ public class ScheduleService extends Base{
         }
         return tsk;
     }
-    public Schedule addScheduleSocket(Schedule schedule){
-        boolean hasMotor=false;
-        if(schedule.getDeviceId()!=0&&schedule.getRouteId()!=0){
-            Device device=deviceService.getDevice(schedule.getDeviceId());
-            if(device!=null){
-                List <Schedule> deviceSchList=new ArrayList<>();
-                if(!device.getSchedules().isEmpty()){
-                    deviceSchList=device.getSchedules();
-                } 
-                schedule.setDevice(device);
-                Optional<Route> routeQuery=device.getRoutes().stream().filter(rec->rec.getId()==schedule.getRouteId()).findFirst();
-                if(routeQuery.isPresent()){
-                    Route rou=routeQuery.get();
-                    schedule.setRoute(rou);
-                    if(!schedule.getModeRandom()){
-                        Optional<Mode> mode=rou.getMode().stream().filter(rec->rec.getId()==schedule.getModeId()).findFirst();
-                        if(mode.isPresent()){
-                            schedule.setMode(mode.get());
-                            Task tsk=createTask(null,schedule.getName(),"",rou.getId(),mode.get().getId(),hasMotor,schedule,device,rou);
-                            schedule.setTask(tsk);
-                        }
-                    }else
-                    {
-                        // if random mode is enabled select random mode
-                        Mode mode=taskService.randomMode(rou.getMode());
-                        Task tsk=createTask(null,schedule.getName(),"",rou.getId(),mode.getId(),hasMotor,schedule,device,rou);
-                        schedule.setMode(null);
-                        schedule.setTask(tsk);
+    @Override
+    protected void beforeSave(Schedule entity, Map<String, String> errors, Map<String, String> warnings) {
+        boolean existingSchedule = entity.getId() > 0 && scheRepo.existsById(entity.getId());
 
-                    }
-                    scheRepo.save(schedule);
-                    if(schedule.getRepeatTask()){
-                        taskService.setTaskSchedule(schedule.getTask(),true);
-                    }
-                }
-
-            }
-
+        if (entity.getStartup() && entity.getRepeatTask()) {
+            errors.put("occurance", "Startup and repeat task cannot be enabled at the same time");
         }
-        return schedule;
+
+        if (entity.getDeviceId() == 0 || entity.getRouteId() == 0) {
+            errors.put("schedule", "A device and route are required for a socket schedule");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException(errors, null);
+        }
+
+        Device device = deviceService.getDevice(entity.getDeviceId());
+        entity.setDevice(device);
+
+        Optional<Route> routeQuery = device.getRoutes().stream()
+                .filter(route -> route.getId() == entity.getRouteId())
+                .findFirst();
+        if (!routeQuery.isPresent()) {
+            errors.put("route", "The selected route does not belong to the selected device");
+            throw new ValidationException(errors, null);
+        }
+
+        Route route = routeQuery.get();
+        entity.setRoute(route);
+
+        Mode selectedMode = null;
+        if (!entity.getModeRandom()) {
+            selectedMode = route.getMode().stream()
+                    .filter(mode -> mode.getId() == entity.getModeId())
+                    .findFirst()
+                    .orElse(null);
+            if (selectedMode == null) {
+                errors.put("mode", "The selected mode does not belong to the selected route");
+                throw new ValidationException(errors, null);
+            }
+            entity.setMode(selectedMode);
+        } else {
+            selectedMode = taskService.randomMode(route.getMode());
+            entity.setMode(null);
+            entity.setModeId(0);
+        }
+
+        Task task;
+        if (existingSchedule) {
+            Schedule persistedSchedule = scheRepo.findById(entity.getId()).get();
+            task = persistedSchedule.getTask();
+            task.setActive(false);
+            task.setApplication(entity.getName());
+            task.setRouteId(route.getId());
+            task.setModeId(selectedMode.getId());
+            task.setMotor(false);
+        } else {
+            task = createTask(null, entity.getName(), "", route.getId(), selectedMode.getId(), false,
+                    entity, device, route);
+        }
+        task.setSchedule(entity);
+        entity.setTask(task);
+    }
+
+    @Override
+    protected void afterSave(Schedule entity) {
+        if (entity.getRepeatTask()) {
+            taskService.setTaskSchedule(entity.getTask(), true);
+        }
+    }
+    public Schedule addScheduleSocket(Schedule schedule){
+        return save(schedule);
     }
     public Schedule updatScheduleSocket(long id,Schedule schedule){
-        Schedule existRec=scheRepo.findById(id).get();
-        HashMap <String,String> errors=new HashMap<>();
-        boolean hasMotor=false;
-        if(existRec!=null){
-            existRec.setName(schedule.getName());
-            Device device=deviceService.getDevice(schedule.getDeviceId());
-            existRec.setDevice(device);
-            existRec.setModeRandom(schedule.getModeRandom());
-            existRec.setStatus(schedule.getStatus());
-            if(schedule.getStartup()&&schedule.getRepeatTask()) errors.put("occurance", "Startup and repeat task cannot be enabled at the same time");
-            existRec.setStartup(schedule.getStartup());
-            existRec.setRepeatTask(schedule.getRepeatTask());
-            existRec.setTime(schedule.getTime());
-            Optional<Route> routeQuery=device.getRoutes().stream().filter(rec->rec.getId()==schedule.getRouteId()).findFirst();
-            if(routeQuery.isPresent()){
-                    Route rou=routeQuery.get();
-                    existRec.setRoute(rou);
-                    if(!schedule.getModeRandom()){
-                        Optional<Mode> mode=rou.getMode().stream().filter(rec->rec.getId()==schedule.getModeId()).findFirst();
-                        if(mode.isPresent()){
-                            existRec.setMode(mode.get());
-                            existRec.setModeId(schedule.getModeId());
-                            Task tsk=existRec.getTask();
-                            tsk.setActive(false);
-                            tsk.setApplication(schedule.getName());
-                            tsk.setRouteId(schedule.getRouteId());
-                            tsk.setModeId(schedule.getModeId());
-                            tsk.setMotor(hasMotor);
-                            existRec.setTask(tsk);
-                        }
-                    }else
-                    {
-                        Mode mode=taskService.randomMode(rou.getMode());
-                        Task tsk=existRec.getTask();
-                        tsk.setActive(false);
-                        tsk.setApplication(schedule.getName());
-                        tsk.setRouteId(schedule.getRouteId());
-                        tsk.setModeId(mode.getId());
-                        tsk.setMotor(hasMotor);
-                        existRec.setTask(tsk);
-                        existRec.setModeId(0);
-                        existRec.setMode(null);
-                    }
-                if(!errors.isEmpty()) throw new ValidationException(errors,null);
-                existRec=scheRepo.save(existRec);
-                if(schedule.getRepeatTask()){
-                    taskService.setTaskSchedule(existRec.getTask(),true);
-                }  
-            }
-        }else return null;
-        return existRec;
+        if (!scheRepo.existsById(id)) {
+            return null;
+        }
+        schedule.setId(id);
+        return save(schedule);
     }
-    
+    /* 
     public Schedule addSchedule(String name,long time,boolean repeat,boolean startup,String url,long deviceId,long routeId,long modeId){
         Schedule scheduleTask=new Schedule();
         Task taskSche=new Task();
@@ -242,12 +236,31 @@ public class ScheduleService extends Base{
         scheRepo.save(scheduleTask);
         return scheduleTask;
     }
+    */
     public boolean startStartupSchedule(Board board){
         boolean exist=false;
         long [] devicesIds=deviceService.getDevicesById(board.getId());
         if(devicesIds.length>0){
             String devIdList=Arrays.toString(devicesIds).replace("[", "").replace("]", "");
             List<Long> activeStartups=scheRepo.getActiveStartupSchedules(devIdList);
+            List<Long> activeRoutine=scheRepo.getActiveRoutineSchedules(devIdList);
+            activeStartups.addAll(activeRoutine);
+            for(int i=0; i<activeStartups.size(); i++){
+                Long scheId=activeStartups.get(i);
+                startupTask(scheId);
+                exist=true;
+            }
+            taskService.addToScheduler();
+        }
+        return exist;
+    }
+    
+    public boolean startRoutineSchedule(Board board){
+        boolean exist=false;
+        long [] devicesIds=deviceService.getDevicesById(board.getId());
+        if(devicesIds.length>0){
+            String devIdList=Arrays.toString(devicesIds).replace("[", "").replace("]", "");
+            List<Long> activeStartups=new ArrayList<>();
             List<Long> activeRoutine=scheRepo.getActiveRoutineSchedules(devIdList);
             activeStartups.addAll(activeRoutine);
             for(int i=0; i<activeStartups.size(); i++){
@@ -283,5 +296,6 @@ public class ScheduleService extends Base{
         }
         return success;
     }
+   
     
 }

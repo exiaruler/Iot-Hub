@@ -1,6 +1,7 @@
 package com.scheduler.Base;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,15 @@ public class Base{
     public void throwValidationException(Map<String, String>  errors,Map<String, String>  warnings){
         if(errors==null||warnings==null) return;
         throwValidationException(errors, warnings);
+    }
+    public int calculateMillsDelay(int mills,int delay){
+        mills+=delay;
+        /*
+        if(mills>=Integer.MAX_VALUE){
+            
+        }
+        */
+        return mills;
     }
     public String getDataString(String query){
         String data="";

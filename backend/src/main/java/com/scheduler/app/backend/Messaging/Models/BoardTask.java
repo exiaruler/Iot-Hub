@@ -218,6 +218,7 @@ public class BoardTask extends TaskModelBase {
             deviceId=this.getRoute().getDevice().getBoard().getId();
         }
         this.setTaskId(taskIdGenerate(deviceId));
+        if(this.pins!=null) this.pinsUsed=this.pins.size();
         orderPins();
         orderInput();
         orderOutput();
@@ -237,6 +238,7 @@ public class BoardTask extends TaskModelBase {
             }
             this.setTaskId(taskIdGenerate(deviceId));
         }
+        if(this.pins!=null) this.pinsUsed=this.pins.size();
         //this.setBoardTaskPins();
         orderPins();
         orderInput();

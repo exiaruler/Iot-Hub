@@ -44,7 +44,15 @@ public class TaskController extends ControllerBase{
         if(task==null) return ResponseEntity.badRequest().build();
         return ResponseEntity.ok(task);
     }
-
+    // get board tasks, query by device id and status
+    @GetMapping("/get-tasks/{boardId}/{active}")
+    public ResponseEntity<List<Task>> getBoardTasks(@PathVariable String boardId,@PathVariable boolean active,@RequestParam(defaultValue = "") String deviceId) {
+        return ResponseEntity.ok(service.getTasksByBoardDevice(boardId, active, deviceId));
+    }
+    public String getMethodName(@RequestParam String param) {
+        return new String();
+    }
+    
     @GetMapping(value="/get-task/{id}")
     public Optional<Task> getTask(@PathVariable TaskEventId id){
         return service.getTask(id);

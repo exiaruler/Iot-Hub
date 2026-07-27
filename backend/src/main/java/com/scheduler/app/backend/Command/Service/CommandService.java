@@ -25,24 +25,37 @@ import com.scheduler.app.backend.Messaging.Models.BoardVariable;
 import com.scheduler.app.backend.Messaging.Models.Brightness;
 import com.scheduler.app.backend.Messaging.Models.InputCurrent;
 import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
+import com.scheduler.app.backend.Messaging.Service.BoardTaskService;
 
 @Configuration
 @Service
 public class CommandService extends Base {
     public final CommandRepo command;
     public final CommandParameterService commandParaService;
-    public final HardwareService hardwareService;
+    private final BoardTaskService boardTaskService;
     private final ObjectMapper objectMapper;
     
     //public TaskService taskService;
-    public CommandService(CommandRepo command,CommandParameterService commandParaService,HardwareService hardwareService, ObjectMapper objectMapper) {
+    public CommandService(CommandRepo command,CommandParameterService commandParaService, ObjectMapper objectMapper, BoardTaskService boardTaskService) {
         this.command = command;
         this.commandParaService=commandParaService;
-        this.hardwareService=hardwareService;
+        this.boardTaskService = boardTaskService;
         this.objectMapper = objectMapper;
     }
     public Command getCommand(long id){
         return command.findById(id).get();
+    }
+    public BoardTask getTaskByCommand(String command,String type,boolean system){
+        return boardTaskService.getTask(command, type, system);
+    }
+    public BoardTask getRequestConnection(){
+        return boardTaskService.getTask("httprequestconnection", "schedule", true);
+    }
+    public BoardTask getWSConnection(){
+        return boardTaskService.getTask("wsconnectopen", "schedule", true);
+    }
+    public BoardTask getStatus(){
+        return boardTaskService.getTask("status", "action", true);
     }
     
     @Transactional

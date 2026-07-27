@@ -6,7 +6,7 @@ export default class TabComponent extends Component<TabProps>{
     
     render(){
         return (
-        <Tab eventKey={this.props.eventKey} title={this.props.title} disabled={this.props.disabled}>
+        <Tab {...this.props.others} hidden={this.props.hidden} eventKey={this.props.eventKey} title={this.props.title} disabled={this.props.disabled}>
         {this.props.children}
         </Tab>
     );
