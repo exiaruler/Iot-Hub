@@ -13,30 +13,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scheduler.Base.ControllerBase;
+import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Service.DeviceService;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping(value = "/device")
-public class DeviceController extends ControllerBase {
+public class DeviceController extends ControllerBaseService<Long,Device> {
     @Autowired
     private DeviceService service;
-     public DeviceController() {
+
+    public DeviceController() {
         this.objectClass=this.pathBase+".aREST.Models.Device";
     }
     @PostMapping(value="/add-device/{id}",consumes = "application/json")
     public ResponseEntity<Device> addDevice(@PathVariable long id,@RequestBody Device payload){
         Device saveDevice=service.addDeviceSocket(payload,id);
         return ResponseEntity.ok(saveDevice);
-    }
-    @PutMapping("update-device/{id}")
-    public ResponseEntity<Device> updateDevice(@PathVariable long id, @RequestBody Device entity) {
-        Device dev=service.updateDeviceSocket(entity, id);
-        if(dev==null){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(dev);
     }
     
     @GetMapping(value="/get-devices")

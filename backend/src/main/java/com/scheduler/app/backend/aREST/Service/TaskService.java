@@ -274,7 +274,7 @@ public class TaskService extends Base{
         //addToScheduler();   
     }
     // use for http polling
-    public List<BoardTaskSerial> getNextTasks(long id){
+    public List<BoardTaskSerial> getNextTasks(long id,Board board){
         List <BoardTaskSerial> taskLists=new ArrayList<>();
         List<Task> filterTasks=scheduler.queryQueueNow(id);
 

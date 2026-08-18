@@ -52,15 +52,7 @@ public class BoardController extends ControllerBase{
     public ResponseEntity<List<Board>> all(){
         return ResponseEntity.ok(boardService.getBoards());
     }
-    @GetMapping(value="/getboard/{id}")
-    public ResponseEntity<Optional<Board>> getBoard(@PathVariable long id){
-        Optional<Board> board=boardService.findBoard(id);
-        if(board!=null){
-            return ResponseEntity.ok(board);
-        }else{
-            return ResponseEntity.notFound().build();
-        }
-    }
+ 
     @GetMapping(value="/get-board-id/{id}")
     public ResponseEntity<Board> getBoardId(@PathVariable String id){
         Board board=boardService.getBoardByBoardId(id);
@@ -92,15 +84,8 @@ public class BoardController extends ControllerBase{
     // board routes
     // routine status check by http request
     @GetMapping(value="/status-check/{id}")
-    public ResponseEntity<DeviceCheck> routineCheck(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("free-heap")String heap,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@PathVariable long id){
-        //System.out.println("Connection check "+id+" "+LocalTime.now()+" "+ram+" "+ip);
-        /* 
-        System.out.println(totalQueue);
-        System.out.println(taskTotal);
-        System.out.println(systemTotalTask);
-        System.out.println(heap);
-        */
-        DeviceCheck check=boardService.routineCheck(id,Integer.parseInt(ram),ip);
+    public ResponseEntity<DeviceCheck> routineCheck(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("free-heap")String heap,@RequestHeader("millis")String millis,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@PathVariable long id){
+        DeviceCheck check=boardService.routineCheck(id,Integer.parseInt(ram),ip,Integer.parseInt(heap),Long.parseLong(millis));
         return ResponseEntity.ok(check);
     }
 
@@ -115,7 +100,7 @@ public class BoardController extends ControllerBase{
     // when board starts-up verify credentials
     @PostMapping("/startup")
     public ResponseEntity<BoardLogin> startup(@RequestBody BoardRegister entity,@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("SSID")String ssid,@RequestHeader("mac-address")String macAddress,@RequestHeader("free-heap")String freeHeap,@RequestHeader("heap")String heap,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@RequestHeader("version")String version,@RequestHeader("millis")String millis) {
-        BoardLogin check=boardService.startup(entity,ip,Integer.parseInt(ram),ssid,macAddress,Integer.parseInt(freeHeap),Integer.parseInt(heap),Integer.parseInt(systemTotalTask),Integer.parseInt(taskTotal),Integer.parseInt(totalQueue),Integer.parseInt(millis));
+        BoardLogin check=boardService.startup(entity,ip,Integer.parseInt(ram),ssid,macAddress,Integer.parseInt(freeHeap),Integer.parseInt(heap),Integer.parseInt(systemTotalTask),Integer.parseInt(taskTotal),Integer.parseInt(totalQueue),Long.parseLong(millis));
         if(check!=null){
             return ResponseEntity.ok(check);
         }

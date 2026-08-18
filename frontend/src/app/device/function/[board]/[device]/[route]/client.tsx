@@ -624,7 +624,7 @@ export default function Client({
                     <Form
                         onSubmit={submitHandle}
                         post={`/route/add-route-socket/${getDeviceId()}`}
-                        put="/route/update-route-socket/"
+                        put="/route/update-record/"
                         recordLayout={newFunction || {}}
                         ref={formRef}
                         record={record}

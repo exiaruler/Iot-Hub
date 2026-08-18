@@ -25,7 +25,5 @@ public class ControllerBase extends Base {
         }
         return obj;
     }
-    
-    
 
 }

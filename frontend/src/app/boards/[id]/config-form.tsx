@@ -38,7 +38,6 @@ export default function ConfigForm(props:Props){
     const showDevForm=()=>{
         setDevShow(props.record?.devMode);
     }
-   
     
     useEffect(()=>{
        showDevForm();

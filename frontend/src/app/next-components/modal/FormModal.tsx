@@ -53,7 +53,7 @@ export default class FormModal extends ModalBox{
     render(){
         return (
         <Modal show={this.state.show} onHide={()=>this.close()}>
-        <Form debug={true} ref={this.formRef} onSubmit={this.submitHandle} recordLayout={this.props.recordLayout} idKey={this.props.idKey} record={this.props.record} post={this.props.post} put={this.props.put}>
+        <Form debug={false} ref={this.formRef} onSubmit={this.submitHandle} recordLayout={this.props.recordLayout} idKey={this.props.idKey} record={this.props.record} post={this.props.post} put={this.props.put}>
         <ModalHeader>
         {this.props.title}
         </ModalHeader>

@@ -138,7 +138,6 @@ public class DeviceService extends BaseService<Device, Long> {
         } catch (Exception e) {
             // TODO: handle exception
         }
-        System.out.println(state);
        }
 
     }

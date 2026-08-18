@@ -5,7 +5,7 @@ import TextInput from "@/app/next-components/input/TextInput"
 import TabComponent from "@/components/Tab/TabComponent"
 import TabGroup from "@/components/Tab/TabGroup"
 import { Row, Col, Stack } from "react-bootstrap"
-import { useEffect, useRef, useState } from "react"
+import { ReactNode, useEffect, useRef, useState } from "react"
 import ConfirmButton from "@/components/Buttons/ConfirmButton"
 import AddForm from "./add-form"
 import FormModal from "@/app/next-components/modal/FormModal"
@@ -20,6 +20,7 @@ import BackButton from "@/app/next-components/buttons/BackButton"
 
 interface Props{
     deviceForm:ObjectRecord;
+    boardForm:ObjectRecord;
     board:ObjectRecord;
     boardHardware:ObjectRecord;
     query:ObjectRecord;
@@ -33,10 +34,12 @@ export default function Client(props:Props){
     const tabGrpRef=useRef<TabGroup>(null);
     const formRefs:any=useRef([]);
     const [activated,setActivated]=useState(true);
-    const [board,setBoard]=useState<ObjectRecord>(props.board||null);
-    const [devices,setDevices]=useState<ObjectArray>(props.board?.device||[]);
+    const [board,setBoard]=useState<ObjectRecord>(props.board);
+    const [devices,setDevices]=useState<ObjectArray>(props.board?.device);
     const [device,setDevice]=useState<ObjectRecord>(null);
-    const [hardware,setHardware]=useState<ObjectRecord>(props.boardHardware||null);
+    const [hardware,setHardware]=useState<ObjectRecord>(props.boardHardware);
+    // use to store next update occurance
+    const nextUpdateDt=useRef<Date>(null);
     
     const openChangePass=()=>{
         passwordModalRef.current?.open();
@@ -108,15 +111,17 @@ export default function Client(props:Props){
        setBoard(boardRec);
     }
     const handleAddDevice=(record:ObjectRecord)=>{
-        const devs=devices;
-        const tab=tabGrpRef.current;
+        if(record==null) return;
+        const devs=[...(devices ?? [])];
         devs.push(record);
-        setDevices([...devs]);
+        setDevices(devs);
     }
-    const showDate=(dateTime:Date)=>{
+    const showDate=(dateTime:Date|null)=>{
+        if(dateTime==null) return "";
         return new Date(dateTime).toDateString();
     }
-    const showTime=(dateTime:Date)=>{
+    const showTime=(dateTime:Date|null)=>{
+        if(dateTime==null) return "";
         const dt= new Date(dateTime);
         const time=dt.toLocaleTimeString();
         return time;
@@ -129,7 +134,29 @@ export default function Client(props:Props){
         const content=contentRef.current;
         content?.router.push('/boards/task-queue/'+board?.boardId);
     }
+    const nextUpdate=async ()=>{
+        const content=contentRef.current;
+        if(!content || !board?.boardId) return;
+
+        const nextOp=nextUpdateDt.current;
+        const boardMillis=board?.millis||0;
+        if(nextOp!=null&&activated&&boardMillis>0 && content?.passDateTime(nextOp)){
+            const request=await content.util.fetchClientQuery('/board/get-board-id/'+board.boardId,'GET');
+            if(request.status==200){
+                const data=request?.json ?? {};
+                setBoard((prev)=>({ ...(prev ?? {}), ...data }));
+                setDevices(data.device);
+                nextUpdateDt.current=data?.nextQueueOperation;
+            }
+        }
+    }
     useEffect(()=>{
+        const timer=window.setInterval(nextUpdate,1000);
+        return ()=>window.clearInterval(timer);
+    },[activated, board?.boardId, board?.nextQueueOperation, board?.millis]);
+
+    useEffect(()=>{
+        nextUpdateDt.current=board?.nextQueueOperation;
         loadForms(props.deviceForm);
         boardActive();
         loadDevice();
@@ -149,24 +176,46 @@ export default function Client(props:Props){
         <Col md={3} xs={9}>
         <TextInput label={"Board ID"}  rows={0} value={board?.boardId} readOnly={true}/>
         <TextInput label={"Board Model"}  rows={0} value={hardware?.boardName} readOnly={true}/>
-        <TextInput label={"Status"}  rows={0} value={status(board?.activated)} readOnly={true}/>
+        <TextInput label={"Local IP"}  rows={0} value={board?.ip} readOnly={true}/>
         </Col>
         <Col md={3} xs={9}>
         <TextInput label={"RAM Usage"}  rows={0} value={board?.ramUsage} readOnly={true}/>
         <TextInput label={"Total RAM"}  rows={0} value={hardware?.maxRam} readOnly={true}/>
-        <TextInput label={"Local IP"}  rows={0} value={board?.ip} readOnly={true}/>
+        <TextInput label={"Last Operation Time"}  rows={0} value={board?.millis} readOnly={true}/>
         </Col>
         <Col md={3} xs={9}>
-        <TextInput label={"Routine Check"}  rows={0} value={board?.periodicCheck} readOnly={true}/>
+        <TextInput label={"Status"}  rows={0} value={status(board?.activated)} readOnly={true}/>
+        <TextInput hidden={true} label={"Routine Check"}  rows={0} value={board?.periodicCheck} readOnly={true}/>
+        <TextInput label={"Next Update Date"}  rows={0} value={showDate(board?.nextQueueOperation)} readOnly={true}/>
+        <TextInput label={"Next Update Time"}  rows={0} value={showTime(board?.nextQueueOperation)} readOnly={true}/>
+        </Col>
+        <Col md={3} xs={9}>
         <TextInput label={"Last Connection Date"}  rows={0} value={showDate(board?.lastConnectDateTime)} readOnly={true}/>
         <TextInput label={"Last Connection Time"}  rows={0} value={showTime(board?.lastConnectDateTime)} readOnly={true}/>
         </Col>
         </Row>
         <Row>
-        <Col>
+        <Col md={9} xs={12}>
         <Stack direction="horizontal" gap={2} className="mt-3">
         <RegularButton caption={"Operations"} size={undefined} onClick={goToQueue} disabled={!activated}/>
         <RegularButton caption={"Board Tasks"} disabled={!activated} onClick={goToTasks}/>
+        <ModalButton disabled={!activated} buttonCaption={"More Details"} title={"Board Information"}>
+        <Row>
+        <Col md={6} xs={7}>
+        <TextInput label={"Last Heap"}  rows={0} value={board?.heap} readOnly={true}/>
+        <TextInput label={"Heap Total"}  rows={0} value={board?.heapTotal} readOnly={true}/>
+        <TextInput label={"SSID"}  rows={0} value={board?.ssid} readOnly={true}/>
+        <TextInput label={"Mac Address"}  rows={0} value={board?.macAddress} readOnly={true}/>
+        </Col>
+        <Col md={6} xs={7}>
+        <TextInput label={"Created Date"}  rows={0} value={showDate(board?.createdDate)} readOnly={true}/>
+        <TextInput label={"Login Date"}  rows={0} value={showDate(board?.lastLoginDateTime)} readOnly={true}/>
+        <TextInput label={"Login Time"}  rows={0} value={showTime(board?.lastLoginDateTime)} readOnly={true}/>
+        <TextInput label={"Activated Date"}  rows={0} value={showDate(board?.activatedDateTime)} readOnly={true}/>
+
+        </Col>
+        </Row>
+        </ModalButton>
         <ConfirmButton disabled={!activated} buttonCaption={"Reset"} title={"Reset Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart')}>
         <p>Are you sure you want to restart board?</p>
         </ConfirmButton>
@@ -181,7 +230,7 @@ export default function Client(props:Props){
        <Stack direction="horizontal" gap={2} className="mt-3">
         <RegularButton caption={"Change Password"} onClick={openChangePass}/>
         <ModalButton ref={updateModalRef} buttonCaption={"Configurations"} title={"Configured Board"} submitCaption={"Save"}>
-        <ConfigForm activated={activated} formLayout={props.deviceForm} submissionHandle={handleUpdate} record={board} modalRef={updateModalRef}/>
+        <ConfigForm activated={activated} formLayout={props.boardForm} submissionHandle={handleUpdate} record={board} modalRef={updateModalRef}/>
         </ModalButton>
         <Dev>
         <ConfirmButton disabled={!activated} buttonCaption={"Upload"} title={"Upload Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scheduler.Base.ControllerBase;
+import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.aREST.Models.Schedule;
 import com.scheduler.app.backend.aREST.Service.ScheduleService;
 
@@ -21,7 +22,7 @@ import com.scheduler.app.backend.aREST.Service.ScheduleService;
 
 @RestController
 @RequestMapping(value = "/schedule")
-public class ScheduleController extends ControllerBase {
+public class ScheduleController extends ControllerBaseService<Long,Schedule> {
     @Autowired
     private ScheduleService service;
 

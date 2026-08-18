@@ -41,10 +41,7 @@ public class Base{
         });
         return map;
     }
-    public void throwValidationException(Map<String, String>  errors,Map<String, String>  warnings){
-        if(errors==null||warnings==null) return;
-        throwValidationException(errors, warnings);
-    }
+   
     public int calculateMillsDelay(int mills,int delay){
         mills+=delay;
         /*

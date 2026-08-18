@@ -119,7 +119,7 @@ export default function Client({form,schedule,devices}:Props){
         let id=Number.parseInt(form!.getId());
         const content=contentRef.current!;
         if(id>0){
-            const request=await content.util.fetchClientQuery('/schedule/delete-schedule/'+id,'DELETE');
+            const request=await content.util.fetchClientQuery('/schedule/delete-record/'+id,'DELETE');
             if(request.status==200){
                 const index=table?.selectedRow;
                 tabGrp?.handleTabSwitch('schedule');
@@ -188,7 +188,7 @@ export default function Client({form,schedule,devices}:Props){
         <TabComponent title={"Schedule"} eventKey={"form"}>
         <Row>
         <Col md={5}>
-        <Form record={selectedSchedule}  post={"/schedule/add-schedule-socket"} put={"/schedule/update-schedule/"} recordLayout={form} ref={formRef} onSubmit={submit} idKey={"id"}>
+        <Form record={selectedSchedule}  post={"/schedule/add-record"} put={"/schedule/update-record/"} recordLayout={form} ref={formRef} onSubmit={submit} idKey={"id"}>
         <TextInput formRef={formRef} label={"Name"} type={"text"} rows={0} name={"name"} required={true}/>
         <SelectInput ref={deviceRef} formRef={formRef} name={"deviceId"} size={undefined} api={""} label="Device" valueKey={"id"} displayKey={"name"} options={devicesList} onChange={(event: any) => deviceSelectChange(event.target.value)} type={""} rows={0}/>
         <SelectInput ref={functionRef} formRef={formRef} name={"routeId"} warning={""} size={undefined} api={""} label="Function" valueKey={"id"} displayKey={"route"} options={functions} onChange={(event: any) => functionSelectChange(event.target.value)} type={""} rows={0}/>

@@ -1,4 +1,5 @@
 package com.scheduler.app.backend.aREST.Models;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +17,6 @@ import javax.persistence.PostLoad;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
-
-import org.springframework.beans.factory.annotation.Value;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -67,6 +66,18 @@ public class Board extends ModelBase {
     // current RAM usage
     @Column
     private int ramUsage=0;
+    // current heap size
+    @Column
+    private int heap;
+    // total heap
+    @Column
+    private int heapTotal;
+    // board current millis
+    @Column
+    private long millis;
+    // current millis at the current moment
+    @Transient
+    private long currentMillis;
     // board registered status
     @Column
     private boolean activated=false;
@@ -85,6 +96,12 @@ public class Board extends ModelBase {
     // last connection date and time (HTTP or websocket)
     @Column(nullable = true)
     Instant lastConnectDateTime;
+    // last login date and time
+    @Column(nullable = true)
+    Instant lastLoginDateTime;
+    // board activated date and time
+    @Column(nullable = true)
+    Instant activatedDateTime;
     // restart device timeout (mins to hours)
     @Column(nullable = true)
     private long timeout;
@@ -118,19 +135,41 @@ public class Board extends ModelBase {
     // request-only hardware id used by controller payloads
     @Transient
     private long hardwardId;
+    // time for next board queue operation
+    @Transient
+    private Instant nextQueueOperation;
 
     @PostLoad
     public void loadBoard(){
         long id=0;
         if(this.getHardware()!=null) id=this.getHardware().getId();
         this.hardwardId=id;
+        getCurrentMillis();
+    }
+    // get current millis at that moment
+    public long getCurrentMillis(){
+        long UINT32_MAX = 4_294_967_296L;
+        long calculate=0;
+        if(this.millis>0){
+            long elapsedMillis = Duration.between(lastConnectDateTime,Instant.now()).toMillis();
+            if (elapsedMillis < 0) {
+                // Clock skew guard - never predict backwards
+                elapsedMillis = 0;
+            }
+            calculate = (this.millis + elapsedMillis) % UINT32_MAX;
+            setMillis(calculate);
+            this.currentMillis=calculate;
+        }
+        return calculate;
     }
 
     public Board() {
     }
 
 
-    public Board(String boardId, String boardKey, String name, String ssid, String macAddress, String ip, boolean status, boolean arest, boolean arestCommand, boolean socket, int periodicCheck, int ramUsage, boolean activated, String websocketId, boolean devMode, String devServerUrl, String devWsUrl, Instant lastConnectDateTime, long timeout, boolean restartTimeout, long offline, int tasksExecuted, List<Device> device, Section section, Hardware hardware, List<BoardQueue> boardOperations, long hardwardId) {
+
+
+    public Board(String boardId, String boardKey, String name, String ssid, String macAddress, String ip, boolean status, boolean arest, boolean arestCommand, boolean socket, int periodicCheck, int ramUsage, int heap, int heapTotal, long millis, long currentMillis, boolean activated, String websocketId, boolean devMode, String devServerUrl, String devWsUrl, Instant lastConnectDateTime, Instant lastLoginDateTime, Instant activatedDateTime, long timeout, boolean restartTimeout, long offline, int tasksExecuted, List<Device> device, Section section, Hardware hardware, List<BoardQueue> boardOperations, long hardwardId, Instant nextQueueOperation) {
         this.boardId = boardId;
         this.boardKey = boardKey;
         this.name = name;
@@ -143,12 +182,18 @@ public class Board extends ModelBase {
         this.socket = socket;
         this.periodicCheck = periodicCheck;
         this.ramUsage = ramUsage;
+        this.heap = heap;
+        this.heapTotal = heapTotal;
+        this.millis = millis;
+        this.currentMillis = currentMillis;
         this.activated = activated;
         this.websocketId = websocketId;
         this.devMode = devMode;
         this.devServerUrl = devServerUrl;
         this.devWsUrl = devWsUrl;
         this.lastConnectDateTime = lastConnectDateTime;
+        this.lastLoginDateTime = lastLoginDateTime;
+        this.activatedDateTime = activatedDateTime;
         this.timeout = timeout;
         this.restartTimeout = restartTimeout;
         this.offline = offline;
@@ -158,7 +203,10 @@ public class Board extends ModelBase {
         this.hardware = hardware;
         this.boardOperations = boardOperations;
         this.hardwardId = hardwardId;
+        this.nextQueueOperation = nextQueueOperation;
     }
+  
+    
 
     public String getBoardId() {
         return this.boardId;
@@ -528,7 +576,7 @@ public class Board extends ModelBase {
         setHardware(hardware);
         return this;
     }
-
+    
     public Board boardOperations(List<BoardQueue> boardOperations) {
         setBoardOperations(boardOperations);
         return this;
@@ -539,6 +587,58 @@ public class Board extends ModelBase {
         return this;
     }
 
+    public int getHeap() {
+        return this.heap;
+    }
+
+    public void setHeap(int heap) {
+        this.heap = heap;
+    }
+
+    public int getHeapTotal() {
+        return this.heapTotal;
+    }
+
+    public void setHeapTotal(int heapTotal) {
+        this.heapTotal = heapTotal;
+    }
+
+    public long getMillis() {
+        return this.millis;
+    }
+
+    public void setMillis(long millis) {
+        this.millis = millis;
+    }
+    
+    public Instant getNextQueueOperation() {
+        return this.nextQueueOperation;
+    }
+
+    public void setNextQueueOperation(Instant nextQueueOperation) {
+        this.nextQueueOperation = nextQueueOperation;
+    }
+
+    public void setCurrentMillis(long currentMillis) {
+        this.currentMillis = currentMillis;
+    }
+
+    public Instant getLastLoginDateTime() {
+        return this.lastLoginDateTime;
+    }
+
+    public void setLastLoginDateTime(Instant lastLoginDateTime) {
+        this.lastLoginDateTime = lastLoginDateTime;
+    }
+
+    public Instant getActivatedDateTime() {
+        return this.activatedDateTime;
+    }
+
+    public void setActivatedDateTime(Instant activatedDateTime) {
+        this.activatedDateTime = activatedDateTime;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -547,13 +647,14 @@ public class Board extends ModelBase {
             return false;
         }
         Board board = (Board) o;
-        return Objects.equals(boardId, board.boardId) && Objects.equals(boardKey, board.boardKey) && Objects.equals(name, board.name) && Objects.equals(ssid, board.ssid) && Objects.equals(macAddress, board.macAddress) && Objects.equals(ip, board.ip) && status == board.status && arest == board.arest && arestCommand == board.arestCommand && socket == board.socket && periodicCheck == board.periodicCheck && ramUsage == board.ramUsage && activated == board.activated && Objects.equals(websocketId, board.websocketId) && devMode == board.devMode && Objects.equals(devServerUrl, board.devServerUrl) && Objects.equals(devWsUrl, board.devWsUrl) && Objects.equals(lastConnectDateTime, board.lastConnectDateTime) && timeout == board.timeout && restartTimeout == board.restartTimeout && offline == board.offline && tasksExecuted == board.tasksExecuted && Objects.equals(device, board.device) && Objects.equals(section, board.section) && Objects.equals(hardware, board.hardware) && Objects.equals(boardOperations, board.boardOperations) && hardwardId == board.hardwardId;
+        return Objects.equals(boardId, board.boardId) && Objects.equals(boardKey, board.boardKey) && Objects.equals(name, board.name) && Objects.equals(ssid, board.ssid) && Objects.equals(macAddress, board.macAddress) && Objects.equals(ip, board.ip) && status == board.status && arest == board.arest && arestCommand == board.arestCommand && socket == board.socket && periodicCheck == board.periodicCheck && ramUsage == board.ramUsage && heap == board.heap && heapTotal == board.heapTotal && millis == board.millis && currentMillis == board.currentMillis && activated == board.activated && Objects.equals(websocketId, board.websocketId) && devMode == board.devMode && Objects.equals(devServerUrl, board.devServerUrl) && Objects.equals(devWsUrl, board.devWsUrl) && Objects.equals(lastConnectDateTime, board.lastConnectDateTime) && Objects.equals(lastLoginDateTime, board.lastLoginDateTime) && Objects.equals(activatedDateTime, board.activatedDateTime) && timeout == board.timeout && restartTimeout == board.restartTimeout && offline == board.offline && tasksExecuted == board.tasksExecuted && Objects.equals(device, board.device) && Objects.equals(section, board.section) && Objects.equals(hardware, board.hardware) && Objects.equals(boardOperations, board.boardOperations) && hardwardId == board.hardwardId && Objects.equals(nextQueueOperation, board.nextQueueOperation);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(boardId, boardKey, name, ssid, macAddress, ip, status, arest, arestCommand, socket, periodicCheck, ramUsage, activated, websocketId, devMode, devServerUrl, devWsUrl, lastConnectDateTime, timeout, restartTimeout, offline, tasksExecuted, device, section, hardware, boardOperations, hardwardId);
+        return Objects.hash(boardId, boardKey, name, ssid, macAddress, ip, status, arest, arestCommand, socket, periodicCheck, ramUsage, heap, heapTotal, millis, currentMillis, activated, websocketId, devMode, devServerUrl, devWsUrl, lastConnectDateTime, lastLoginDateTime, activatedDateTime, timeout, restartTimeout, offline, tasksExecuted, device, section, hardware, boardOperations, hardwardId, nextQueueOperation);
     }
+
 
     @Override
     public String toString() {
@@ -570,12 +671,18 @@ public class Board extends ModelBase {
             ", socket='" + isSocket() + "'" +
             ", periodicCheck='" + getPeriodicCheck() + "'" +
             ", ramUsage='" + getRamUsage() + "'" +
+            ", heap='" + getHeap() + "'" +
+            ", heapTotal='" + getHeapTotal() + "'" +
+            ", millis='" + getMillis() + "'" +
+            ", currentMillis='" + getCurrentMillis() + "'" +
             ", activated='" + isActivated() + "'" +
             ", websocketId='" + getWebsocketId() + "'" +
             ", devMode='" + isDevMode() + "'" +
             ", devServerUrl='" + getDevServerUrl() + "'" +
             ", devWsUrl='" + getDevWsUrl() + "'" +
             ", lastConnectDateTime='" + getLastConnectDateTime() + "'" +
+            ", lastLoginDateTime='" + getLastLoginDateTime() + "'" +
+            ", activatedDateTime='" + getActivatedDateTime() + "'" +
             ", timeout='" + getTimeout() + "'" +
             ", restartTimeout='" + isRestartTimeout() + "'" +
             ", offline='" + getOffline() + "'" +
@@ -585,9 +692,12 @@ public class Board extends ModelBase {
             ", hardware='" + getHardware() + "'" +
             ", boardOperations='" + getBoardOperations() + "'" +
             ", hardwardId='" + getHardwardId() + "'" +
+            ", nextQueueOperation='" + getNextQueueOperation() + "'" +
             "}";
     }
+    
 
+   
 
 
    

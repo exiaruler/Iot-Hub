@@ -90,6 +90,14 @@ public class SchedulerTask{
         queue.removeIf(rec ->(rec.getScheduledTime().equals(dt)|| rec.getScheduledTime().isBefore(dt))&& rec.getBoard() == boardId||rec.getSystemTask()&&rec.getBoard()==boardId);
         return filterList;
     }
+    // delete tasks that match board id
+    public void deleteQueueByBoard(long boardId){
+        queue.removeIf(rec ->(rec.getBoard() == boardId));
+    }
+    // delete tasks by board id and device id
+    public void deleteQueueByDevice(long boardId,long deviceId){
+        queue.removeIf(rec ->(rec.getBoard() == boardId&&rec.getDeviceId()==deviceId));
+    }
     public BoardTask boardTaskToObject(String json){
         BoardTask tsk=null;
         ObjectMapper mapper = new ObjectMapper();

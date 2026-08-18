@@ -8,7 +8,7 @@ interface Props{
     width?:any,
     rowSelect?:boolean;
     children?:Array<ReactNode>;
-    results:Array<Object>;
+    results:Array<Record<string,any>>;
     others?:any;
     idKey:string;
     onClick?:CallableFunction;

@@ -14,7 +14,7 @@ import com.scheduler.Base.Exception.ValidationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
+    // form validation
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<Object> handleServiceException(ValidationException ex) {
         Map<String, Object> responseBody = new LinkedHashMap<>();
@@ -34,4 +34,6 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
     }
+    // not found
+    
 }

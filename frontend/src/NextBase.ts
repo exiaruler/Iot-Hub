@@ -15,7 +15,7 @@ interface requestResponse{
     ok:boolean;
 }
 export type ObjectRecord = Record<string, any> | null;
-export type ObjectArray = ObjectRecord[];
+export type ObjectArray = NonNullable<ObjectRecord>[];
 // override class
 export class NextBase extends Util{
     

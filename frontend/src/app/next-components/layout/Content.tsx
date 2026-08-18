@@ -22,6 +22,8 @@ export interface ContentRef {
     convertMillisecondsToTimeString:(mills:number)=>string;
     updateArrayByIndex:(data:ObjectRecord,index:number,array:ObjectArray)=>ObjectArray;
     pushToArray:(data:ObjectRecord,array:ObjectArray)=>ObjectArray;
+    filteredArrayByDateTime:(array:ObjectArray,key:string)=>ObjectArray;
+    passDateTime:(dateTime:Date)=>boolean;
     login: boolean;
     user: Record<string, any>;
     location: string|null;
@@ -35,7 +37,6 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     const user = useSelector((state:ObjectRecord) => state!.login);
     const pages = useSelector((state:ObjectRecord) => state!.page.pages);
     const util = new NextBase();
-    //const nextBase = new NextBase();
     const router=useRouter();
 
     const location = usePathname();
@@ -46,10 +47,10 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
             sessionStorage.setItem(util.originUrl + "-en", key);
         },
         updateArrayByIndex(data:ObjectRecord,index:number,array:ObjectArray): ObjectArray {
-            return [...array.slice(0, index), data, ...array.slice(index + 1)];
+            return [...array.slice(0, index), data, ...array.slice(index + 1)] as ObjectArray;
         },
         pushToArray(data:ObjectRecord,array:ObjectArray){
-            return [...array,data];
+            return [...array,data] as ObjectArray;
         },
         checkKey: () => {
             return sessionStorage.getItem(util.originUrl + "-en");
@@ -70,8 +71,24 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
         getQueryField:(field:string)=>{
             const query= new URLSearchParams(window.location.search);
             return query.get(field);
-        }
-        ,
+        },
+        passDateTime:(dateTime:Date):boolean=>{
+            return passDateTime(dateTime);
+        },
+        filteredArrayByDateTime:(array:ObjectArray,key:string):ObjectArray=>{
+            const filteredQueue = array.filter((q:ObjectRecord)=>{
+            return q?.[key] == null || passDateTime(q?.[key]);
+            });
+            return filteredQueue;
+        },
+        convertObjectArrayToArray:(obj:ObjectArray):Record<string, any>[]=>{
+            if(obj==null) return [];
+            const arr:Record<string, any>[]=[];
+            obj.forEach((ele:ObjectRecord)=>{
+                if(ele!=null) arr.push(ele);
+            });
+            return arr;
+        },
         convertMiliSecondsToTime:(mills:number):{ hours: number; minutes: number; seconds: number }=>{
             const totalSeconds = Math.floor(mills / 1000);
             const seconds = totalSeconds % 60;
@@ -91,7 +108,7 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
         pages,
         router
     }));
-
+    
     return (
             <Container>
             {props.children}
@@ -99,7 +116,16 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     );
 });
 export default Content;
-
+function passDateTime(dateTime: Date | null): boolean {
+    if (dateTime !== null) {
+        const dt = new Date();
+        const compareDt = new Date(dateTime);
+        if (dt > compareDt) {
+            return true;
+        }
+    }
+    return false;
+}
 function convertMiliSecondsToTime(mills: number): { hours: any; minutes: any; seconds: any; } {
     const totalSeconds = Math.floor(mills / 1000);
     const seconds = totalSeconds % 60;

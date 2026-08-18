@@ -65,7 +65,7 @@ export default class ModalBox extends Component<modalContent,State>{
         }
         <ButtonComponent caption={"Close"} size={undefined} type={'button'} onClick={()=>this.close()}/>
         {!this.props.hideSubmit?
-        <ButtonComponent caption={this.state.caption} size={undefined} type={'button'} onClick={(event:any)=>this.submitHandle(event)}/>
+        <ButtonComponent caption={this.props.submitCaption || 'Submit'} size={undefined} type={'button'} onClick={(event:any)=>this.submitHandle(event)}/>
         :null}
         </ModalFooter>
         </Modal>

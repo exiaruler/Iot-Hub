@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.Service.BaseService;
-import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
 import com.scheduler.app.backend.Hardware.Service.HardwareService;
@@ -68,7 +67,7 @@ public class BoardService extends BaseService<Board, Long> {
         boolean existingBoard = entity.getId() > 0 && boardRepo.existsById(entity.getId());
         String name = isBlank(entity.getName()) ? entity.getName() : entity.getName().trim();
         String boardId = entity.getBoardId();
-
+        
         if (!existingBoard) {
             entity.setName(name);
             if (getDataInt("select count(name) from board where name=" + quoteParam(name)) > 0) {
@@ -84,7 +83,6 @@ public class BoardService extends BaseService<Board, Long> {
                 errors.put("hardwareId", "Hardware does not exists");
             }
             if (!errors.isEmpty()) throw new ValidationException(errors, null);
-            return;
         }
 
         long id = entity.getId();
@@ -112,34 +110,37 @@ public class BoardService extends BaseService<Board, Long> {
         String devWsUrl = entity.getDevWsUrl();
         long offline = entity.getOffline();
         boolean restartTimeout = entity.getRestartTimeout();
-
-        entity.setBoardKey(persistedBoard.getBoardKey());
-        entity.setSsid(persistedBoard.getSsid());
-        entity.setMacAddress(persistedBoard.getMacAddress());
-        entity.setIp(persistedBoard.getIp());
-        entity.setStatus(persistedBoard.getStatus());
-        entity.setArest(persistedBoard.getArest());
-        entity.setArestCommand(persistedBoard.getArestCommand());
-        entity.setSocket(persistedBoard.getSocket());
-        entity.setPeriodicCheck(persistedBoard.getPeriodicCheck());
-        entity.setRamUsage(persistedBoard.getRamUsage());
-        entity.setActivated(persistedBoard.getActivated());
-        entity.setWebsocketId(persistedBoard.getWebsocketId());
-        entity.setLastConnectDateTime(persistedBoard.getLastConnectDateTime());
-        entity.setTimeout(persistedBoard.getTimeout());
-        entity.setTasksExecuted(persistedBoard.getTasksExecuted());
-        entity.setDevice(persistedBoard.getDevice());
-        entity.setSection(persistedBoard.getSection());
-        entity.setHardware(persistedBoard.getHardware());
-        entity.setBoardOperations(persistedBoard.getBoardOperations());
-        entity.setHardwardId(persistedBoard.getHardwardId());
-        entity.setName(name);
-        entity.setBoardId(boardId.trim());
-        entity.setOffline(offline);
-        entity.setRestartTimeout(restartTimeout);
-        entity.setDevMode(devMode);
-        entity.setDevServerUrl(devMode ? devServerUrl.trim() : persistedBoard.getDevServerUrl());
-        entity.setDevWsUrl(devMode ? devWsUrl.trim() : persistedBoard.getDevWsUrl());
+        if(persistedBoard!=null){
+            entity.setBoardKey(persistedBoard.getBoardKey());
+            entity.setSsid(persistedBoard.getSsid());
+            entity.setMacAddress(persistedBoard.getMacAddress());
+            entity.setIp(persistedBoard.getIp());
+            entity.setStatus(persistedBoard.getStatus());
+            entity.setArest(persistedBoard.getArest());
+            entity.setArestCommand(persistedBoard.getArestCommand());
+            entity.setSocket(persistedBoard.getSocket());
+            entity.setPeriodicCheck(persistedBoard.getPeriodicCheck());
+            entity.setRamUsage(persistedBoard.getRamUsage());
+            entity.setActivated(persistedBoard.getActivated());
+            entity.setWebsocketId(persistedBoard.getWebsocketId());
+            entity.setLastConnectDateTime(persistedBoard.getLastConnectDateTime());
+            entity.setTimeout(persistedBoard.getTimeout());
+            entity.setTasksExecuted(persistedBoard.getTasksExecuted());
+            entity.setDevice(persistedBoard.getDevice());
+            entity.setSection(persistedBoard.getSection());
+            entity.setHardware(persistedBoard.getHardware());
+            entity.setBoardOperations(persistedBoard.getBoardOperations());
+            entity.setHardwardId(persistedBoard.getHardwardId());
+            entity.setName(name);
+            if(persistedBoard.getMillis()>entity.getMillis()) entity.setMillis(persistedBoard.getMillis());
+            if(persistedBoard.getHeap()>entity.getHeap()) entity.setHeap(persistedBoard.getHeap());
+            entity.setBoardId(boardId.trim());
+            entity.setOffline(offline);
+            entity.setRestartTimeout(restartTimeout);
+            entity.setDevMode(devMode);
+            entity.setDevServerUrl(devMode ? devServerUrl.trim() : persistedBoard.getDevServerUrl());
+            entity.setDevWsUrl(devMode ? devWsUrl.trim() : persistedBoard.getDevWsUrl());
+        }
     }
 
     @Override
@@ -148,6 +149,11 @@ public class BoardService extends BaseService<Board, Long> {
             entity.setBoardId(genereateBoardId(entity.getId()));
             boardRepo.save(entity);
         }
+    }
+    @Override
+    protected void afterFindById(Long id, Board entity) {
+        // retrieve next queue operation for the board and set it in the entity
+        entity.setNextQueueOperation(boardQueueService.getNextQueueOperation(id));
     }
     // socket board add
     public Board addBoardSocket(String name,long hardwareObj,String boardUniqueId){
@@ -163,7 +169,7 @@ public class BoardService extends BaseService<Board, Long> {
     }
  
     public Board updateBoardObject(Board entry){
-        return boardRepo.save(entry);
+        return save(entry);
     }
     @Transactional
     public void offlineBoard(){
@@ -183,9 +189,9 @@ public class BoardService extends BaseService<Board, Long> {
    
     // occasional routine check
     @Transactional
-    public DeviceCheck routineCheck(long id,int ram,String ip){
+    public DeviceCheck routineCheck(long id,int ram,String ip,int heap,long millis){
         DeviceCheck check=null;
-        Board boardExist=boardRepo.findById(id).get();
+        Board boardExist=this.findById(id);
         if(boardExist!=null){
             // if board is offline within board period and restart enabled, reset board
             // else restart routine tasks
@@ -197,13 +203,14 @@ public class BoardService extends BaseService<Board, Long> {
                 scheduleService.startRoutineSchedule(boardExist);
             }
             boardExist.setLastConnectDateTime(dt);
-            
+            boardExist.setHeap(heap);
+            boardExist.setMillis(millis);
             boardExist.setRamUsage(ram);
             if(boardExist.getIp()!=ip&&ip!="") boardExist.setIp(ip);
             check=createDeviceCheck(boardExist);
-            boardRepo.save(boardExist);
+            save(boardExist);
             List <BoardTaskSerial> taskLists=new ArrayList<>();
-            List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(boardExist.getId());
+            List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(boardExist.getId(),boardExist);
             if(scheduledTasks.size()>0)taskLists=scheduledTasks;
             //System.out.println(taskLists.size());
             check.setTasks(taskLists);
@@ -214,22 +221,28 @@ public class BoardService extends BaseService<Board, Long> {
     
     // when board first powered on
     @Transactional
-    public BoardLogin startup(BoardRegister register,String ip,int ram,String ssid,String macAddress,int freeHeap,int heap,int systemTotalTask,int taskTotal,int totalQueue,int millis){
+    public BoardLogin startup(BoardRegister register,String ip,int ram,String ssid,String macAddress,int freeHeap,int heap,int systemTotalTask,int taskTotal,int totalQueue,long millis){
         BoardLogin check=null;
         String boardId=register.getBoardId().trim();
-        Board exist=boardRepo.findBoardByBoardId(boardId);
+        long boardIdLong=getDataLong("select id from board where board_id="+quoteParam(boardId));
+        Board exist=this.findById(boardIdLong);
         if(exist!=null){
             Instant dt=Instant.now();
             exist.setLastConnectDateTime(dt);
+            exist.setLastLoginDateTime(dt);
             taskService.purgeOldTasks(exist.getId());
             // verify password
             check=createBoardLogin(exist);
             if(exist.getIp()!=ip) exist.setIp(ip);
             exist.setRamUsage(ram);
+            exist.setHeap(freeHeap);
+            exist.setHeapTotal(heap);
+            exist.setMillis(millis);
             if(exist.getSsid()==null||exist.getSsid().equals("")||!exist.getSsid().equals(ssid)) exist.setSsid(ssid);
             if(exist.getMacAddress()==null||exist.getMacAddress().equals("")||!exist.getMacAddress().equals(macAddress)) exist.setMacAddress(macAddress);
             // activate device to register
             if(!exist.getActivated()){
+                exist.setActivatedDateTime(dt);
                 exist.setActivated(true);
             }
             executeQuery("delete from board_queue where board="+exist.getId());
@@ -239,10 +252,10 @@ public class BoardService extends BaseService<Board, Long> {
                 int startUpCount=getDataInt("select count(id) from schedule where startup=true and device_id in ("+quoteParam(devicesId)+")");
             }
             scheduleService.startStartupSchedule(exist);
-            Board update=boardRepo.save(exist);
+            Board update=save(exist);
             BoardTask boTsk=commandService.getRequestConnection();
             List <BoardTaskSerial> taskLists=new ArrayList<>();
-            List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(exist.getId());
+            List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(exist.getId(),update);
             if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
             // add htp request connection command
             if(boTsk!=null&&!exist.getDevMode()){
@@ -284,9 +297,9 @@ public class BoardService extends BaseService<Board, Long> {
     @Transactional
     public Board setWsConnection(long id,String sessionId,int ram,boolean updateLastConnect){
         Board boardRec=null;
-        Optional<Board> findBoard=boardRepo.findById(id);
-        if(findBoard.isPresent()){
-            boardRec=findBoard.get();
+        Board findBoard=this.findById(id);
+        if(findBoard!=null){
+            boardRec=findBoard;
             boardRec.setWebsocketId(sessionId);
             Instant dt=Instant.now();
             if(updateLastConnect){
@@ -296,7 +309,7 @@ public class BoardService extends BaseService<Board, Long> {
                 boardRec.setRamUsage(ram);
             }
             
-            boardRec=boardRepo.save(boardRec);
+            boardRec=save(boardRec);
         }
         return boardRec;
     }
@@ -341,7 +354,9 @@ public class BoardService extends BaseService<Board, Long> {
         return hardware;
     }
     public Board getBoardByBoardId(String id){
-        return boardRepo.findBoardByBoardId(id);
+        long idLong=getDataLong("select id from board where board_id="+quoteParam(id));
+        if( idLong<0) return null;
+        return this.findById(idLong);
     }
     
 }

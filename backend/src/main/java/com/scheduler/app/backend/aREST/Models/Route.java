@@ -1,5 +1,6 @@
 package com.scheduler.app.backend.aREST.Models;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -99,19 +100,19 @@ public class Route extends ModelBase{
         Mode defMo=mode.stream().filter(mo->mo.getDefaultMode()).findFirst().orElse(null);
         if(defMo!=null){
             this.defaultModeId=defMo.getId();
+            this.selectedModeId=defMo.getId();
+            this.selectedMode=defMo;
         }
     }
     @PrePersist
     private void prePersist() {
         this.calculateCurrent();
-        this.setDefaultMode();
     }
     @PreUpdate
     protected void preUpdate() {
-        this.setDefaultMode();
     }
     
-    public List<BoardTask> cycleModeCalculate(Mode mode) {
+    public List<BoardTask> cycleModeCalculateForward(Mode mode) {
         List<BoardTask> cycleModes=new ArrayList<>();
         if(selectedMode!=null){
             int selIndex=this.mode.indexOf(selectedMode);
@@ -134,8 +135,35 @@ public class Route extends ModelBase{
                     }
                 }
             }
-        }else if(defaultMode!=null){
+        }
+        return cycleModes;
+    }
+    public List<BoardTask> cycleModeCalculateBackward(Mode mode) {
+        List<BoardTask> cycleModes = new ArrayList<>();
+        if (selectedMode != null) {
+            int selIndex = this.mode.indexOf(selectedMode);
+            List<Mode> subFirst = this.mode.subList(0, selIndex + 1);
+            if (subFirst.contains(mode)) {
+                List<Mode> reversedSub = new ArrayList<>(this.mode.subList(this.mode.indexOf(mode) + 1, selIndex + 1));
+                Collections.reverse(reversedSub);
+                cycleModes = reversedSub.stream().filter(m -> m.getBoardAction() != null).map(m -> m.getBoardAction()).toList();
+            } else {
+                // add sub first (walking backward from selIndex to start)
+                List<Mode> firstPart = new ArrayList<>(this.mode.subList(0, selIndex + 1));
+                Collections.reverse(firstPart);
+                cycleModes.addAll(firstPart.stream().filter(m -> m.getBoardAction() != null).map(m -> m.getBoardAction()).toList());
 
+                List<Mode> subSecond = new ArrayList<>(this.mode.subList(selIndex + 1, this.mode.size()));
+                Collections.reverse(subSecond);
+                for (Mode m : subSecond) {
+                    if (!m.equals(mode)) {
+                        if (m.getBoardAction() != null) cycleModes.add(m.getBoardAction());
+                    } else {
+                        cycleModes.add(m.getBoardAction());
+                        break;
+                    }
+                }
+            }
         }
         return cycleModes;
     }

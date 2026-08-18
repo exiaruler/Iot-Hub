@@ -133,6 +133,9 @@ public class BoardQueueService extends Base{
         }
         return queue;
     }
+    public Instant getNextQueueOperation(long boardId){
+        return boardQueueRepo.getNextQueueOperation(boardId);
+    }
     // remove expired tasks
     @Transactional
     public void removeExpired(){

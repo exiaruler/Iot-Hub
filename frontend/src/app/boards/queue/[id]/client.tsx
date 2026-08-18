@@ -45,9 +45,11 @@ export default function Client(props:Props){
     }
     const updateQueue=()=>{
         const dt=new Date();
+        const content=contentRef.current;
         const filteredQueue = queue.filter((q:ObjectRecord)=>{
-            return q?.expiredDateTime == null || new Date(q.expiredDateTime) > dt;
+            return q?.expiredDateTime == null || !content?.passDateTime(q?.expiredDateTime);
         });
+        
         setQueue(filteredQueue);
     }
     const displayExpiry=(expriy:Date)=>{

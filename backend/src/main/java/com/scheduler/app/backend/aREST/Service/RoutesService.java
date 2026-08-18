@@ -134,10 +134,18 @@ public class RoutesService extends BaseService<Route, Long> {
             }
             if(errors.size()>0) throw new ValidationException(errors, null);
             entity.calculateCurrent();
-            entity.setDefaultMode();
+            //entity.setDefaultMode();
             entity.setDevice(rec.getDevice());
         }
 
+    }
+    @Override
+    protected void afterSave(Route entity) {
+        // TODO Auto-generated method stub
+        if(entity.getSelectedModeId()==0){
+            entity.setDefaultMode();
+            routeRepo.save(entity);
+        }
     }
     // add route and mode socket
     public Route addRouteandModes(Route route,String deviceId){

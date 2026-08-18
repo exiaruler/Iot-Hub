@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if(req.query.url){
         route=req.query.url.toString();
     }
-    if(req.body){
+    if(JSON.stringify(req.body)!=="{}"){
         body=req.body;
     }
     if(route!=""){

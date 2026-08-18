@@ -36,7 +36,7 @@ export default function Device(props:Props){
         const content=contentRef.current!;
         if(selectedRow!=null){
             const id=selectedRow.id;
-            const request=await content.util.fetchClientQuery('/route/delete-route/'+id,'DELETE');
+            const request=await content.util.fetchClientQuery('/route/delete-record/'+id,'DELETE');
             if(request.status==200&&props.deleteFunctionMethodAfter){
                 props.deleteFunctionMethodAfter(deviceIndex,id);
             }
@@ -61,11 +61,15 @@ export default function Device(props:Props){
                 <TabComponent title={"Overview"} eventKey={"overview"}>
                 <Row>
                 <Col>
+                <Row>
+                <Col md={3} xs={9}>
                 {
                     props.device?.routes.map((rou:ObjectRecord,key:number)=>
                         <TextInput key={key} readOnly={true} value={rou?.selectedMode?.mode} label={rou?.route} rows={0}/>
                     )
                 }
+                </Col>    
+                </Row>
                 <RegularButton caption={"Update Device"} size={undefined} type={undefined}/>
                 <RegularButton caption={"Delete Device"} onClick={()=>props.deleteDeviceMethod(props.index)} size={undefined} type={undefined}/>
                 </Col>

@@ -1,0 +1,6 @@
+ALTER TABLE board
+    ADD COLUMN heap INT NOT NULL DEFAULT 0,
+    ADD COLUMN heap_total INT NOT NULL DEFAULT 0,
+    ADD COLUMN millis BIGINT NOT NULL DEFAULT 0,
+    ADD COLUMN last_login_date_time DATETIME(6) NULL,
+    ADD COLUMN activated_date_time DATETIME(6) NULL;

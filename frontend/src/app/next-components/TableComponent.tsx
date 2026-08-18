@@ -1,12 +1,11 @@
 'use client'
 import checked from '../../components/assets/checked.png';
 import Image from 'next/image';
-import TableComponentClass from "@/components/Table/TableComponentClass";
-import { Props as TableProps } from '@/component-base/TableBase';
+import TableBase, { Props as TableProps } from '@/component-base/TableBase';
 import { ObjectArray, ObjectRecord } from '@/NextBase';
 import { Table } from 'react-bootstrap';
 
-export default class TableComponent extends TableComponentClass{
+export default class TableComponent extends TableBase{
     //declare props:Props;
     print(json:any,key:string,indexKey:number,size?:any,functionDisplay?:CallableFunction){
         let value=json[key];
