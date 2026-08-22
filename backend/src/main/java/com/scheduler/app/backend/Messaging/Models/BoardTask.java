@@ -95,6 +95,8 @@ public class BoardTask extends TaskModelBase {
     // task that run in the sysQueue
     @Column
     private boolean systemTask=false;
+    // system delay calculate for delay based upon device configuration for system task
+    //private boolean systemCalculate;
     // background variables
     @JsonManagedReference("boardtask-variable")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "task", cascade = CascadeType.ALL)

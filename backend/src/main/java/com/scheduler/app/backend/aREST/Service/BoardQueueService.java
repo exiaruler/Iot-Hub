@@ -3,12 +3,16 @@ package com.scheduler.app.backend.aREST.Service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import com.scheduler.Base.Base;
+import com.scheduler.Base.ModelBase.TaskEventId;
+import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.BoardQueue;
@@ -20,7 +24,7 @@ import com.scheduler.app.backend.aREST.Repo.BoardQueueRepo;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 
 @Service
-public class BoardQueueService extends Base{
+public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
 
     public final BoardQueueRepo boardQueueRepo;
     public final BoardRepo boardRepo;
@@ -29,8 +33,41 @@ public class BoardQueueService extends Base{
         this.boardQueueRepo = boardQueueRepo;
         this.boardRepo = boardRepo;
     }
+    @Override
+    protected void beforeSave(BoardQueue entity, Map<String, String> errors, Map<String, String> warnings) {
+        // TODO Auto-generated method stub
+        if(this.repository().existsById(entity.getId())){
+            /* 
+            if(entity.getExpiredDateTime()==null&&entity.getSystemTask()&&entity.getTaskRepeat()&&entity.getNextOccurance()!=null){
+                Instant curr=Instant.now().plusMillis(entity.getDelay());
+                if(curr!=null){
+                    entity.setNextOccurance(curr);
+                }
+            }
+            */
+        }
+    }
+  
+    // handle board queue update and deletion
+    public void updateQueue(long id,long boardId,Instant dataTimeNow){
+        BoardQueue que=boardQueueRepo.getQueueByTaskId(boardId,id);
+        if(que!=null){
+            if(que.getTaskRepeat()&&que.getExpiredDateTime()==null){
+                    if(que.getExpiredDateTime()==null&&que.getSystemTask()&&que.getTaskRepeat()&&que.getNextOccurance()!=null){
+                    Instant curr=dataTimeNow.plusMillis(que.getDelay());
+                    if(curr!=null){
+                        que.setNextOccurance(curr);
+                    }
+                }
+                this.save(que);
+            }else
+            {
+                this.delete(que.getId());
+            }
+        }
+    }
     // add to queue through BoardTask
-    public BoardQueue addToQueueBoardTask(BoardTask task,Board board,Device device){
+    public BoardQueue addToQueueBoardTask(BoardTask task,Board board,Device device,Instant currentDateTime){
         BoardQueue rec=null;
         if(task.getTask().equals("schedule")){
             Boolean taskRepeat=false;
@@ -49,7 +86,9 @@ public class BoardQueueService extends Base{
                 // calculate expiry
                 expiry=calculateExpiry(task.getDelayInterval());
             }
-            rec=new BoardQueue(board, device, task.getTaskId(), taskName(task.getMethod()), task.getSystemTask(), true, true, task.getSystemTask(), taskRepeat, task.getDelayInterval(), false, expiry, jsonStr, null, null);
+            rec=new BoardQueue(board, device, task.getTaskId(), taskName(task.getMethod()), task.getSystemTask(), true, true, task.getSystemTask(), taskRepeat, task.getDelayInterval(), false, expiry, null,jsonStr, null, null);
+            if(rec.getExpiredDateTime()==null&&rec.getSystemTask()&&rec.getTaskRepeat())rec.setNextOccurance(currentDateTime.plusMillis(task.getDelayInterval()));  
+
             rec=boardQueueRepo.save(rec);
         }
         return rec;
@@ -75,7 +114,7 @@ public class BoardQueueService extends Base{
                         // calculate expiry
                         expiry=calculateExpiry(boardTask.getDelayInterval());
                     }
-                    rec=new BoardQueue(board, device, boardTask.getTaskId(), taskName(boardTask.getMethod()), boardTask.getSystemTask(), true, true, boardTask.getSystemTask(), taskRepeat, boardTask.getDelayInterval(), false, expiry, jsonStr, null, null);
+                    rec=new BoardQueue(board, device, boardTask.getTaskId(), taskName(boardTask.getMethod()), boardTask.getSystemTask(), true, true, boardTask.getSystemTask(), taskRepeat, boardTask.getDelayInterval(), false, expiry, null,jsonStr, null, null);
                     rec=boardQueueRepo.save(rec);
                     
                 }
@@ -109,7 +148,7 @@ public class BoardQueueService extends Base{
                         // calculate expiry
                         expiry=calculateExpiry(boardTask.getDelayInterval());
                     }
-                    rec=new BoardQueue(board, device, boardTask.getTaskId(), taskName(boardTask.getMethod()), boardTask.getSystemTask(), true, true, boardTask.getSystemTask(), taskRepeat, boardTask.getDelayInterval(), false, expiry, jsonStr, null, null);
+                    rec=new BoardQueue(board, device, boardTask.getTaskId(), taskName(boardTask.getMethod()), boardTask.getSystemTask(), true, true, boardTask.getSystemTask(), taskRepeat, boardTask.getDelayInterval(), false, expiry, null,jsonStr, null, null);
                     rec=boardQueueRepo.save(rec);
                 }
             }
@@ -150,5 +189,11 @@ public class BoardQueueService extends Base{
     private String taskName(String method){
         return "Task Process: "+ method;
     }
+    @Override
+    protected JpaRepository<BoardQueue, TaskEventId> repository() {
+        // TODO Auto-generated method stub
+        return boardQueueRepo;
+    }
+  
 
 }

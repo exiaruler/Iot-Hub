@@ -24,7 +24,7 @@ public class Firmware extends ModelBase{
     private String fileLinkC;
 
     private void createVersion(){
-        String [] arr=version.split(".");
+        String [] arr=version.split("\\.");
         if(arr.length==3){
             this.majorVersion=Integer.parseInt(arr[0]);
             this.minorVersion=Integer.parseInt(arr[1]);

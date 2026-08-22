@@ -23,7 +23,7 @@ export default function Client(props:Props){
         const content=contentRef.current;
         if(content){
             const filteredQueue=content.filteredArrayByDateTime(queue,"scheduledTime");
-            if(filteredQueue.length!==queue.length) setQueue(filteredQueue);
+            setQueue(filteredQueue);
         }
     }
     useEffect(()=>{

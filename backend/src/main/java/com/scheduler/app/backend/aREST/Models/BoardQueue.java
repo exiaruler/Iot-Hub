@@ -1,20 +1,26 @@
 package com.scheduler.app.backend.aREST.Models;
 import java.time.Instant;
 import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
-
-import org.hibernate.annotations.ColumnDefault;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.scheduler.Base.ModelBase.BoardEventModelBase;
 
 // board queue- store board operations
 @Entity
+@Table(indexes = {
+    @Index(name = "idx_board_task_id", columnList = "board,boardTaskId", unique = false)
+})
 public class BoardQueue extends BoardEventModelBase{
     // board
     @ManyToOne
@@ -55,7 +61,10 @@ public class BoardQueue extends BoardEventModelBase{
     private boolean expired;
     // expired date and time
     @Column
-    Instant expiredDateTime;
+    private Instant expiredDateTime;
+    // next occurance date and time
+    @Column
+    private Instant nextOccurance;
     // command json string
     @Lob
     @Column(columnDefinition ="MEDIUMTEXT")
@@ -78,14 +87,27 @@ public class BoardQueue extends BoardEventModelBase{
         this.initId(this.getBoard().getId(),deviceId);
         if(this.getRoute()!=null) delay=this.getRoute().getBoardAction().getDelayInterval();
         if(this.getMode()!=null) delay=this.getMode().getBoardAction().getDelayInterval();
-        
+        if(this.expiredDateTime==null&&systemTask&&this.taskRepeat)this.nextOccurance=Instant.now().plusMillis(this.delay);   
+    }
+    @PreUpdate
+    protected void preUpdate(){
+        if(expiredDateTime==null&&systemTask&&this.taskRepeat&&nextOccurance!=null){
+
+            this.nextOccurance=this.nextOccurance.plusMillis(this.delay);
+        }
+    }
+    @PostLoad
+    protected void postLoad(){
+        if(this.systemTask&&!this.taskRepeat&&this.device!=null&&nextOccurance==null){
+            this.nextOccurance=this.expiredDateTime;
+        }
     }
 
 
     public BoardQueue() {
     }
 
-    public BoardQueue(Board board, Device device, long boardTaskId, String taskName, boolean systemTask, boolean processed, boolean inBoardQueue, boolean systemQueue, boolean taskRepeat, long delay, boolean expired, Instant expiredDateTime, String commandJsonString, Route route, Mode mode) {
+    public BoardQueue(Board board, Device device, long boardTaskId, String taskName, boolean systemTask, boolean processed, boolean inBoardQueue, boolean systemQueue, boolean taskRepeat, long delay, boolean expired, Instant expiredDateTime, Instant nextOccurance, String commandJsonString, Route route, Mode mode) {
         this.board = board;
         this.device = device;
         this.boardTaskId = boardTaskId;
@@ -98,10 +120,12 @@ public class BoardQueue extends BoardEventModelBase{
         this.delay = delay;
         this.expired = expired;
         this.expiredDateTime = expiredDateTime;
+        this.nextOccurance = nextOccurance;
         this.commandJsonString = commandJsonString;
         this.route = route;
         this.mode = mode;
     }
+
 
     public Board getBoard() {
         return this.board;
@@ -322,6 +346,16 @@ public class BoardQueue extends BoardEventModelBase{
         return this;
     }
 
+    public Instant getNextOccurance() {
+        return this.nextOccurance;
+    }
+
+    public void setNextOccurance(Instant nextOccurance) {
+        this.nextOccurance = nextOccurance;
+    }
+
+
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -330,13 +364,14 @@ public class BoardQueue extends BoardEventModelBase{
             return false;
         }
         BoardQueue boardQueue = (BoardQueue) o;
-        return Objects.equals(board, boardQueue.board) && Objects.equals(device, boardQueue.device) && boardTaskId == boardQueue.boardTaskId && Objects.equals(taskName, boardQueue.taskName) && systemTask == boardQueue.systemTask && processed == boardQueue.processed && inBoardQueue == boardQueue.inBoardQueue && systemQueue == boardQueue.systemQueue && taskRepeat == boardQueue.taskRepeat && delay == boardQueue.delay && expired == boardQueue.expired && Objects.equals(expiredDateTime, boardQueue.expiredDateTime) && Objects.equals(commandJsonString, boardQueue.commandJsonString) && Objects.equals(route, boardQueue.route) && Objects.equals(mode, boardQueue.mode);
+        return Objects.equals(board, boardQueue.board) && Objects.equals(device, boardQueue.device) && boardTaskId == boardQueue.boardTaskId && Objects.equals(taskName, boardQueue.taskName) && systemTask == boardQueue.systemTask && processed == boardQueue.processed && inBoardQueue == boardQueue.inBoardQueue && systemQueue == boardQueue.systemQueue && taskRepeat == boardQueue.taskRepeat && delay == boardQueue.delay && expired == boardQueue.expired && Objects.equals(expiredDateTime, boardQueue.expiredDateTime) && Objects.equals(nextOccurance, boardQueue.nextOccurance) && Objects.equals(commandJsonString, boardQueue.commandJsonString) && Objects.equals(route, boardQueue.route) && Objects.equals(mode, boardQueue.mode);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(board, device, boardTaskId, taskName, systemTask, processed, inBoardQueue, systemQueue, taskRepeat, delay, expired, expiredDateTime, commandJsonString, route, mode);
+        return Objects.hash(board, device, boardTaskId, taskName, systemTask, processed, inBoardQueue, systemQueue, taskRepeat, delay, expired, expiredDateTime, nextOccurance, commandJsonString, route, mode);
     }
+   
 
     @Override
     public String toString() {
@@ -353,6 +388,7 @@ public class BoardQueue extends BoardEventModelBase{
             ", delay='" + getDelay() + "'" +
             ", expired='" + isExpired() + "'" +
             ", expiredDateTime='" + getExpiredDateTime() + "'" +
+            ", nextOccurance='" + getNextOccurance() + "'" +
             ", commandJsonString='" + getCommandJsonString() + "'" +
             ", route='" + getRoute() + "'" +
             ", mode='" + getMode() + "'" +

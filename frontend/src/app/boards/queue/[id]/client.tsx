@@ -59,13 +59,19 @@ export default function Client(props:Props){
             output=dt.toLocaleTimeString()+" "+dt.toLocaleDateString();
 
         }
-        return output;
-        
+        return output; 
+    }
+    const displayTaskType=(expriy:Date)=>{
+        let output="Repeative";
+        if(expriy!=null){
+            output="Occurance";
+
+        }
+        return output; 
     }
     useEffect(()=>{
         setInterval(updateQueue,1000);
     },[])
-
     return(
         <Content ref={contentRef}>
         <Row>
@@ -79,9 +85,8 @@ export default function Client(props:Props){
         <TableComponentColumn key={"inBoardQueue"} columnName={"In Queue"}/>
         <TableComponentColumn key={"systemQueue"} columnName={"System Task"}/>
         <TableComponentColumn key={"delay"} columnName={"Occurrence"} functionDisplay={convertMillToDisplayTime}/>
-        <TableComponentColumn key={"expiredDateTime"} columnName={"Task Occurrence"} functionDisplay={displayExpiry}/>
-        <TableComponentColumn key={"createdDate"} columnName={"Created Date"} functionDisplay={convertDate}/>
-        <TableComponentColumn key={"createdDate"} columnName={"Created Time"} functionDisplay={convertTime}/>
+        <TableComponentColumn key={"nextOccurance"} columnName={"Task Occurrence"} functionDisplay={displayExpiry}/>
+        <TableComponentColumn key={"expiredDateTime"} columnName={"Task Type"} functionDisplay={displayTaskType}/>
         </TableComponent>
         </Col>
         </Row>

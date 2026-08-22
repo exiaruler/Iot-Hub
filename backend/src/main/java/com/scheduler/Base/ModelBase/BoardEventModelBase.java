@@ -17,7 +17,7 @@ public class BoardEventModelBase {
     private Instant updatedDate=Instant.now();
 
     public final void initId(long boardId,long deviceId){
-        this.setId(new TaskEventId(boardId, deviceId));
+        this.setId(new TaskEventId(boardId, deviceId,null));
     }
     @PreUpdate
     protected void onUpdate() {

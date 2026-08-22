@@ -22,7 +22,7 @@ export interface ContentRef {
     convertMillisecondsToTimeString:(mills:number)=>string;
     updateArrayByIndex:(data:ObjectRecord,index:number,array:ObjectArray)=>ObjectArray;
     pushToArray:(data:ObjectRecord,array:ObjectArray)=>ObjectArray;
-    filteredArrayByDateTime:(array:ObjectArray,key:string)=>ObjectArray;
+    filteredArrayByDateTime:(array:ObjectArray,key:string,condition?:boolean)=>ObjectArray;
     passDateTime:(dateTime:Date)=>boolean;
     login: boolean;
     user: Record<string, any>;
@@ -75,9 +75,9 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
         passDateTime:(dateTime:Date):boolean=>{
             return passDateTime(dateTime);
         },
-        filteredArrayByDateTime:(array:ObjectArray,key:string):ObjectArray=>{
+        filteredArrayByDateTime:(array:ObjectArray,key:string,condition:Boolean=false):ObjectArray=>{
             const filteredQueue = array.filter((q:ObjectRecord)=>{
-            return q?.[key] == null || passDateTime(q?.[key]);
+            return q?.[key] == null || condition==passDateTime(q?.[key]);
             });
             return filteredQueue;
         },

@@ -189,7 +189,7 @@ public class BoardService extends BaseService<Board, Long> {
    
     // occasional routine check
     @Transactional
-    public DeviceCheck routineCheck(long id,int ram,String ip,int heap,long millis){
+    public DeviceCheck routineCheck(long id,int ram,String ip,int heap,long millis,long tid){
         DeviceCheck check=null;
         Board boardExist=this.findById(id);
         if(boardExist!=null){
@@ -208,12 +208,17 @@ public class BoardService extends BaseService<Board, Long> {
             boardExist.setRamUsage(ram);
             if(boardExist.getIp()!=ip&&ip!="") boardExist.setIp(ip);
             check=createDeviceCheck(boardExist);
-            save(boardExist);
+            boardExist=this.save(boardExist);
+            
             List <BoardTaskSerial> taskLists=new ArrayList<>();
             List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(boardExist.getId(),boardExist);
             if(scheduledTasks.size()>0)taskLists=scheduledTasks;
             //System.out.println(taskLists.size());
             check.setTasks(taskLists);
+            if(tid>0){
+                // delete or update board queue
+                boardQueueService.updateQueue(tid, id,dt);
+            }
             
         }
         return check;
@@ -245,12 +250,14 @@ public class BoardService extends BaseService<Board, Long> {
                 exist.setActivatedDateTime(dt);
                 exist.setActivated(true);
             }
-            executeQuery("delete from board_queue where board="+exist.getId());
+            executeQuery("delete from board_queue where board_id="+exist.getId());
+            /* 
             // check if there are any startup tasks. if so add startup tasks to the scheduler for the board to process
             if(exist.getDevice().size()>0&&exist.getDevice()!=null){
                 String devicesId=Arrays.toString(deviceService.getDevicesById(exist.getId())).replace("[","").replace("]","");
                 int startUpCount=getDataInt("select count(id) from schedule where startup=true and device_id in ("+quoteParam(devicesId)+")");
             }
+            */
             scheduleService.startStartupSchedule(exist);
             Board update=save(exist);
             BoardTask boTsk=commandService.getRequestConnection();
@@ -263,9 +270,8 @@ public class BoardService extends BaseService<Board, Long> {
                 boTsk.setDelayInterval(60000);
                 boTsk.setRunTarget(0);
                 taskLists.add(new BoardTaskSerial(boTsk));
-                boardQueueService.addToQueueBoardTask(boTsk, update, null);
+                boardQueueService.addToQueueBoardTask(boTsk, update, null,dt);
             }
-            
             if(taskLists.size()>0&&taskLists.size()<50){
                 check.setTasks(taskLists);
             }else

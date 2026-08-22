@@ -3,6 +3,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,8 +85,8 @@ public class BoardController extends ControllerBase{
     // board routes
     // routine status check by http request
     @GetMapping(value="/status-check/{id}")
-    public ResponseEntity<DeviceCheck> routineCheck(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("free-heap")String heap,@RequestHeader("millis")String millis,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@PathVariable long id){
-        DeviceCheck check=boardService.routineCheck(id,Integer.parseInt(ram),ip,Integer.parseInt(heap),Long.parseLong(millis));
+    public ResponseEntity<DeviceCheck> routineCheck(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("free-heap")String heap,@RequestHeader("millis")String millis,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@PathVariable long id,@RequestParam(name="tid",defaultValue ="0")long tid){
+        DeviceCheck check=boardService.routineCheck(id,Integer.parseInt(ram),ip,Integer.parseInt(heap),Long.parseLong(millis),tid);
         return ResponseEntity.ok(check);
     }
 

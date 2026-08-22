@@ -219,7 +219,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
             String ip=boardIn.getIp();
             long boardId=boardIn.getBoard();
             int ram=boardIn.getRamSpace();
-            boardService.routineCheck(boardId,ram,ip,0,0);
+            boardService.routineCheck(boardId,ram,ip,0,0,0);
             if(task!=null){
                 BoardTask receiTask=sentMessages.get(boardId);
                 System.out.println(task.getTaskId());

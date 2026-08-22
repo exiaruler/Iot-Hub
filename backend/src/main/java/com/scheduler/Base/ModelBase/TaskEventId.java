@@ -22,12 +22,14 @@ public class TaskEventId implements Serializable {
     public TaskEventId() {
     }
 
-    public TaskEventId(long boardId, long deviceId) {
+    public TaskEventId(long boardId, long deviceId,Instant eventTime) {
         this.boardId = boardId;
         this.deviceId = deviceId;
-        this.eventTime = Instant.now();
+        if(eventTime!=null){
+            this.eventTime=eventTime;
+        }else this.eventTime = Instant.now();
     }
-
+    
     public long getBoardId() {
         return this.boardId;
     }
