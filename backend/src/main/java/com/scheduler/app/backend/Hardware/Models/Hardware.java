@@ -26,12 +26,12 @@ public class Hardware extends ModelBase {
     // pins
     @JsonManagedReference
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "hardware", cascade =CascadeType.ALL, orphanRemoval = true)
-    private List<HardwarePins> pins=new ArrayList<>();;
+    private List<HardwarePins> pins=new ArrayList<>();
     // boards that use this hardware model
     //@JsonManagedReference
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "hardware", cascade =CascadeType.ALL)
     @JsonIgnore
-    private List<Board> boardsUsed=new ArrayList<>();;
+    private List<Board> boardsUsed=new ArrayList<>();
 
 
     public Hardware() {

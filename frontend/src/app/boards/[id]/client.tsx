@@ -5,7 +5,7 @@ import TextInput from "@/app/next-components/input/TextInput"
 import TabComponent from "@/components/Tab/TabComponent"
 import TabGroup from "@/components/Tab/TabGroup"
 import { Row, Col, Stack } from "react-bootstrap"
-import { ReactNode, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import ConfirmButton from "@/components/Buttons/ConfirmButton"
 import AddForm from "./add-form"
 import FormModal from "@/app/next-components/modal/FormModal"
@@ -175,7 +175,8 @@ export default function Client(props:Props){
         <Row>
         <Col md={3} xs={9}>
         <TextInput label={"Board ID"}  rows={0} value={board?.boardId} readOnly={true}/>
-        <TextInput label={"Board Model"}  rows={0} value={hardware?.boardName} readOnly={true}/>
+        
+        <TextInput label={"Version"} value={board?.firmwareVersion} readOnly={true} rows={0}/>
         <TextInput label={"Local IP"}  rows={0} value={board?.ip} readOnly={true}/>
         </Col>
         <Col md={3} xs={9}>
@@ -208,6 +209,7 @@ export default function Client(props:Props){
         <TextInput label={"Mac Address"}  rows={0} value={board?.macAddress} readOnly={true}/>
         </Col>
         <Col md={6} xs={7}>
+        <TextInput label={"Board Model"}  rows={0} value={hardware?.boardName} readOnly={true}/>
         <TextInput label={"Created Date"}  rows={0} value={showDate(board?.createdDate)} readOnly={true}/>
         <TextInput label={"Login Date"}  rows={0} value={showDate(board?.lastLoginDateTime)} readOnly={true}/>
         <TextInput label={"Login Time"}  rows={0} value={showTime(board?.lastLoginDateTime)} readOnly={true}/>

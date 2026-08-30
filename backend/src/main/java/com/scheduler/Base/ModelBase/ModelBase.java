@@ -22,7 +22,7 @@ public class ModelBase{
     private Instant updatedDate=Instant.now();
 
     @PrePersist
-    protected void onCreate(){
+    protected void onCreateSuper(){
         if(this.getId()>0){
             this.setId(0);
         }
@@ -30,7 +30,7 @@ public class ModelBase{
         this.setUpdatedDate(Instant.now());
     }
     @PreUpdate
-    protected void onUpdate() {
+    protected void onUpdateSuper() {
         this.setUpdatedDate(Instant.now());
     }
     public ModelBase(){

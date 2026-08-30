@@ -1,21 +1,17 @@
 package com.scheduler.app.backend.aREST.Service;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.scheduler.Base.Base;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.Service.BaseService;
+import com.scheduler.app.backend.Background.Background;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
-import com.scheduler.app.backend.Firmware.Model.Firmware;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
@@ -146,6 +142,8 @@ public class RoutesService extends BaseService<Route, Long> {
             entity.setDefaultMode();
             routeRepo.save(entity);
         }
+        String boardLiveKey="board-live|"+entity.getDevice().getBoard().getId();
+        // Background.putGlobal(boardLiveKey,entity.getDevice().getBoard());
     }
     // add route and mode socket
     public Route addRouteandModes(Route route,String deviceId){

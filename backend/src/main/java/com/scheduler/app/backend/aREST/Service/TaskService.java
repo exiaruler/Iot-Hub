@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.scheduler.Base.Base;
 import com.scheduler.Base.Exception.ErrorException;
 import com.scheduler.Base.ModelBase.TaskEventId;
+import com.scheduler.app.backend.Background.Background;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.MessageUtil;
@@ -188,6 +189,11 @@ public class TaskService extends Base{
                     BoardTask tsk=commandService.getRequestConnection();
                     long delayTime=task.getSchedule().getTime();
                     BoardTask tempTask=new BoardTask(tsk);
+                    Object boardMilObj=Background.getGlobal("board-millis|"+boardId);
+                    long millis=0;
+                    if(boardMilObj!=null){
+                        millis=Long.class.cast(boardMilObj);
+                    }
                     tempTask.runTarget(1);
                     tempTask.setDelayInterval(delayTime);
                     tempTask.setVariable(new BoardVariable());

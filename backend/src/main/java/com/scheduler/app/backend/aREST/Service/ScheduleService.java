@@ -172,71 +172,8 @@ public class ScheduleService extends BaseService<Schedule, Long> {
         schedule.setId(id);
         return save(schedule);
     }
-    /* 
-    public Schedule addSchedule(String name,long time,boolean repeat,boolean startup,String url,long deviceId,long routeId,long modeId){
-        Schedule scheduleTask=new Schedule();
-        Task taskSche=new Task();
-        boolean hasMotor=false;
-        scheduleTask.setName(name);
-        scheduleTask.setTime(time);
-        // save task with device and route
-        if(deviceId!=0&&routeId!=0){
-            Device device=deviceService.getDevice(deviceId);
-            List <Schedule> deviceSchList=new ArrayList<>();
-            if(!device.getSchedules().isEmpty()){
-                deviceSchList=device.getSchedules();
-            } 
-            scheduleTask.setDevice(device);
-            if(startup){
-                scheduleTask.setStartup(startup);
-            }else
-            {
-                scheduleTask.setRepeatTask(repeat);
-            }
-            if(device!=null){
-                List <Route> routeList=device.getRoutes();
-                for(int i=0; i<routeList.size(); i++){
-                    long id=routeList.get(i).getId();
-                    if(routeId==id){
-                        Route route=routeList.get(i);
-                        scheduleTask.setRoute(route);
-                        if(route.getCommand()!=null&&route.getCommand().getHasMotor()) hasMotor=true;
-                        if(route.getModes()){
-                            Mode mode=routeService.getMode(modeId);
-                            if(mode!=null){
-                                scheduleTask.setModeValue(mode.getMode());
-                            }
-                        }
-                        // save task
-                        taskSche=createTask(null,name,url,routeId,modeId,hasMotor,scheduleTask,device,route);
-                        if(taskSche!=null) scheduleTask.setTask(taskSche);
-                        deviceSchList.add(scheduleTask);
-                        device.setSchedules(deviceSchList); 
-                    }
-                }
-                
-            }
-        }else
-        // save http task
-        {
-            if(startup){
-                scheduleTask.setStartup(startup);
-            }else
-            {
-                scheduleTask.setRepeatTask(repeat);
-            }
-            scheduleTask.setUrl(url);
-            taskSche.setUrl(url);
-            taskSche.setHttpTask(true);
-            taskSche.application(name);
-            taskSche.oneTimeJob(false);
-            taskSche.setSchedule(scheduleTask);
-            scheduleTask.setTask(taskSche);
-        }
-        scheRepo.save(scheduleTask);
-        return scheduleTask;
-    }
-    */
+
+
     public boolean startStartupSchedule(Board board){
         boolean exist=false;
         long [] devicesIds=deviceService.getDevicesById(board.getId());

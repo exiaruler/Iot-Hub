@@ -1,12 +1,15 @@
 'use client'
 import { Editor } from "@tinymce/tinymce-react";
-import { Component } from "react";
 import {Util} from "../../base/Util";
-import { Row, Col } from "react-bootstrap";
+import { Row, Col, Form } from "react-bootstrap";
 import FormHandle, { RecordContext } from "../../component-base/form/FormHandle";
 import InputBase from "../../component-base/input/InputBase";
-
+import { InputInterface as Base} from "@/component-base/interface/input";
+interface InputInterface extends Base{
+    contentHeight?:string|'800px'
+}
 export default class ContentInput extends InputBase{
+    declare props:InputInterface;
     public util=new Util();
     static contextType = RecordContext;
     public apiKey=this.util.tinyKey;
@@ -16,12 +19,13 @@ export default class ContentInput extends InputBase{
         return(
             <Row>
             <Col>
+            <Form.Label>{this.props.label||''}</Form.Label>
             <Editor
             onEditorChange={(value:string)=>this.onChangeValue(value)}
             apiKey={this.apiKey}
             value={this.getStateValue()}
             init={{
-                height:"800px",
+                height:this.props.contentHeight,
                 plugins: [
                 // Core editing features
                 'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount'

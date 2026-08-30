@@ -55,8 +55,11 @@ public class Route extends ModelBase{
     // switch device type
     @Column
     private boolean switchDevice=false;
-    // cycle calculation enabled
-    //private boolean cycleCalculation;
+    // cycle forward
+    //private boolean cycleForward;
+    // cycle back
+    //private boolean cycleBack;
+    // bi-direction cycle
     // default mode id
     @Column
     private long defaultModeId=0;

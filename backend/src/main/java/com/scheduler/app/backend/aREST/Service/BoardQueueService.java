@@ -34,18 +34,14 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
         this.boardRepo = boardRepo;
     }
     @Override
+    protected JpaRepository<BoardQueue, TaskEventId> repository() {
+        // TODO Auto-generated method stub
+        return boardQueueRepo;
+    }
+    @Override
     protected void beforeSave(BoardQueue entity, Map<String, String> errors, Map<String, String> warnings) {
         // TODO Auto-generated method stub
-        if(this.repository().existsById(entity.getId())){
-            /* 
-            if(entity.getExpiredDateTime()==null&&entity.getSystemTask()&&entity.getTaskRepeat()&&entity.getNextOccurance()!=null){
-                Instant curr=Instant.now().plusMillis(entity.getDelay());
-                if(curr!=null){
-                    entity.setNextOccurance(curr);
-                }
-            }
-            */
-        }
+    
     }
   
     // handle board queue update and deletion
@@ -89,7 +85,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
             rec=new BoardQueue(board, device, task.getTaskId(), taskName(task.getMethod()), task.getSystemTask(), true, true, task.getSystemTask(), taskRepeat, task.getDelayInterval(), false, expiry, null,jsonStr, null, null);
             if(rec.getExpiredDateTime()==null&&rec.getSystemTask()&&rec.getTaskRepeat())rec.setNextOccurance(currentDateTime.plusMillis(task.getDelayInterval()));  
 
-            rec=boardQueueRepo.save(rec);
+            rec=this.save(rec);
         }
         return rec;
     }
@@ -115,7 +111,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
                         expiry=calculateExpiry(boardTask.getDelayInterval());
                     }
                     rec=new BoardQueue(board, device, boardTask.getTaskId(), taskName(boardTask.getMethod()), boardTask.getSystemTask(), true, true, boardTask.getSystemTask(), taskRepeat, boardTask.getDelayInterval(), false, expiry, null,jsonStr, null, null);
-                    rec=boardQueueRepo.save(rec);
+                    rec=this.save(rec);
                     
                 }
             } catch (Exception e) {
@@ -149,7 +145,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
                         expiry=calculateExpiry(boardTask.getDelayInterval());
                     }
                     rec=new BoardQueue(board, device, boardTask.getTaskId(), taskName(boardTask.getMethod()), boardTask.getSystemTask(), true, true, boardTask.getSystemTask(), taskRepeat, boardTask.getDelayInterval(), false, expiry, null,jsonStr, null, null);
-                    rec=boardQueueRepo.save(rec);
+                    rec=this.save(rec);
                 }
             }
         }
@@ -188,12 +184,6 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
     }
     private String taskName(String method){
         return "Task Process: "+ method;
-    }
-    @Override
-    protected JpaRepository<BoardQueue, TaskEventId> repository() {
-        // TODO Auto-generated method stub
-        return boardQueueRepo;
-    }
-  
+    }  
 
 }

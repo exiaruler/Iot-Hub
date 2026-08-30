@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.Validator;
 
 import com.scheduler.Base.JsonObject.JsonObject;
+import com.scheduler.app.backend.Background.Background;
 import com.scheduler.app.backend.HTTPHandle.HttpUtil;
 import com.scheduler.app.backend.Messaging.MessageUtil;
 import com.scheduler.app.backend.Messaging.Models.InputCurrent;
@@ -25,6 +26,7 @@ public class Base{
     @Autowired
     private EntityManager entityManager;
     protected HttpUtil httpUtil=new HttpUtil();
+    public Background background=new Background();
     public MessageUtil messageUtil=new MessageUtil();
     public JsonObject jsonobj=new JsonObject();
     public final String pathBase="com.scheduler.app.backend";
@@ -85,6 +87,19 @@ public class Base{
             return data;
         }
         return data;
+    }
+    public Object getDataObject(String query){
+        Object obj=null;
+        String executeQuery="";
+        try {
+            executeQuery=entityManager.createNativeQuery(query).getSingleResult().toString();
+            if(executeQuery!=""){
+                obj=executeQuery;
+            }
+        } catch (Exception e) {
+            return obj;
+        }
+        return obj;
     }
     public void executeQuery(String query){
         try {

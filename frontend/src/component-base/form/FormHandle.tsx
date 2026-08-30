@@ -89,6 +89,7 @@ export default class FormHandle extends Component<Props,State>{
     }
    
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+        debugger
         if(JSON.stringify(prevState.recordLayout)!=JSON.stringify(this.props.recordLayout)){
             let rec=this.state.record;
             if(prevState.id==0){
@@ -168,7 +169,7 @@ export default class FormHandle extends Component<Props,State>{
         return value;
     }
     // set record
-    public setRecord(rec:Record<string, any>):void{
+    public setRecord(rec:Record<string, any>|null):void{
         if(rec){
             this.setState({...this.state,record:rec,id:rec[this.props.idKey]});
             this.record=rec;

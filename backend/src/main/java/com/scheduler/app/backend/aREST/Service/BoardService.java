@@ -1,4 +1,6 @@
 package com.scheduler.app.backend.aREST.Service;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -11,11 +13,19 @@ import java.util.concurrent.TimeUnit;
 import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.Service.BaseService;
+import com.scheduler.app.backend.Background.Background;
 import com.scheduler.app.backend.Command.Service.CommandService;
+import com.scheduler.app.backend.Firmware.Model.Firmware;
+import com.scheduler.app.backend.Firmware.Service.FirmwareService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
 import com.scheduler.app.backend.Hardware.Service.HardwareService;
 import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
@@ -37,9 +47,10 @@ public class BoardService extends BaseService<Board, Long> {
     public final ScheduleService scheduleService;
     public final TaskService taskService;
     public final BoardQueueService boardQueueService;
+    private final FirmwareService firmwareService;
 
 
-    public BoardService(BoardRepo boardRepo, DeviceService deviceService,HardwareService hardwareService, CommandService commandService, ScheduleService scheduleService, TaskService taskService, BoardQueueService boardQueueService) {
+    public BoardService(BoardRepo boardRepo, DeviceService deviceService,HardwareService hardwareService, CommandService commandService, ScheduleService scheduleService, TaskService taskService, BoardQueueService boardQueueService, FirmwareService firmwareService) {
         this.boardRepo = boardRepo;
         this.hardwareService = hardwareService;
         this.deviceService = deviceService;
@@ -47,6 +58,7 @@ public class BoardService extends BaseService<Board, Long> {
         this.scheduleService = scheduleService;
         this.taskService = taskService;
         this.boardQueueService = boardQueueService;
+        this.firmwareService = firmwareService;
     }
 
     @Override
@@ -140,7 +152,11 @@ public class BoardService extends BaseService<Board, Long> {
             entity.setDevMode(devMode);
             entity.setDevServerUrl(devMode ? devServerUrl.trim() : persistedBoard.getDevServerUrl());
             entity.setDevWsUrl(devMode ? devWsUrl.trim() : persistedBoard.getDevWsUrl());
+            if(!entity.getLastLoginDateTime().equals(persistedBoard.getLastLoginDateTime()))entity.setLastLoginDateTime(entity.getLastLoginDateTime());
         }
+    }
+    public String boardLiveKey(long id){
+        return "board-live|"+id;
     }
 
     @Override
@@ -149,11 +165,25 @@ public class BoardService extends BaseService<Board, Long> {
             entity.setBoardId(genereateBoardId(entity.getId()));
             boardRepo.save(entity);
         }
+        if(Background.globalExist("board|online|"+entity.getId())){
+            Instant getNextOp=boardQueueService.getNextQueueOperation(entity.getId());
+            Background.putGlobal("board-next-op|"+entity.getId(),getNextOp);
+        }
+
     }
     @Override
     protected void afterFindById(Long id, Board entity) {
         // retrieve next queue operation for the board and set it in the entity
-        entity.setNextQueueOperation(boardQueueService.getNextQueueOperation(id));
+        Instant dt=boardQueueService.getNextQueueOperation(id);
+        entity.setNextQueueOperation(dt);
+        if(dt!=null) Background.putGlobal("board-next-op|"+id,entity.getNextQueueOperation());
+
+    }
+    @Override
+    protected void afterDelete(Long id) {
+        // TODO Auto-generated method stub
+        
+        Background.removeGlobal("board-next-op|"+id);
     }
     // socket board add
     public Board addBoardSocket(String name,long hardwareObj,String boardUniqueId){
@@ -167,9 +197,12 @@ public class BoardService extends BaseService<Board, Long> {
         newBoard.setBoardId(boardUniqueId);
         return save(newBoard);
     }
- 
-    public Board updateBoardObject(Board entry){
-        return save(entry);
+    private Board offlineBoard(Board board){
+        board.setMillis(0);
+        board.setLastLoginDateTime(null);
+        board.setRamUsage(0);
+        board.setHeap(0);
+        return board;
     }
     @Transactional
     public void offlineBoard(){
@@ -180,9 +213,11 @@ public class BoardService extends BaseService<Board, Long> {
                 bo.getDevice().stream().map(dev->devIds.add(dev.getId()));
                 bo.getBoardOperations().clear();
                 deviceService.routesService.updateRouteOffline(devIds);
+                bo=offlineBoard(bo);
+                Background.removeGlobal("board|online|"+bo.getId());
+                this.save(bo);
                 //taskService.deactiveTask(devIds);
             }
-            boardRepo.saveAll(offline);
             System.out.println("offline board size "+offline.size());
         }
     }
@@ -193,6 +228,7 @@ public class BoardService extends BaseService<Board, Long> {
         DeviceCheck check=null;
         Board boardExist=this.findById(id);
         if(boardExist!=null){
+            Background.putGlobal("http-check|"+id,"updating");
             // if board is offline within board period and restart enabled, reset board
             // else restart routine tasks
             Instant dt=Instant.now();
@@ -205,11 +241,13 @@ public class BoardService extends BaseService<Board, Long> {
             boardExist.setLastConnectDateTime(dt);
             boardExist.setHeap(heap);
             boardExist.setMillis(millis);
+            Background.putGlobal("board-millis|"+boardExist.getId(),millis);
             boardExist.setRamUsage(ram);
             if(boardExist.getIp()!=ip&&ip!="") boardExist.setIp(ip);
             check=createDeviceCheck(boardExist);
             boardExist=this.save(boardExist);
-            
+            Background.putGlobal("http-check|"+id,"queueing");
+
             List <BoardTaskSerial> taskLists=new ArrayList<>();
             List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(boardExist.getId(),boardExist);
             if(scheduledTasks.size()>0)taskLists=scheduledTasks;
@@ -219,23 +257,84 @@ public class BoardService extends BaseService<Board, Long> {
                 // delete or update board queue
                 boardQueueService.updateQueue(tid, id,dt);
             }
-            
+            Background.removeGlobal("board-millis|"+boardExist.getId());
+            Background.removeGlobal("http-check|"+id);
         }
         return check;
     }
-    
+    // firmware update
+    public ResponseEntity<StreamingResponseBody> getUpdate(long id) {
+        Firmware firmware;
+        Board boardExist=this.findById(id);
+        if(boardExist!=null){
+
+            try {
+                firmware = firmwareService.getUpdateVersion(boardExist.getFirmwareVersion());
+            } catch (IllegalArgumentException exception) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (firmware == null) {
+                return ResponseEntity.noContent().build();
+            }
+
+            HttpURLConnection connection;
+            try {
+                connection = firmwareService.openDownload(firmware);
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    firmwareService.closeDownload(connection);
+                    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
+                }
+            } catch (Exception exception) {
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
+            }
+
+            long contentLength = connection.getContentLengthLong();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            if (contentLength >= 0) {
+                headers.setContentLength(contentLength);
+            }
+            headers.set("X-Firmware-Version", firmware.getVersion());
+            StreamingResponseBody responseBody = outputStream -> {
+                try (InputStream inputStream = connection.getInputStream()) {
+                    inputStream.transferTo(outputStream);
+                } finally {
+                    connection.disconnect();
+                }
+            };
+            
+            return new ResponseEntity<>(responseBody, headers, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
+    }
+        
     // when board first powered on
     @Transactional
-    public BoardLogin startup(BoardRegister register,String ip,int ram,String ssid,String macAddress,int freeHeap,int heap,int systemTotalTask,int taskTotal,int totalQueue,long millis){
+    public BoardLogin startup(BoardRegister register,String ip,int ram,String ssid,String macAddress,int freeHeap,int heap,int systemTotalTask,int taskTotal,int totalQueue,long millis,String version){
         BoardLogin check=null;
         String boardId=register.getBoardId().trim();
         long boardIdLong=getDataLong("select id from board where board_id="+quoteParam(boardId));
         Board exist=this.findById(boardIdLong);
         if(exist!=null){
+            Background.putGlobal("http-check|"+exist.getId(),"updating");
+            // clean up globals if update occured
+            Object wsIdGl=Background.getGlobal("update|board|"+exist.getId());
+            if(wsIdGl!=null){
+                String wsId=String.class.cast(wsIdGl);
+                Background.removeGlobal("update|websocketid|"+wsId);
+                Background.removeGlobal("update|board|"+exist.getId());
+            }
             Instant dt=Instant.now();
             exist.setLastConnectDateTime(dt);
             exist.setLastLoginDateTime(dt);
             taskService.purgeOldTasks(exist.getId());
+            Firmware firmware=firmwareService.getVersion(version);
+            // add or update firmware version that board is using
+            if(exist.getFirmware()==null||!exist.getFirmwareVersion().equals(version)){
+                exist.setFirmware(firmware);
+                exist.setFirmwareVersion(version);
+            }
+            // check if there a required mandatory update
             // verify password
             check=createBoardLogin(exist);
             if(exist.getIp()!=ip) exist.setIp(ip);
@@ -243,6 +342,7 @@ public class BoardService extends BaseService<Board, Long> {
             exist.setHeap(freeHeap);
             exist.setHeapTotal(heap);
             exist.setMillis(millis);
+            Background.putGlobal("board-millis|"+exist.getId(),millis);
             if(exist.getSsid()==null||exist.getSsid().equals("")||!exist.getSsid().equals(ssid)) exist.setSsid(ssid);
             if(exist.getMacAddress()==null||exist.getMacAddress().equals("")||!exist.getMacAddress().equals(macAddress)) exist.setMacAddress(macAddress);
             // activate device to register
@@ -251,21 +351,17 @@ public class BoardService extends BaseService<Board, Long> {
                 exist.setActivated(true);
             }
             executeQuery("delete from board_queue where board_id="+exist.getId());
-            /* 
-            // check if there are any startup tasks. if so add startup tasks to the scheduler for the board to process
-            if(exist.getDevice().size()>0&&exist.getDevice()!=null){
-                String devicesId=Arrays.toString(deviceService.getDevicesById(exist.getId())).replace("[","").replace("]","");
-                int startUpCount=getDataInt("select count(id) from schedule where startup=true and device_id in ("+quoteParam(devicesId)+")");
-            }
-            */
             scheduleService.startStartupSchedule(exist);
+            Background.putGlobal("board|online|"+exist.getId(),Instant.now());
             Board update=save(exist);
+
+            Background.putGlobal("http-check|"+exist.getId(),"queueing");
             BoardTask boTsk=commandService.getRequestConnection();
             List <BoardTaskSerial> taskLists=new ArrayList<>();
-            List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(exist.getId(),update);
+            List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(update.getId(),update);
             if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
             // add htp request connection command
-            if(boTsk!=null&&!exist.getDevMode()){
+            if(boTsk!=null&&!update.getDevMode()){
                 boTsk.initTaskId(update.getId());
                 boTsk.setDelayInterval(60000);
                 boTsk.setRunTarget(0);
@@ -279,7 +375,8 @@ public class BoardService extends BaseService<Board, Long> {
                 // open websocket or message carrier to process startup commands
 
             }
-            
+            Background.removeGlobal("board-millis|"+exist.getId());
+            Background.removeGlobal("http-check|"+exist.getId());
         }
         return check;
     }

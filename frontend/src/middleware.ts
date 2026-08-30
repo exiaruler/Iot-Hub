@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_PREFIXES = ['/boards', '/schedule', '/device','/boards/queue/', '/boards/task-queue/'];
+const PROTECTED_PREFIXES = ['/boards', '/schedule', '/device','/boards/queue/', '/boards/task-queue/','/firmware'];
 const LOGIN_PATH = '/login';
 const HOME_PATH = '/';
 

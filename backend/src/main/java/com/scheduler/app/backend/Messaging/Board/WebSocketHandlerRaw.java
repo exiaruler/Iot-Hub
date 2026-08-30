@@ -22,6 +22,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scheduler.app.backend.Background.Background;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInput;
@@ -136,7 +137,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                         // if requirement is met add restart command to scheduler
                         if(elapsedMs > board.getTimeout()){
                             board.setLastConnectDateTime(Instant.now());
-                            boardService.updateBoardObject(board);
+                            boardService.save(board);
                             //taskService.runCommand(board.getBoardId(),"reset","action", true, true);
                         }
                     
@@ -191,6 +192,12 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                 if(action.equals("connect")){
                     // set a state in the board to start processing message when board connected
                 }
+                // update
+                if(action.equals("update")){
+                    // update global
+                    Background.putGlobal("update|websocketid|"+sessionId,boardId);
+                    Background.putGlobal("update|board|"+boardId,sessionId);
+                }
             }
             else
             {
@@ -213,7 +220,19 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
         System.out.println("Received: " + payload);
-        if(payload!=""){
+        // check if board is in update mode
+        String sessionId=session.getId();
+        Object updateGloSessId=Background.getGlobal("update|websocketid|"+sessionId);
+        if(updateGloSessId!=null){
+            long boardId=long.class.cast(updateGloSessId);
+            Object boardUpdate=Background.getGlobal("update|board|"+boardId);
+            if(boardUpdate!=null){
+                String globSessId=String.class.cast(boardUpdate);
+                if(sessionId.equals(globSessId)){
+                    // update status of board
+                }
+            }
+        }else if(payload!=""){
             BoardInput boardIn=stringToObject(payload);
             BoardInputTask task=boardIn.getTask();
             String ip=boardIn.getIp();
@@ -250,6 +269,8 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
             sessions.remove(session.getId());
             long boardId=Long.parseLong(boardIdStr);
             sentMessages.remove(boardId);
+            Background.removeGlobal("update|websocketid|"+session.getId());
+            Background.removeGlobal("update|board|"+boardId);
             boardService.setWsConnection(boardId,"",0,true);
         }
     }

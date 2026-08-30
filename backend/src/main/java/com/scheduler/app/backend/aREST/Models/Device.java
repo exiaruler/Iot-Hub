@@ -31,29 +31,31 @@ public class Device extends ModelBase{
     private String deviceId;
     // name of device
     @Column
-    private String name;
+    private String name="";
+    // autocalculate time enabled for system task
+    //private boolean systemAutoCalculate=true;
     // state which the device is in (redundent)
     @Column
     private String state;
-    // error from device
+    // error from device (redundent)
     @Column
     private String warning;
-    // device type optional
+    // device type optional (redundent)
     @Column 
     private String type;
     // subtype of device optional
     @Column 
     private String subtype;
-    // followed arest v2 framework
+    // followed arest v2 framework (redundent)
     @Column
     private boolean frameworkFollowed;
-    // custom device framework
+    // custom device framework (redundent)
     @Column
     private boolean custom;
-    // switch device type
+    // switch device type (redundent)
     @Column
     private boolean switchDevice=false;
-    // animation route active
+    // animation route active (redundent)
     @Column
     private boolean animationActive=false;
     // list of routes
