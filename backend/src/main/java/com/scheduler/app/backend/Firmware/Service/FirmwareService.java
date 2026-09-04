@@ -133,6 +133,14 @@ public class FirmwareService extends BaseService<Firmware, Long> {
         return this.findById(exId);
 
     }
+    // get mandatory update version that is the latest version
+    public Firmware getMandatoryUpdateVersion() {
+        long exId=getDataInt("select id from firmware where latest=true and mandatory_update=true limit 1");
+        if (exId < 1) {
+            return null;
+        }
+        return this.findById(exId);
+    }    
 
     public Firmware getUpdateVersion(String currentVersion) {
         Firmware latest = getLatestVersion();

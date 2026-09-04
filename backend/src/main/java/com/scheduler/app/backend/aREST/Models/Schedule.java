@@ -366,6 +366,9 @@ public class Schedule extends ModelBase {
         return this;
     }
 
+    
+
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -381,6 +384,7 @@ public class Schedule extends ModelBase {
     public int hashCode() {
         return Objects.hash(name, time, repeatTask, startup, modeRandom, nextTask, modeValue, retries, status, url, body, task, device, deviceId, route, routeId, mode, modeId);
     }
+    
 
     @Override
     public String toString() {

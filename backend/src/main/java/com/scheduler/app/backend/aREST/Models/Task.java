@@ -12,8 +12,10 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.OneToOne;
+import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.scheduler.Base.ModelBase.BoardEventModelBase;
@@ -35,6 +37,9 @@ public class Task extends BoardEventModelBase {
     // mode id
     @Column
     private long modeId;
+    // mode object
+    @Transient
+    private Mode modeTransient;
     // command id
     @Column
     private long commandId;
@@ -102,8 +107,17 @@ public class Task extends BoardEventModelBase {
     private void preUpdate(){
         
     }
-
-
+    @PostLoad
+    private void postLoad(){
+        
+        if(this.modeId>0&&this.schedule!=null){
+            if(this.schedule.getMode()!=null)this.modeTransient=this.schedule.getMode();
+        }
+        
+    }
+    
+    
+    
     public Task() {
     }
 
@@ -443,6 +457,8 @@ public class Task extends BoardEventModelBase {
         return this;
     }
 
+
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -451,13 +467,16 @@ public class Task extends BoardEventModelBase {
             return false;
         }
         Task task = (Task) o;
-        return Objects.equals(application, task.application) && deviceId == task.deviceId && boardId == task.boardId && routeId == task.routeId && modeId == task.modeId && commandId == task.commandId && boardTaskId == task.boardTaskId && Objects.equals(boardTaskJson, task.boardTaskJson) && Objects.equals(url, task.url) && Objects.equals(payload, task.payload) && Objects.equals(section, task.section) && priority == task.priority && motor == task.motor && Objects.equals(scheduledTime, task.scheduledTime) && oneTimeJob == task.oneTimeJob && systemTask == task.systemTask && parentTask == task.parentTask && updateDevice == task.updateDevice && active == task.active && httpTask == task.httpTask && retry == task.retry && Objects.equals(schedule, task.schedule);
+        return Objects.equals(application, task.application) && deviceId == task.deviceId && boardId == task.boardId && routeId == task.routeId && modeId == task.modeId && commandId == task.commandId && boardTaskId == task.boardTaskId && Objects.equals(boardTaskJson, task.boardTaskJson) && Objects.equals(url, task.url) && Objects.equals(payload, task.payload) && Objects.equals(section, task.section) && priority == task.priority && motor == task.motor && Objects.equals(scheduledTime, task.scheduledTime) && oneTimeJob == task.oneTimeJob && systemTask == task.systemTask && Objects.equals(parentTask, task.parentTask) && updateDevice == task.updateDevice && active == task.active && httpTask == task.httpTask && retry == task.retry && Objects.equals(schedule, task.schedule);
     }
+    
+
 
     @Override
     public int hashCode() {
         return Objects.hash(application, deviceId, boardId, routeId, modeId, commandId, boardTaskId, boardTaskJson, url, payload, section, priority, motor, scheduledTime, oneTimeJob, systemTask, parentTask, updateDevice, active, httpTask, retry, schedule);
     }
+    
 
     @Override
     public String toString() {

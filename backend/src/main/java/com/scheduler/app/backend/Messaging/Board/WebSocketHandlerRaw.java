@@ -22,7 +22,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scheduler.app.backend.Background.Background;
+import com.scheduler.Base.Background;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInput;

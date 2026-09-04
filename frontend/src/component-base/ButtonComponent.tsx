@@ -28,7 +28,7 @@ export interface ButtonProps{
 export class ButtonComponent extends Component<ButtonProps>{
     
     caption=this.props.caption;
-    variant=this.props.variant||"primary";
+    variant=this.props.variant||"light";
 
    public onClick(event:React.MouseEvent<HTMLButtonElement>):void{
         if(this.props.onClick){

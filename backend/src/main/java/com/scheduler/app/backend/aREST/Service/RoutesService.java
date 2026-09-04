@@ -7,9 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.scheduler.Base.Background;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.Service.BaseService;
-import com.scheduler.app.backend.Background.Background;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;

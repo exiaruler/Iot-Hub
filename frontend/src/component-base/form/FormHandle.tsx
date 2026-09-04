@@ -89,7 +89,6 @@ export default class FormHandle extends Component<Props,State>{
     }
    
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
-        debugger
         if(JSON.stringify(prevState.recordLayout)!=JSON.stringify(this.props.recordLayout)){
             let rec=this.state.record;
             if(prevState.id==0){

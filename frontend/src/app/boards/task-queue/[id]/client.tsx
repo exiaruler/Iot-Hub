@@ -26,6 +26,7 @@ export default function Client(props:Props){
             setQueue(filteredQueue);
         }
     }
+    
     useEffect(()=>{
         setInterval(updateQueue,1000);
     },[])

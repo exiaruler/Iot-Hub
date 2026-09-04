@@ -94,6 +94,8 @@ public class Board extends ModelBase {
     // development mode
     @Column
     private boolean devMode;
+    // one time dev mode
+    //private boolean devModeTrigger;
     // devmode server url
     @Column
     private String devServerUrl="";

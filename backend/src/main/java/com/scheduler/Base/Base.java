@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.Validator;
 
 import com.scheduler.Base.JsonObject.JsonObject;
-import com.scheduler.app.backend.Background.Background;
 import com.scheduler.app.backend.HTTPHandle.HttpUtil;
 import com.scheduler.app.backend.Messaging.MessageUtil;
 import com.scheduler.app.backend.Messaging.Models.InputCurrent;

@@ -87,6 +87,8 @@ export default function Client(props:Props){
         <TableComponentColumn key={"delay"} columnName={"Occurrence"} functionDisplay={convertMillToDisplayTime}/>
         <TableComponentColumn key={"nextOccurance"} columnName={"Task Occurrence"} functionDisplay={displayExpiry}/>
         <TableComponentColumn key={"expiredDateTime"} columnName={"Task Type"} functionDisplay={displayTaskType}/>
+        <TableComponentColumn key={"createdDate"} columnName={"Created Date"} functionDisplay={convertDate}/>
+        <TableComponentColumn key={"createdDate"} columnName={"Created Time"} functionDisplay={convertTime}/>
         </TableComponent>
         </Col>
         </Row>

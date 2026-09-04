@@ -95,7 +95,7 @@ public class BoardController extends ControllerBaseService<Long,Board>{
     // get latest firmware update
     @GetMapping(value="/get-update/{id}")
     public ResponseEntity<StreamingResponseBody> getUpdate(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("free-heap")String heap,@RequestHeader("millis")String millis,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@PathVariable long id) {
-        return service.getUpdate(id);
+        return service.performUpdate(id);
     }
     // when board starts-up verify credentials
     @PostMapping("/startup")

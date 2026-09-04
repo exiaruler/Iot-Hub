@@ -4,7 +4,6 @@ import java.net.HttpURLConnection;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,9 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import com.scheduler.Base.Background;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.Service.BaseService;
-import com.scheduler.app.backend.Background.Background;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Firmware.Model.Firmware;
 import com.scheduler.app.backend.Firmware.Service.FirmwareService;
@@ -34,6 +33,7 @@ import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
 import com.scheduler.app.backend.Messaging.Board.Models.DeviceCheck;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Board;
+import com.scheduler.app.backend.aREST.Models.BoardQueue;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 
 
@@ -205,14 +205,14 @@ public class BoardService extends BaseService<Board, Long> {
         return board;
     }
     @Transactional
-    public void offlineBoard(){
+    public void offlineBoardRoutine(){
         List<Board> offline=boardRepo.getBoardsPassBy();
         if(offline.size()>0){
             for(Board bo:offline){
                 List <Long> devIds=new ArrayList<>();
                 bo.getDevice().stream().map(dev->devIds.add(dev.getId()));
                 bo.getBoardOperations().clear();
-                deviceService.routesService.updateRouteOffline(devIds);
+                if(devIds.size()>0&&devIds!=null)deviceService.routesService.updateRouteOffline(devIds);
                 bo=offlineBoard(bo);
                 Background.removeGlobal("board|online|"+bo.getId());
                 this.save(bo);
@@ -263,7 +263,7 @@ public class BoardService extends BaseService<Board, Long> {
         return check;
     }
     // firmware update
-    public ResponseEntity<StreamingResponseBody> getUpdate(long id) {
+    public ResponseEntity<StreamingResponseBody> performUpdate(long id) {
         Firmware firmware;
         Board boardExist=this.findById(id);
         if(boardExist!=null){
@@ -312,6 +312,7 @@ public class BoardService extends BaseService<Board, Long> {
     @Transactional
     public BoardLogin startup(BoardRegister register,String ip,int ram,String ssid,String macAddress,int freeHeap,int heap,int systemTotalTask,int taskTotal,int totalQueue,long millis,String version){
         BoardLogin check=null;
+        boolean mandatoryUpdate=false;
         String boardId=register.getBoardId().trim();
         long boardIdLong=getDataLong("select id from board where board_id="+quoteParam(boardId));
         Board exist=this.findById(boardIdLong);
@@ -335,6 +336,9 @@ public class BoardService extends BaseService<Board, Long> {
                 exist.setFirmwareVersion(version);
             }
             // check if there a required mandatory update
+            if(!exist.getFirmware().getLatest()){
+                mandatoryUpdate=true;
+            }
             // verify password
             check=createBoardLogin(exist);
             if(exist.getIp()!=ip) exist.setIp(ip);
@@ -350,30 +354,38 @@ public class BoardService extends BaseService<Board, Long> {
                 exist.setActivatedDateTime(dt);
                 exist.setActivated(true);
             }
-            executeQuery("delete from board_queue where board_id="+exist.getId());
+            for(BoardQueue bq:exist.getBoardOperations()){
+                bq.setBoard(null);
+            }
             scheduleService.startStartupSchedule(exist);
             Background.putGlobal("board|online|"+exist.getId(),Instant.now());
             Board update=save(exist);
-
             Background.putGlobal("http-check|"+exist.getId(),"queueing");
-            BoardTask boTsk=commandService.getRequestConnection();
             List <BoardTaskSerial> taskLists=new ArrayList<>();
-            List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(update.getId(),update);
-            if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
-            // add htp request connection command
-            if(boTsk!=null&&!update.getDevMode()){
-                boTsk.initTaskId(update.getId());
-                boTsk.setDelayInterval(60000);
-                boTsk.setRunTarget(0);
-                taskLists.add(new BoardTaskSerial(boTsk));
-                boardQueueService.addToQueueBoardTask(boTsk, update, null,dt);
+            if(!mandatoryUpdate){
+                BoardTask boTsk=commandService.getRequestConnection();
+                List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(update.getId(),update);
+                if(scheduledTasks.size()>0)taskLists.addAll(scheduledTasks);
+                // add htp request connection command
+                if(boTsk!=null&&!update.getDevMode()){
+                    boTsk.initTaskId(update.getId());
+                    boTsk.setDelayInterval(60000);
+                    boTsk.setRunTarget(0);
+                    taskLists.add(new BoardTaskSerial(boTsk));
+                    boardQueueService.addToQueueBoardTask(boTsk, update, null,dt);
+                }
+            }else
+            {
+                // perform mandatory update
+                BoardTask updateTsk=commandService.getTaskByCommand("update", "action", true);
+                updateTsk.initTaskId(update.getId());
+                taskLists.add(new BoardTaskSerial(updateTsk));
             }
             if(taskLists.size()>0&&taskLists.size()<50){
                 check.setTasks(taskLists);
             }else
             {
-                // open websocket or message carrier to process startup commands
-
+                // open websocket connection
             }
             Background.removeGlobal("board-millis|"+exist.getId());
             Background.removeGlobal("http-check|"+exist.getId());
