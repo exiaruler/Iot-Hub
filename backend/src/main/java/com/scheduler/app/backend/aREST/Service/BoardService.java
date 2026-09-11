@@ -11,15 +11,19 @@ import java.util.concurrent.TimeUnit;
 
 import javax.transaction.Transactional;
 
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import com.scheduler.Base.Background;
+import com.scheduler.Base.Exception.ErrorException;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Command.Service.CommandService;
@@ -77,6 +81,7 @@ public class BoardService extends BaseService<Board, Long> {
     @Override
     protected void beforeSave(Board entity, Map<String, String> errors, Map<String, String> warnings) {
         boolean existingBoard = entity.getId() > 0 && boardRepo.existsById(entity.getId());
+        Instant dt = Instant.now();
         String name = isBlank(entity.getName()) ? entity.getName() : entity.getName().trim();
         String boardId = entity.getBoardId();
         
@@ -122,6 +127,8 @@ public class BoardService extends BaseService<Board, Long> {
         String devWsUrl = entity.getDevWsUrl();
         long offline = entity.getOffline();
         boolean restartTimeout = entity.getRestartTimeout();
+        if(entity.getStartup()) entity.setLastLoginDateTime(dt);
+        if(entity.getUpdate()) entity.setLastConnectDateTime(dt);
         if(persistedBoard!=null){
             entity.setBoardKey(persistedBoard.getBoardKey());
             entity.setSsid(persistedBoard.getSsid());
@@ -152,7 +159,8 @@ public class BoardService extends BaseService<Board, Long> {
             entity.setDevMode(devMode);
             entity.setDevServerUrl(devMode ? devServerUrl.trim() : persistedBoard.getDevServerUrl());
             entity.setDevWsUrl(devMode ? devWsUrl.trim() : persistedBoard.getDevWsUrl());
-            if(!entity.getLastLoginDateTime().equals(persistedBoard.getLastLoginDateTime()))entity.setLastLoginDateTime(entity.getLastLoginDateTime());
+            
+            //if(!entity.getLastLoginDateTime().equals(persistedBoard.getLastLoginDateTime()))entity.setLastLoginDateTime(entity.getLastLoginDateTime());
         }
     }
     public String boardLiveKey(long id){
@@ -185,6 +193,13 @@ public class BoardService extends BaseService<Board, Long> {
         
         Background.removeGlobal("board-next-op|"+id);
     }
+    @Override
+    protected void verifyDelete(Long id, boolean verify) {
+        String boardName=getDataString("select name from board where id="+id);
+        if(!verify) throw new ErrorException("Are you sure you want to delete "+boardName+"? \n All devices and functionality associated will be lost");
+    }
+
+    
     // socket board add
     public Board addBoardSocket(String name,long hardwareObj,String boardUniqueId){
         Board newBoard=new Board();
@@ -199,7 +214,7 @@ public class BoardService extends BaseService<Board, Long> {
     }
     private Board offlineBoard(Board board){
         board.setMillis(0);
-        board.setLastLoginDateTime(null);
+        board.setLastConnectDateTime(null);
         board.setRamUsage(0);
         board.setHeap(0);
         return board;
@@ -212,11 +227,17 @@ public class BoardService extends BaseService<Board, Long> {
                 List <Long> devIds=new ArrayList<>();
                 bo.getDevice().stream().map(dev->devIds.add(dev.getId()));
                 bo.getBoardOperations().clear();
-                if(devIds.size()>0&&devIds!=null)deviceService.routesService.updateRouteOffline(devIds);
+                if(bo.getDevice().size()>0&&bo.getDevice()!=null){
+                    bo.getDevice().stream().forEach(dev->{
+                        dev.getRoutes().stream().forEach(route->{
+                            route.setDefaultMode();
+                        });
+                    });
+                }
+                //if(devIds.size()>0&&devIds!=null)deviceService.routesService.updateRouteOffline(devIds);
                 bo=offlineBoard(bo);
                 Background.removeGlobal("board|online|"+bo.getId());
                 this.save(bo);
-                //taskService.deactiveTask(devIds);
             }
             System.out.println("offline board size "+offline.size());
         }
@@ -224,6 +245,7 @@ public class BoardService extends BaseService<Board, Long> {
    
     // occasional routine check
     @Transactional
+    @Retryable(include = TransientDataAccessException.class, maxAttempts = 3, backoff = @Backoff(delay = 100, multiplier = 2))
     public DeviceCheck routineCheck(long id,int ram,String ip,int heap,long millis,long tid){
         DeviceCheck check=null;
         Board boardExist=this.findById(id);
@@ -232,13 +254,14 @@ public class BoardService extends BaseService<Board, Long> {
             // if board is offline within board period and restart enabled, reset board
             // else restart routine tasks
             Instant dt=Instant.now();
+            boardExist.setUpdate(true);
+
             Instant lastCon=boardExist.getLastConnectDateTime();
             long diff=Duration.between(lastCon, dt).toMillis();
             // temp
             if(diff>=boardExist.getOffline()){
                 scheduleService.startRoutineSchedule(boardExist);
             }
-            boardExist.setLastConnectDateTime(dt);
             boardExist.setHeap(heap);
             boardExist.setMillis(millis);
             Background.putGlobal("board-millis|"+boardExist.getId(),millis);
@@ -307,9 +330,52 @@ public class BoardService extends BaseService<Board, Long> {
         }
         return ResponseEntity.notFound().build();
     }
+
+    // development firmware upload
+    public ResponseEntity<StreamingResponseBody> performUpload(long id) {
+        Firmware firmware;
+        Board boardExist=this.findById(id);
+        if(boardExist!=null){
+
+            firmware = firmwareService.getDevelopmentVersion();
+            if (firmware == null) {
+                return ResponseEntity.noContent().build();
+            }
+
+            HttpURLConnection connection;
+            try {
+                connection = firmwareService.openDownload(firmware);
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    firmwareService.closeDownload(connection);
+                    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
+                }
+            } catch (Exception exception) {
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
+            }
+
+            long contentLength = connection.getContentLengthLong();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            if (contentLength >= 0) {
+                headers.setContentLength(contentLength);
+            }
+            headers.set("X-Firmware-Version", firmware.getVersion());
+            StreamingResponseBody responseBody = outputStream -> {
+                try (InputStream inputStream = connection.getInputStream()) {
+                    inputStream.transferTo(outputStream);
+                } finally {
+                    connection.disconnect();
+                }
+            };
+            
+            return new ResponseEntity<>(responseBody, headers, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
+    }
         
     // when board first powered on
     @Transactional
+    @Retryable(include = TransientDataAccessException.class, maxAttempts = 3, backoff = @Backoff(delay = 100, multiplier = 2))
     public BoardLogin startup(BoardRegister register,String ip,int ram,String ssid,String macAddress,int freeHeap,int heap,int systemTotalTask,int taskTotal,int totalQueue,long millis,String version){
         BoardLogin check=null;
         boolean mandatoryUpdate=false;
@@ -317,6 +383,9 @@ public class BoardService extends BaseService<Board, Long> {
         long boardIdLong=getDataLong("select id from board where board_id="+quoteParam(boardId));
         Board exist=this.findById(boardIdLong);
         if(exist!=null){
+            Background.putGlobal("startup|"+exist.getId(),"board startup");
+            exist.setStartup(true);
+            exist.setUpdate(true);
             Background.putGlobal("http-check|"+exist.getId(),"updating");
             // clean up globals if update occured
             Object wsIdGl=Background.getGlobal("update|board|"+exist.getId());
@@ -326,8 +395,6 @@ public class BoardService extends BaseService<Board, Long> {
                 Background.removeGlobal("update|board|"+exist.getId());
             }
             Instant dt=Instant.now();
-            exist.setLastConnectDateTime(dt);
-            exist.setLastLoginDateTime(dt);
             taskService.purgeOldTasks(exist.getId());
             Firmware firmware=firmwareService.getVersion(version);
             // add or update firmware version that board is using
@@ -389,10 +456,17 @@ public class BoardService extends BaseService<Board, Long> {
             }
             Background.removeGlobal("board-millis|"+exist.getId());
             Background.removeGlobal("http-check|"+exist.getId());
+            Background.removeGlobal("startup|"+exist.getId());
+
         }
         return check;
     }
-     
+    /* 
+    @Recover
+    public BoardLogin startupRecovery(TransientDataAccessException exception, BoardRegister register, String ip, int ram, String ssid, String macAddress, int freeHeap, int heap, int systemTotalTask, int taskTotal, int totalQueue, long millis, String version) {
+        return new BoardLogin().loginServerFail(true);
+    }
+    */
     private DeviceCheck createDeviceCheck(Board board){
         DeviceCheck newCheck=new DeviceCheck();
         return newCheck;

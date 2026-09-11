@@ -43,6 +43,7 @@ public class Schedule extends ModelBase {
     @Column
     private int retries=3;
     // schedule task enabled
+    @Column 
     private boolean status=true;
     // url
     @Column
@@ -95,7 +96,7 @@ public class Schedule extends ModelBase {
     public Schedule() {
     }
 
-    public Schedule(String name, long time, boolean repeatTask, boolean startup, boolean modeRandom, long nextTask, String modeValue, int retries, boolean status, String url, String body, Task task, Device device, long deviceId, Route route, long routeId, Mode mode, long modeId) {
+    public Schedule(String name, long time, boolean repeatTask, boolean startup, boolean modeRandom, long nextTask, String modeValue, int retries, boolean status, String url, String body, Task task, Device device, Route route, Mode mode) {
         this.name = name;
         this.time = time;
         this.repeatTask = repeatTask;
@@ -109,11 +110,8 @@ public class Schedule extends ModelBase {
         this.body = body;
         this.task = task;
         this.device = device;
-        this.deviceId = deviceId;
         this.route = route;
-        this.routeId = routeId;
         this.mode = mode;
-        this.modeId = modeId;
     }
 
     public String getName() {
@@ -377,12 +375,12 @@ public class Schedule extends ModelBase {
             return false;
         }
         Schedule schedule = (Schedule) o;
-        return Objects.equals(name, schedule.name) && time == schedule.time && repeatTask == schedule.repeatTask && startup == schedule.startup && modeRandom == schedule.modeRandom && nextTask == schedule.nextTask && Objects.equals(modeValue, schedule.modeValue) && retries == schedule.retries && status == schedule.status && Objects.equals(url, schedule.url) && Objects.equals(body, schedule.body) && Objects.equals(task, schedule.task) && Objects.equals(device, schedule.device) && deviceId == schedule.deviceId && Objects.equals(route, schedule.route) && routeId == schedule.routeId && Objects.equals(mode, schedule.mode) && modeId == schedule.modeId;
+        return Objects.equals(name, schedule.name) && time == schedule.time && repeatTask == schedule.repeatTask && startup == schedule.startup && modeRandom == schedule.modeRandom && nextTask == schedule.nextTask && Objects.equals(modeValue, schedule.modeValue) && retries == schedule.retries && status == schedule.status && Objects.equals(url, schedule.url) && Objects.equals(body, schedule.body) && Objects.equals(task, schedule.task) && Objects.equals(device, schedule.device) && Objects.equals(route, schedule.route) && Objects.equals(mode, schedule.mode);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, time, repeatTask, startup, modeRandom, nextTask, modeValue, retries, status, url, body, task, device, deviceId, route, routeId, mode, modeId);
+        return Objects.hash(name, time, repeatTask, startup, modeRandom, nextTask, modeValue, retries, status, url, body, task, device, route, mode);
     }
     
 

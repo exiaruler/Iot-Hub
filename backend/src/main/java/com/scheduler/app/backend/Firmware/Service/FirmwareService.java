@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import com.scheduler.Base.Exception.ValidationException;
@@ -37,28 +36,33 @@ public class FirmwareService extends BaseService<Firmware, Long> {
         if(!entity.validateVersion()){
             errors.put("version", "Invalid firmware version format. Correct format 0.0.0");
         }
+        if(entity.getDev() && entity.getMandatoryUpdate()){
+            errors.put("mandatoryUpdate", "Development firmware cannot be marked as mandatory update.");
+        }
         int exists=getDataInt("select count(id) from firmware where version="+quoteParam(entity.getVersion().trim())+" and id!="+entity.getId());
         if(exists>0){
             errors.put("version", entity.getVersion()+"\s exists already!");
+        }
+        int existsDev=getDataInt("select count(id) from firmware where dev=true and id!="+entity.getId());
+        if(entity.getDev() && existsDev>0){
+            errors.put("dev", "Development firmware already exists!");
         }
         if(errors.size()>0){
             throw new ValidationException(errors,null);
         }
         entity.createVersion();
-        String latestQuery="select id from firmware ";
-        if(entity.getId()>0)latestQuery+=" where id!="+entity.getId();
-        latestQuery+=" order by id desc limit 1";
-        long latestId=getDataLong(latestQuery);
-        Firmware currLatest=findById(latestId);
-        if(currLatest!=null){
-            if(entity.getMajorVersion()>currLatest.getMajorVersion()||entity.getMinorVersion()>currLatest.getMinorVersion()||entity.getPatchVersion()>currLatest.getMinorVersion()){
-                currLatest.setLatest(false);
+        if(!entity.isDev()){
+            Firmware currLatest = getLatestVersion();
+            if(currLatest!=null){
+                if(compareVersions(entity.getVersion(), currLatest.getVersion()) > 0){
+                    currLatest.setLatest(false);
+                    entity.setLatest(true);
+                    firmwareRepo.save(currLatest);
+                }else if(entity.getId()==0) errors.put("version", "version entered is below the latest version \s"+currLatest.getVersion());
+            }else
+            {
                 entity.setLatest(true);
-                firmwareRepo.save(currLatest);
-            }else if(entity.getId()==0) errors.put("version", "version entered is below the latest version \s"+currLatest.getVersion());
-        }else
-        {
-            entity.setLatest(true);
+            }
         }
         if(errors.size()>0){
             throw new ValidationException(errors,null);
@@ -67,7 +71,9 @@ public class FirmwareService extends BaseService<Firmware, Long> {
         String [] linkNames={"mainFile","mapFile","partitionFile","bootloaderFile"};
         // validate files to ensure they are from github and are binary firmware files
         for(int i=0; i<linksArr.length; i++){
-            validateGithubUrl(linksArr[i], errors, linkNames[i]);
+            if(!entity.isDev()){
+                validateGithubUrl(linksArr[i], errors, linkNames[i]);
+            }
             validateBinFile(linksArr[i], errors, linkNames[i]);
         }
         if(errors.size()>0){
@@ -148,6 +154,14 @@ public class FirmwareService extends BaseService<Firmware, Long> {
             return latest;
         }
         return compareVersions(latest.getVersion(), currentVersion) > 0 ? latest : null;
+    }
+
+    public Firmware getDevelopmentVersion() {
+        long exId = getDataLong("select id from firmware where dev=true limit 1");
+        if (exId < 1) {
+            return null;
+        }
+        return this.findById(exId);
     }
 
     public HttpURLConnection openDownload(Firmware firmware) throws IOException {

@@ -5,7 +5,7 @@ import TableComponent from "@/app/next-components/TableComponent";
 import TabComponent from "@/components/Tab/TabComponent";
 import TabGroup from "@/components/Tab/TabGroup";
 import TableComponentColumn from "@/components/Table/TableComponentColumn";
-import { Row, Col } from "react-bootstrap";
+import { Row, Col, Tab } from "react-bootstrap";
 import { useEffect, useRef } from "react";
 import Content, { ContentRef, ObjectRecord } from "@/app/next-components/layout/Content";
 import TextInput from "@/app/next-components/input/TextInput";
@@ -51,6 +51,42 @@ export default function Device(props:Props){
 
         }
     }
+    const displayTaskName=(task:ObjectRecord)=>{
+        let value="";
+        if(task!=null){
+            value=task.application;
+        }
+        return value;
+    }
+    const displayTaskStatus=(task:ObjectRecord)=>{
+        let value="Inactive";
+        if(task!=null){
+            if(task.active){
+                value="Active";
+            }
+        }
+        return value;
+    }
+    const displayTaskType=(value:boolean)=>{
+        let type="startup";
+        if(value){
+            type="schedule";
+        }
+        return type;
+    }
+    const showData=(date:ObjectRecord)=>{
+        let dateStr="";
+        if(date!=null&&date?.active){
+            dateStr=new Date(date.scheduledTime).toDateString();
+        }
+        return dateStr;
+    }
+    const showDateTimeString=(date:ObjectRecord)=>{
+        if(date!=null&&date?.active){
+            return new Date(date.scheduledTime).toLocaleTimeString()+" "+new Date(date.scheduledTime).toDateString();
+        }
+        return "";
+    }
     useEffect(()=>{
         loadTab();
     },[])
@@ -68,6 +104,10 @@ export default function Device(props:Props){
                         <TextInput key={key} readOnly={true} value={rou?.selectedMode?.mode} label={rou?.route} rows={0}/>
                     )
                 }
+                {props.device?.routes.length==0?
+                <h2>No Functions Available</h2>
+
+                :null}
                 </Col>    
                 </Row>
                 <RegularButton caption={"Update Device"} size={undefined} type={undefined}/>
@@ -90,6 +130,22 @@ export default function Device(props:Props){
                 <RegularButton caption={"Add Function"} size={undefined} type={undefined} onClick={openFunction}/>
                 <DeleteButton caption={"Delete Function"} size={undefined} type={undefined} onClick={()=>deleteFunctionHandle(props.index)}/>
                 </Col>
+                </Row>
+                </TabComponent>
+                <TabComponent title={"Routines"} eventKey={"routines"}>
+                <Row>
+                <Col md={9}>
+                <TableComponent results={props.device?.schedules} idKey={"id"}>
+                <TableComponentColumn key={"task"} columnName={"Routine Name"} functionDisplay={displayTaskName} />
+                <TableComponentColumn key={"task"} columnName={"Status"} functionDisplay={displayTaskStatus}/>
+                <TableComponentColumn key={"repeatTask"} columnName={"Type"} functionDisplay={displayTaskType}/>
+                <TableComponentColumn key={"task"} columnName={"Next Occurrence"} functionDisplay={showDateTimeString}/>
+                </TableComponent>
+                {false?
+                <RegularButton caption={"Add to Queue"}/>
+                :null}
+                </Col>
+                
                 </Row>
                 </TabComponent>
                 </TabGroup>

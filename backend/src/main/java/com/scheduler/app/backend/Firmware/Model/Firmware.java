@@ -11,6 +11,7 @@ import javax.persistence.FetchType;
 import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -39,6 +40,9 @@ public class Firmware extends ModelBase{
     // require update
     @Column
     private boolean mandatoryUpdate;
+    // development firmware
+    @Column
+    private boolean dev;
     // notes
     @Column
     private String notes="";
@@ -75,7 +79,8 @@ public class Firmware extends ModelBase{
         return valid;
     }
     @PrePersist
-    protected void onCreate(){
+    @PreUpdate
+    protected void onCreateandUpdate(){
         this.mainFile.trim();
         this.bootloaderFile.trim();
         this.partitionFile.trim();
@@ -86,12 +91,17 @@ public class Firmware extends ModelBase{
     }
 
     public Firmware(String version, int majorVersion, int minorVersion, int patchVersion, boolean latest, boolean mandatoryUpdate, String notes, String mainFile, String bootloaderFile, String mapFile, String partitionFile) {
+        this(version, majorVersion, minorVersion, patchVersion, latest, mandatoryUpdate, false, notes, mainFile, bootloaderFile, mapFile, partitionFile);
+    }
+
+    public Firmware(String version, int majorVersion, int minorVersion, int patchVersion, boolean latest, boolean mandatoryUpdate, boolean dev, String notes, String mainFile, String bootloaderFile, String mapFile, String partitionFile) {
         this.version = version;
         this.majorVersion = majorVersion;
         this.minorVersion = minorVersion;
         this.patchVersion = patchVersion;
         this.latest = latest;
         this.mandatoryUpdate = mandatoryUpdate;
+        this.dev = dev;
         this.notes = notes;
         this.mainFile = mainFile;
         this.bootloaderFile = bootloaderFile;
@@ -153,6 +163,18 @@ public class Firmware extends ModelBase{
 
     public void setMandatoryUpdate(boolean mandatoryUpdate) {
         this.mandatoryUpdate = mandatoryUpdate;
+    }
+
+    public boolean isDev() {
+        return this.dev;
+    }
+
+    public boolean getDev() {
+        return this.dev;
+    }
+
+    public void setDev(boolean dev) {
+        this.dev = dev;
     }
 
     public String getNotes() {
@@ -225,6 +247,11 @@ public class Firmware extends ModelBase{
         return this;
     }
 
+    public Firmware dev(boolean dev) {
+        setDev(dev);
+        return this;
+    }
+
     public Firmware notes(String notes) {
         setNotes(notes);
         return this;
@@ -258,12 +285,12 @@ public class Firmware extends ModelBase{
             return false;
         }
         Firmware firmware = (Firmware) o;
-        return Objects.equals(version, firmware.version) && majorVersion == firmware.majorVersion && minorVersion == firmware.minorVersion && patchVersion == firmware.patchVersion && latest == firmware.latest && mandatoryUpdate == firmware.mandatoryUpdate && Objects.equals(notes, firmware.notes) && Objects.equals(mainFile, firmware.mainFile) && Objects.equals(bootloaderFile, firmware.bootloaderFile) && Objects.equals(mapFile, firmware.mapFile) && Objects.equals(partitionFile, firmware.partitionFile);
+        return Objects.equals(version, firmware.version) && majorVersion == firmware.majorVersion && minorVersion == firmware.minorVersion && patchVersion == firmware.patchVersion && latest == firmware.latest && mandatoryUpdate == firmware.mandatoryUpdate && dev == firmware.dev && Objects.equals(notes, firmware.notes) && Objects.equals(mainFile, firmware.mainFile) && Objects.equals(bootloaderFile, firmware.bootloaderFile) && Objects.equals(mapFile, firmware.mapFile) && Objects.equals(partitionFile, firmware.partitionFile);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(version, majorVersion, minorVersion, patchVersion, latest, mandatoryUpdate, notes, mainFile, bootloaderFile, mapFile, partitionFile);
+        return Objects.hash(version, majorVersion, minorVersion, patchVersion, latest, mandatoryUpdate, dev, notes, mainFile, bootloaderFile, mapFile, partitionFile);
     }
 
     @Override
@@ -275,6 +302,7 @@ public class Firmware extends ModelBase{
             ", patchVersion='" + getPatchVersion() + "'" +
             ", latest='" + isLatest() + "'" +
             ", mandatoryUpdate='" + isMandatoryUpdate() + "'" +
+            ", dev='" + isDev() + "'" +
             ", notes='" + getNotes() + "'" +
             ", mainFile='" + getMainFile() + "'" +
             ", bootloaderFile='" + getBootloaderFile() + "'" +

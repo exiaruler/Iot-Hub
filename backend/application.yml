@@ -1,9 +1,13 @@
 spring:
+  server:
+    port: ${PORT:8080}
+    address: 0.0.0.0
   datasource:
-    url: jdbc:mysql://avnadmin:AVNS_S10K1WoKZWieIc1qHdc@mysql-224c8cda-samuelgh-c289.h.aivencloud.com:27829/proto_local?ssl-mode=REQUIRED
+    url: jdbc:mysql://avnadmin:AVNS_S10K1WoKZWieIc1qHdc@mysql-224c8cda-samuelgh-c289.h.aivencloud.com:27829/test?ssl-mode=REQUIRED
     username: avnadmin
     password: AVNS_S10K1WoKZWieIc1qHdc
+    
 
   flyway:
-    enabled: false
+    enabled: true
     baseline-on-migrate: true

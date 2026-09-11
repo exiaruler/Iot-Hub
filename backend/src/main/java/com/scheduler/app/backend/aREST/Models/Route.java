@@ -13,8 +13,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PostLoad;
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
@@ -304,7 +302,7 @@ public class Route extends ModelBase{
     public Route() {
     }
 
-    public Route(Device device, String route, boolean modes, String electrode, Command command, long commandId, boolean switchDevice, long defaultModeId, Mode defaultMode, long selectedModeId, Mode selectedMode, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes, List<BoardQueue> boardOperations) {
+    public Route(Device device, String route, boolean modes, String electrode, Command command, long commandId, boolean switchDevice, long defaultModeId, long selectedModeId, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes, List<BoardQueue> boardOperations) {
         this.device = device;
         this.route = route;
         this.modes = modes;
@@ -313,9 +311,7 @@ public class Route extends ModelBase{
         this.commandId = commandId;
         this.switchDevice = switchDevice;
         this.defaultModeId = defaultModeId;
-        this.defaultMode = defaultMode;
         this.selectedModeId = selectedModeId;
-        this.selectedMode = selectedMode;
         this.mode = mode;
         this.boardAction = boardAction;
         this.scheduledRoutes = scheduledRoutes;
@@ -520,8 +516,6 @@ public class Route extends ModelBase{
                 && switchDevice == other.switchDevice
                 && defaultModeId == other.defaultModeId
                 && selectedModeId == other.selectedModeId
-                && Objects.equals(defaultMode, other.defaultMode)
-                && Objects.equals(selectedMode, other.selectedMode)
                 && Objects.equals(mode, other.mode)
                 && Objects.equals(boardAction, other.boardAction)
                 && Objects.equals(scheduledRoutes, other.scheduledRoutes)
@@ -530,7 +524,7 @@ public class Route extends ModelBase{
 
     @Override
     public int hashCode() {
-        return Objects.hash(device, route, modes, electrode, command, commandId, switchDevice, defaultModeId, selectedModeId, defaultMode, selectedMode, mode, boardAction, scheduledRoutes, boardOperations);
+        return Objects.hash(device, route, modes, electrode, command, commandId, switchDevice, defaultModeId, selectedModeId, mode, boardAction, scheduledRoutes, boardOperations);
     }
 
     @Override

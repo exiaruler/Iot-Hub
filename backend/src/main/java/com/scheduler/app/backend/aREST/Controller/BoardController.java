@@ -97,6 +97,12 @@ public class BoardController extends ControllerBaseService<Long,Board>{
     public ResponseEntity<StreamingResponseBody> getUpdate(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("free-heap")String heap,@RequestHeader("millis")String millis,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@PathVariable long id) {
         return service.performUpdate(id);
     }
+
+    // get development firmware
+    @GetMapping(value="/upload/{id}")
+    public ResponseEntity<StreamingResponseBody> upload(@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("free-heap")String heap,@RequestHeader("millis")String millis,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@PathVariable long id) {
+        return service.performUpload(id);
+    }
     // when board starts-up verify credentials
     @PostMapping("/startup")
     public ResponseEntity<BoardLogin> startup(@RequestBody BoardRegister entity,@RequestHeader("ram-usage")String ram,@RequestHeader("ip")String ip,@RequestHeader("SSID")String ssid,@RequestHeader("mac-address")String macAddress,@RequestHeader("free-heap")String freeHeap,@RequestHeader("heap")String heap,@RequestHeader("sys-task-tot")String systemTotalTask,@RequestHeader("task-tot")String taskTotal,@RequestHeader("queue-tot")String totalQueue,@RequestHeader("version")String version,@RequestHeader("millis")String millis) {

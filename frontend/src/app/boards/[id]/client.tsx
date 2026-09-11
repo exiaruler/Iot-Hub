@@ -214,7 +214,6 @@ export default function Client(props:Props){
         <TextInput label={"Login Date"}  rows={0} value={showDate(board?.lastLoginDateTime)} readOnly={true}/>
         <TextInput label={"Login Time"}  rows={0} value={showTime(board?.lastLoginDateTime)} readOnly={true}/>
         <TextInput label={"Activated Date"}  rows={0} value={showDate(board?.activatedDateTime)} readOnly={true}/>
-
         </Col>
         </Row>
         </ModalButton>

@@ -11,7 +11,7 @@ public class BoardQueueBackground {
     @Autowired
     BoardQueueService boardQueueService;
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(cron = "0 0/30 * * * ?")
     private void handleQueueExpiry(){
         boardQueueService.removeExpired();
     }

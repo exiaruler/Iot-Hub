@@ -48,7 +48,15 @@ export default function Client({form,records}:Props){
             if(index>-1){
                 setRecords(content?.updateArrayByIndex(data,index,recordList)||recordList);
             }else {
-                setRecords((prev:ObjectArray)=>[...prev.filter((rec:ObjectRecord)=>rec?.id!=data.id),data]);
+                setRecords((prev:ObjectArray)=>{
+                    const currentFirmwares=prev.map((record:ObjectRecord)=>({...record}));
+                    const latestFirmware=currentFirmwares.find((record:ObjectRecord)=>record?.latest);
+                    if(latestFirmware){
+                        latestFirmware.latest=false;
+                    }
+                    currentFirmwares.push(data);
+                    return currentFirmwares;
+                });
             }
             form.newRecord();
             setSelectedRecord(null);
@@ -65,7 +73,10 @@ export default function Client({form,records}:Props){
         const table=tableRef.current;
         table?.clearRowSelect();
     }
-    
+    const fieldEditable=()=>{
+        const form=formRef.current;
+        return selectedRecord!=null && form?.getRecordValue('dev')!=true;
+    }
     const selectRecord=(record:ObjectRecord)=>{
         let table=tableRef.current;
         let form=formRef.current;
@@ -95,7 +106,7 @@ export default function Client({form,records}:Props){
         <TabComponent title={"Firmware Versions"} eventKey={"firmware"}>
         <TableComponent ref={tableRef} results={recordList} idKey={"id"} rowSelect={true} onClick={selectRecord}>
         <TableComponentColumn key={"version"} columnName={"Version"} />
-
+        <TableComponentColumn key={"dev"} columnName={"Development"}/>
         <TableComponentColumn key={"latest"} columnName={"Latest"}/>
         </TableComponent> 
         </TabComponent>
@@ -105,8 +116,9 @@ export default function Client({form,records}:Props){
         <Form  post={"/firmware/add-record"} put={"/firmware/update-record/"} recordLayout={form||{}} ref={formRef} onSubmit={submit} idKey={"id"}>
         <Row>
         <Col>
-        <TextInput disable={selectedRecord!=null} formRef={formRef} name={"version"} label={"Version"} rows={0}/>
-        <CheckBoxInput name={'mandatoryUpdate'} disable={selectedRecord!=null} formRef={formRef} label={"Required Update"} rows={0}/>
+        <TextInput disable={fieldEditable()} formRef={formRef} name={"version"} label={"Version"} rows={0}/>
+        <CheckBoxInput name={'mandatoryUpdate'} disable={fieldEditable()} formRef={formRef} label={"Required Update"} rows={0}/>
+        <CheckBoxInput name={'dev'} disable={fieldEditable()} formRef={formRef} label={"Dev"} rows={0}/>
         <ContentInput contentHeight="500px" formRef={formRef} name={'notes'} label={"Firmware Notes"} rows={0}/>
         </Col>
         <Col>
