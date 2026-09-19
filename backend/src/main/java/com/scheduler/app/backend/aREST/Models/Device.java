@@ -33,7 +33,8 @@ public class Device extends ModelBase{
     @Column
     private String name="";
     // autocalculate time enabled for system task
-    //private boolean systemAutoCalculate=true;
+    @Column
+    private boolean systemAutoCalculate=true;
     // state which the device is in (redundent)
     @Column
     private String state;
@@ -79,10 +80,11 @@ public class Device extends ModelBase{
     public Device() {
     }
 
-    public Device(Board board, String deviceId, String name, String state, String warning, String type, String subtype, boolean frameworkFollowed, boolean custom, boolean switchDevice, boolean animationActive, List<Route> routes, List<Schedule> schedules, List<Component> components, List<BoardQueue> boardOperations) {
+    public Device(Board board, String deviceId, String name, boolean systemAutoCalculate, String state, String warning, String type, String subtype, boolean frameworkFollowed, boolean custom, boolean switchDevice, boolean animationActive, List<Route> routes, List<Schedule> schedules, List<Component> components, List<BoardQueue> boardOperations) {
         this.board = board;
         this.deviceId = deviceId;
         this.name = name;
+        this.systemAutoCalculate = systemAutoCalculate;
         this.state = state;
         this.warning = warning;
         this.type = type;
@@ -119,6 +121,18 @@ public class Device extends ModelBase{
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isSystemAutoCalculate() {
+        return this.systemAutoCalculate;
+    }
+
+    public boolean getSystemAutoCalculate() {
+        return this.systemAutoCalculate;
+    }
+
+    public void setSystemAutoCalculate(boolean systemAutoCalculate) {
+        this.systemAutoCalculate = systemAutoCalculate;
     }
 
     public String getState() {
@@ -248,6 +262,11 @@ public class Device extends ModelBase{
         return this;
     }
 
+    public Device systemAutoCalculate(boolean systemAutoCalculate) {
+        setSystemAutoCalculate(systemAutoCalculate);
+        return this;
+    }
+
     public Device state(String state) {
         setState(state);
         return this;
@@ -316,12 +335,12 @@ public class Device extends ModelBase{
             return false;
         }
         Device device = (Device) o;
-        return Objects.equals(board, device.board) && Objects.equals(deviceId, device.deviceId) && Objects.equals(name, device.name) && Objects.equals(state, device.state) && Objects.equals(warning, device.warning) && Objects.equals(type, device.type) && Objects.equals(subtype, device.subtype) && frameworkFollowed == device.frameworkFollowed && custom == device.custom && switchDevice == device.switchDevice && animationActive == device.animationActive && Objects.equals(routes, device.routes) && Objects.equals(schedules, device.schedules) && Objects.equals(components, device.components) && Objects.equals(boardOperations, device.boardOperations);
+        return Objects.equals(board, device.board) && Objects.equals(deviceId, device.deviceId) && Objects.equals(name, device.name) && systemAutoCalculate == device.systemAutoCalculate && Objects.equals(state, device.state) && Objects.equals(warning, device.warning) && Objects.equals(type, device.type) && Objects.equals(subtype, device.subtype) && frameworkFollowed == device.frameworkFollowed && custom == device.custom && switchDevice == device.switchDevice && animationActive == device.animationActive && Objects.equals(routes, device.routes) && Objects.equals(schedules, device.schedules) && Objects.equals(components, device.components) && Objects.equals(boardOperations, device.boardOperations);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(board, deviceId, name, state, warning, type, subtype, frameworkFollowed, custom, switchDevice, animationActive, routes, schedules, components, boardOperations);
+        return Objects.hash(board, deviceId, name, systemAutoCalculate, state, warning, type, subtype, frameworkFollowed, custom, switchDevice, animationActive, routes, schedules, components, boardOperations);
     }
 
     @Override
@@ -330,6 +349,7 @@ public class Device extends ModelBase{
             " board='" + getBoard() + "'" +
             ", deviceId='" + getDeviceId() + "'" +
             ", name='" + getName() + "'" +
+            ", systemAutoCalculate='" + isSystemAutoCalculate() + "'" +
             ", state='" + getState() + "'" +
             ", warning='" + getWarning() + "'" +
             ", type='" + getType() + "'" +

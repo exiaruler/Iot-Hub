@@ -10,7 +10,6 @@ import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import com.scheduler.Base.Base;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
@@ -45,6 +44,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
     }
   
     // handle board queue update and deletion
+    @Transactional 
     public void updateQueue(long id,long boardId,Instant dataTimeNow){
         BoardQueue que=boardQueueRepo.getQueueByTaskId(boardId,id);
         if(que!=null){
@@ -63,6 +63,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
         }
     }
     // add to queue through BoardTask
+    @Transactional 
     public BoardQueue addToQueueBoardTask(BoardTask task,Board board,Device device,Instant currentDateTime){
         BoardQueue rec=null;
         if(task.getTask().equals("schedule")){
@@ -90,6 +91,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
         return rec;
     }
     // add to queue through task
+    @Transactional
     public BoardQueue addToQueueTask(Task task){
         BoardQueue rec=null;
         BoardTask boardTask=null;

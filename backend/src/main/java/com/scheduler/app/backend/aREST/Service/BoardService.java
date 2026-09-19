@@ -37,7 +37,6 @@ import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
 import com.scheduler.app.backend.Messaging.Board.Models.DeviceCheck;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Board;
-import com.scheduler.app.backend.aREST.Models.BoardQueue;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 
 
@@ -127,8 +126,21 @@ public class BoardService extends BaseService<Board, Long> {
         String devWsUrl = entity.getDevWsUrl();
         long offline = entity.getOffline();
         boolean restartTimeout = entity.getRestartTimeout();
-        if(entity.getStartup()) entity.setLastLoginDateTime(dt);
-        if(entity.getUpdate()) entity.setLastConnectDateTime(dt);
+        if(entity.getStartup()){
+            taskService.purgeOldTasks(entity.getId());
+            entity.setLastLoginDateTime(dt);
+            scheduleService.startStartupSchedule(entity);
+        }
+        if(entity.getUpdate()){
+            if(!entity.getStartup()){
+                Instant lastCon=entity.getLastConnectDateTime();
+                long diff=Duration.between(lastCon, dt).toMillis();
+                if(diff>=entity.getOffline()){
+                    scheduleService.startRoutineSchedule(entity);
+                }
+            }
+            entity.setLastConnectDateTime(dt);
+        }
         if(persistedBoard!=null){
             entity.setBoardKey(persistedBoard.getBoardKey());
             entity.setSsid(persistedBoard.getSsid());
@@ -158,9 +170,7 @@ public class BoardService extends BaseService<Board, Long> {
             entity.setRestartTimeout(restartTimeout);
             entity.setDevMode(devMode);
             entity.setDevServerUrl(devMode ? devServerUrl.trim() : persistedBoard.getDevServerUrl());
-            entity.setDevWsUrl(devMode ? devWsUrl.trim() : persistedBoard.getDevWsUrl());
-            
-            //if(!entity.getLastLoginDateTime().equals(persistedBoard.getLastLoginDateTime()))entity.setLastLoginDateTime(entity.getLastLoginDateTime());
+            entity.setDevWsUrl(devMode ? devWsUrl.trim() : persistedBoard.getDevWsUrl());            
         }
     }
     public String boardLiveKey(long id){
@@ -255,13 +265,6 @@ public class BoardService extends BaseService<Board, Long> {
             // else restart routine tasks
             Instant dt=Instant.now();
             boardExist.setUpdate(true);
-
-            Instant lastCon=boardExist.getLastConnectDateTime();
-            long diff=Duration.between(lastCon, dt).toMillis();
-            // temp
-            if(diff>=boardExist.getOffline()){
-                scheduleService.startRoutineSchedule(boardExist);
-            }
             boardExist.setHeap(heap);
             boardExist.setMillis(millis);
             Background.putGlobal("board-millis|"+boardExist.getId(),millis);
@@ -384,6 +387,7 @@ public class BoardService extends BaseService<Board, Long> {
         Board exist=this.findById(boardIdLong);
         if(exist!=null){
             Background.putGlobal("startup|"+exist.getId(),"board startup");
+            // transaction type
             exist.setStartup(true);
             exist.setUpdate(true);
             Background.putGlobal("http-check|"+exist.getId(),"updating");
@@ -395,7 +399,7 @@ public class BoardService extends BaseService<Board, Long> {
                 Background.removeGlobal("update|board|"+exist.getId());
             }
             Instant dt=Instant.now();
-            taskService.purgeOldTasks(exist.getId());
+            //taskService.purgeOldTasks(exist.getId());
             Firmware firmware=firmwareService.getVersion(version);
             // add or update firmware version that board is using
             if(exist.getFirmware()==null||!exist.getFirmwareVersion().equals(version)){
@@ -409,6 +413,7 @@ public class BoardService extends BaseService<Board, Long> {
             // verify password
             check=createBoardLogin(exist);
             if(exist.getIp()!=ip) exist.setIp(ip);
+            exist.getBoardOperations().clear();
             exist.setRamUsage(ram);
             exist.setHeap(freeHeap);
             exist.setHeapTotal(heap);
@@ -421,12 +426,10 @@ public class BoardService extends BaseService<Board, Long> {
                 exist.setActivatedDateTime(dt);
                 exist.setActivated(true);
             }
-            for(BoardQueue bq:exist.getBoardOperations()){
-                bq.setBoard(null);
-            }
-            scheduleService.startStartupSchedule(exist);
+            
+           // scheduleService.startStartupSchedule(exist);
             Background.putGlobal("board|online|"+exist.getId(),Instant.now());
-            Board update=save(exist);
+            Board update=this.save(exist);
             Background.putGlobal("http-check|"+exist.getId(),"queueing");
             List <BoardTaskSerial> taskLists=new ArrayList<>();
             if(!mandatoryUpdate){

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +20,8 @@ import com.scheduler.Base.Exception.ErrorException;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
-import com.scheduler.app.backend.Messaging.MessageUtil;
 import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
+import com.scheduler.app.backend.Messaging.MessageUtil;
 import com.scheduler.app.backend.Messaging.Models.BoardPin;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.Messaging.Models.BoardVariable;
@@ -43,6 +44,7 @@ import com.scheduler.app.backend.aREST.Repo.TaskRepo;
 public class TaskService extends Base{
     private final TaskRepo taskRepo;
     private final BoardRepo boardRepo;
+    private final BoardService boardService;
     private SchedulerTask scheduler=new SchedulerTask();
     private final ScheduleRepo serviceSch;
     private final DeviceService deviceService;
@@ -53,9 +55,10 @@ public class TaskService extends Base{
     
 
     private Random randomGenerator;
-    public TaskService(TaskRepo taskRepo, ScheduleRepo serviceSch, DeviceService deviceService, CommandService commandService, BoardTaskService boardTaskService, RoutesService routesService, BoardQueueService boardQueueService, BoardRepo boardRepo) {
+    public TaskService(TaskRepo taskRepo, ScheduleRepo serviceSch, DeviceService deviceService, CommandService commandService, BoardTaskService boardTaskService, RoutesService routesService, BoardQueueService boardQueueService, BoardRepo boardRepo, @Lazy BoardService boardService) {
         this.taskRepo = taskRepo;
         this.boardRepo = boardRepo;
+        this.boardService = boardService;
         this.serviceSch = serviceSch;
         this.deviceService = deviceService;
         this.routesService = routesService;
@@ -71,7 +74,7 @@ public class TaskService extends Base{
         return new MessageUtil();
     }
     public Task addTask(Task entry){
-        Instant setDt=addDuration(1000,false);
+        Instant setDt=addDuration(1000,false,false);
         entry.setScheduledTime(setDt);
         entry.setActive(true);
         Task add=taskRepo.save(entry);
@@ -152,7 +155,7 @@ public class TaskService extends Base{
     // schedule task to scheduler
     public List<Task> setTaskSchedule(Task task,boolean addToSchedule){
         List<Task> modTasks=new ArrayList<>();
-        Instant scheDt=addDuration(task.getSchedule().getTime(),true);
+        Instant scheDt=addDuration(task.getSchedule().getTime(),false,true);
         boolean active=task.getSchedule().getStatus();
         task.setScheduledTime(scheDt);
         task.setActive(active);
@@ -191,11 +194,21 @@ public class TaskService extends Base{
                     BoardTask tempTask=new BoardTask(tsk);
                     Object boardMilObj=Background.getGlobal("board-millis|"+boardId);
                     long millis=0;
+                    boolean delayCalculate=false;
+                    Board board=boardService.findById(boardId);
+                    Device device=board.getDevice().stream().filter(dev->dev.getId()==deviceId).findFirst().orElse(null);
+                    delayCalculate=device.getSystemAutoCalculate();
                     if(boardMilObj!=null){
                         millis=Long.class.cast(boardMilObj);
+                    } else {
+                         millis=board.getCurrentMillis();
                     }
                     tempTask.runTarget(1);
                     tempTask.setDelayInterval(delayTime);
+                    if(delayCalculate){
+                        tempTask.setSystemCalculate(true);
+                        tempTask.setDelayInterval(delayTime+millis);
+                    }
                     tempTask.setVariable(new BoardVariable());
                     tempTask.initTaskId(task.getBoard());
                     //long boardId=task.getBoard();
@@ -250,20 +263,6 @@ public class TaskService extends Base{
                 }
             }
         }
-        /* 
-        List<Task> autoTaskIds=taskRepo.getRoutineJobs(boardId);
-        if(autoTaskIds.size()>0){
-            for(int x=0; x<autoTaskIds.size(); x++){
-                Task tsk=autoTaskIds.get(x);
-                if(tsk!=null){
-                    tsk.active(true);
-                    taskRepo.save(tsk);
-                    modTasks.add(tsk);
-                }
-            }
-        }
-        addToScheduler();
-        */
         return modTasks;
     }
     public void deleteTask(Task task){
@@ -280,6 +279,7 @@ public class TaskService extends Base{
         //addToScheduler();   
     }
     // use for http polling
+    @Transactional
     public List<BoardTaskSerial> getNextTasks(long id,Board board){
         List <BoardTaskSerial> taskLists=new ArrayList<>();
         List<Task> filterTasks=scheduler.queryQueueNow(id);
@@ -341,7 +341,10 @@ public class TaskService extends Base{
                             long millis = Duration.between(tskTrig, current).toMillis();
                             // modify delay interval if bigger than 1 second
                             if(millis>1000){
-                                boardTask.setDelayInterval(boardTask.getDelayInterval()-millis);
+                                if(device.getSystemAutoCalculate()){
+                                    long intervalCalculate=board.getCurrentMillis()-millis;
+                                    boardTask.setDelayInterval(intervalCalculate);
+                                }else boardTask.setDelayInterval(boardTask.getDelayInterval()-millis);
                             }
                             //System.out.println(boardTask.getDelayInterval());
                             List<Task> nextTasks=taskComplete(tsk, device, route,null);
@@ -460,7 +463,7 @@ public class TaskService extends Base{
                 }
                 
                 if(task.getSchedule().getRepeatTask()){
-                    Instant schedule=addDuration(task.getSchedule().getTime(),false);
+                    Instant schedule=addDuration(task.getSchedule().getTime(),false,false);
                     task.setScheduledTime(schedule);
                     task.setActive(true);
                 }
@@ -603,13 +606,15 @@ public class TaskService extends Base{
         return res;
     }
     // schedule time for task
-    private Instant addDuration(long time,boolean shave){
+    private Instant addDuration(long time,boolean shaveSeconds,boolean shaveNano){
         Instant currenDateTime = Instant.now();
         long sec=ZonedDateTime.ofInstant(currenDateTime, ZoneId.systemDefault()).getSecond();
         long nano=ZonedDateTime.ofInstant(currenDateTime, ZoneId.systemDefault()).getNano();
         // shave of seconds and nano seconds
-        if(shave){
+        if(shaveSeconds){
             currenDateTime=currenDateTime.minusSeconds(sec);
+        }
+        if(shaveNano){
             currenDateTime=currenDateTime.minusNanos(nano);
         }
         currenDateTime=currenDateTime.plus(time, ChronoUnit.MILLIS);

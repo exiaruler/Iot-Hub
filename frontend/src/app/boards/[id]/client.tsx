@@ -41,6 +41,7 @@ export default function Client(props:Props){
     // use to store next update occurance
     const nextUpdateDt=useRef<Date>(null);
     
+
     const openChangePass=()=>{
         passwordModalRef.current?.open();
     }
@@ -134,6 +135,17 @@ export default function Client(props:Props){
         const content=contentRef.current;
         content?.router.push('/boards/task-queue/'+board?.boardId);
     }
+    const updateBoard=async()=>{
+        const content=contentRef.current;
+        if(content==null) return;
+        const request=await content.util.fetchClientQuery('/board/get-board-id/'+board.boardId,'GET');
+        if(request.status==200){
+            const data=request?.json ?? {};
+            setBoard((prev)=>({ ...(prev ?? {}), ...data }));
+            setDevices(data.device);
+            nextUpdateDt.current=data?.nextQueueOperation;
+        }
+    }
     const nextUpdate=async ()=>{
         const content=contentRef.current;
         if(!content || !board?.boardId) return;
@@ -141,13 +153,7 @@ export default function Client(props:Props){
         const nextOp=nextUpdateDt.current;
         const boardMillis=board?.millis||0;
         if(nextOp!=null&&activated&&boardMillis>0 && content?.passDateTime(nextOp)){
-            const request=await content.util.fetchClientQuery('/board/get-board-id/'+board.boardId,'GET');
-            if(request.status==200){
-                const data=request?.json ?? {};
-                setBoard((prev)=>({ ...(prev ?? {}), ...data }));
-                setDevices(data.device);
-                nextUpdateDt.current=data?.nextQueueOperation;
-            }
+            await updateBoard();
         }
     }
     useEffect(()=>{
@@ -175,7 +181,6 @@ export default function Client(props:Props){
         <Row>
         <Col md={3} xs={9}>
         <TextInput label={"Board ID"}  rows={0} value={board?.boardId} readOnly={true}/>
-        
         <TextInput label={"Version"} value={board?.firmwareVersion} readOnly={true} rows={0}/>
         <TextInput label={"Local IP"}  rows={0} value={board?.ip} readOnly={true}/>
         </Col>
@@ -256,6 +261,9 @@ export default function Client(props:Props){
         <AddForm onUpdate={handleAddDevice} boardId={board?.id.toString() || ""} formLayout={props.deviceForm}/>
         </TabComponent>
         </TabGroup>
+        </Col>
+        <Col>
+        <RegularButton caption={"Refresh"} onClick={updateBoard}/>
         </Col>
         </Row> 
         <FormModal ref={passwordModalRef} title={"Password Change"} formRef={null} recordLayout={{password:'',passwordConfirm:''}} idKey={""}>

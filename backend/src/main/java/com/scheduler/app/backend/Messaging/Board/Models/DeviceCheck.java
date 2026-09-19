@@ -11,8 +11,6 @@ import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSer
 @JsonFormat(shape = JsonFormat.Shape.ARRAY)
 public class DeviceCheck{
     
-    // websocket headers/ be in loging
-    // http headers/ be in loing
     // total number of tasks
     private int taskTotal;
     // command tasks

@@ -13,7 +13,7 @@ import com.scheduler.app.backend.Messaging.Models.BoardPin;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.Messaging.Models.InputCurrent;
 import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
-@JsonPropertyOrder({"taskId","task","method","param","pinsUsed","pins","input","output","rgb","startAngle","moveAngle","loops","beginDelay","delayInterval","deduction","runTarget","targetAngle","status","systemTask"})
+@JsonPropertyOrder({"taskId","task","method","param","pinsUsed","pins","input","output","rgb","startAngle","moveAngle","loops","beginDelay","delayInterval","deduction","runTarget","targetAngle","status","systemTask","systemCalculate"})
 @JsonFormat(shape = JsonFormat.Shape.ARRAY)
 public class BoardTaskSerial extends BoardTask{
 
@@ -38,6 +38,7 @@ public class BoardTaskSerial extends BoardTask{
         this.setTargetAngle(boardTask.getTargetAngle());
         this.setStatus(boardTask.getStatus());
         this.setSystemTask(boardTask.isSystemTask());
+        this.setSystemCalculate(boardTask.getSystemCalculate());
     }
     @Override
     public void setPins(List<BoardPin> pins) {

@@ -15,6 +15,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -96,7 +97,8 @@ public class BoardTask extends TaskModelBase {
     @Column
     private boolean systemTask=false;
     // system delay calculate for delay based upon device configuration for system task
-    //private boolean systemCalculate;
+    @Transient 
+    private boolean systemCalculate;
     // background variables
     @JsonManagedReference("boardtask-variable")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "task", cascade = CascadeType.ALL)
@@ -619,6 +621,19 @@ public class BoardTask extends TaskModelBase {
         setCommand(command);
         return this;
     }
+
+    public boolean isSystemCalculate() {
+        return this.systemCalculate;
+    }
+
+    public boolean getSystemCalculate() {
+        return this.systemCalculate;
+    }
+
+    public void setSystemCalculate(boolean systemCalculate) {
+        this.systemCalculate = systemCalculate;
+    }
+
 
     @Override
     public boolean equals(Object o) {

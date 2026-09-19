@@ -19,6 +19,7 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Firmware.Model.Firmware;
@@ -148,10 +149,12 @@ public class Board extends ModelBase {
     @Transient
     private Instant nextQueueOperation;
     // transaction propertyies
-    // board routine 
+    // board checkup routine
+    @JsonIgnore 
     @Transient
     private boolean update;
     // board startup transaction
+    @JsonIgnore 
     @Transient
     private boolean startup;
 
