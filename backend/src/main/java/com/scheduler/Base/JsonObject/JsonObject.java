@@ -49,7 +49,6 @@ public class JsonObject implements Json {
         }
         String arr []=json.split(",");
         for(int i=0; i<arr.length; i++){
-            System.out.println(arr[i]);
             if(arr[i].indexOf(":")>0){
                 String [] varr=arr[i].split(":");
                 obj=addJson(varr[0],varr[1], obj);

@@ -89,12 +89,9 @@ public class BoardQueue extends BoardEventModelBase{
         if(this.getMode()!=null) delay=this.getMode().getBoardAction().getDelayInterval();
         if(this.expiredDateTime==null&&systemTask&&this.taskRepeat)this.nextOccurance=Instant.now().plusMillis(this.delay);   
     }
-    @PreUpdate
+    @Override
     protected void preUpdate(){
-        if(expiredDateTime==null&&systemTask&&this.taskRepeat&&nextOccurance!=null){
-
-            this.nextOccurance=this.nextOccurance.plusMillis(this.delay);
-        }
+        
     }
     @PostLoad
     protected void postLoad(){

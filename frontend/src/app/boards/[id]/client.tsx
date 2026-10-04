@@ -40,6 +40,9 @@ export default function Client(props:Props){
     const [hardware,setHardware]=useState<ObjectRecord>(props.boardHardware);
     // use to store next update occurance
     const nextUpdateDt=useRef<Date>(null);
+    const lastNextOp=useRef<any>(null);
+    const nextOpPassCount=useRef(0);
+    const updateInProgress=useRef(false);
     
 
     const openChangePass=()=>{
@@ -78,7 +81,7 @@ export default function Client(props:Props){
         }
     }
     const status=(bool:boolean):string=>{
-        let show="Inactive";
+        let show="Offline";
         if(bool) show="Active";
         return show;
     }
@@ -138,12 +141,20 @@ export default function Client(props:Props){
     const updateBoard=async()=>{
         const content=contentRef.current;
         if(content==null) return;
-        const request=await content.util.fetchClientQuery('/board/get-board-id/'+board.boardId,'GET');
+        const request=await content.util.fetchClientQuery('/board/get-board-id/'+board?.boardId,'GET');
         if(request.status==200){
             const data=request?.json ?? {};
             setBoard((prev)=>({ ...(prev ?? {}), ...data }));
             setDevices(data.device);
             nextUpdateDt.current=data?.nextQueueOperation;
+        }
+    }
+    const refreshBoard=async()=>{
+        const previousNextOp=nextUpdateDt.current;
+        await updateBoard();
+        if(String(nextUpdateDt.current)!==String(previousNextOp)){
+            lastNextOp.current=nextUpdateDt.current;
+            nextOpPassCount.current=0;
         }
     }
     const nextUpdate=async ()=>{
@@ -153,7 +164,18 @@ export default function Client(props:Props){
         const nextOp=nextUpdateDt.current;
         const boardMillis=board?.millis||0;
         if(nextOp!=null&&activated&&boardMillis>0 && content?.passDateTime(nextOp)){
-            await updateBoard();
+            if(lastNextOp.current!==nextOp){
+                lastNextOp.current=nextOp;
+                nextOpPassCount.current=0;
+            }
+            if(nextOpPassCount.current>=10||updateInProgress.current) return;
+            nextOpPassCount.current++;
+            updateInProgress.current=true;
+            try{
+                await updateBoard();
+            }finally{
+                updateInProgress.current=false;
+            }
         }
     }
     useEffect(()=>{
@@ -174,7 +196,7 @@ export default function Client(props:Props){
         <Col md={2} xs={2}>
         <BackButton url={"/boards"}/>
         </Col>
-        <Col md={10} xs={14}>
+        <Col md={8} xs={14}>
         <TabGroup defaultActiveKey={"board"} ref={tabGrpRef} onSelect={handleTabSelect}>
         <TabComponent title={board?.name||''} eventKey={"board"}>
         <div>
@@ -185,12 +207,12 @@ export default function Client(props:Props){
         <TextInput label={"Local IP"}  rows={0} value={board?.ip} readOnly={true}/>
         </Col>
         <Col md={3} xs={9}>
-        <TextInput label={"RAM Usage"}  rows={0} value={board?.ramUsage} readOnly={true}/>
-        <TextInput label={"Total RAM"}  rows={0} value={hardware?.maxRam} readOnly={true}/>
+        <TextInput label={"Heap Usage"}  rows={0} value={board?.ramUsage} readOnly={true}/>
+        <TextInput label={"Total Heap"}  rows={0} value={hardware?.maxRam} readOnly={true}/>
         <TextInput label={"Last Operation Time"}  rows={0} value={board?.millis} readOnly={true}/>
         </Col>
         <Col md={3} xs={9}>
-        <TextInput label={"Status"}  rows={0} value={status(board?.activated)} readOnly={true}/>
+        <TextInput label={"Status"}  rows={0} value={status(board?.status)} readOnly={true}/>
         <TextInput hidden={true} label={"Routine Check"}  rows={0} value={board?.periodicCheck} readOnly={true}/>
         <TextInput label={"Next Update Date"}  rows={0} value={showDate(board?.nextQueueOperation)} readOnly={true}/>
         <TextInput label={"Next Update Time"}  rows={0} value={showTime(board?.nextQueueOperation)} readOnly={true}/>
@@ -208,13 +230,11 @@ export default function Client(props:Props){
         <ModalButton disabled={!activated} buttonCaption={"More Details"} title={"Board Information"}>
         <Row>
         <Col md={6} xs={7}>
-        <TextInput label={"Last Heap"}  rows={0} value={board?.heap} readOnly={true}/>
-        <TextInput label={"Heap Total"}  rows={0} value={board?.heapTotal} readOnly={true}/>
+        <TextInput label={"Board Model"}  rows={0} value={hardware?.boardName} readOnly={true}/>
         <TextInput label={"SSID"}  rows={0} value={board?.ssid} readOnly={true}/>
         <TextInput label={"Mac Address"}  rows={0} value={board?.macAddress} readOnly={true}/>
         </Col>
         <Col md={6} xs={7}>
-        <TextInput label={"Board Model"}  rows={0} value={hardware?.boardName} readOnly={true}/>
         <TextInput label={"Created Date"}  rows={0} value={showDate(board?.createdDate)} readOnly={true}/>
         <TextInput label={"Login Date"}  rows={0} value={showDate(board?.lastLoginDateTime)} readOnly={true}/>
         <TextInput label={"Login Time"}  rows={0} value={showTime(board?.lastLoginDateTime)} readOnly={true}/>
@@ -222,13 +242,13 @@ export default function Client(props:Props){
         </Col>
         </Row>
         </ModalButton>
-        <ConfirmButton disabled={!activated} buttonCaption={"Reset"} title={"Reset Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart')}>
+        <ConfirmButton disabled={!activated||!board?.status} buttonCaption={"Reset"} title={"Reset Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart')}>
         <p>Are you sure you want to restart board?</p>
         </ConfirmButton>
-        <ConfirmButton disabled={!activated} buttonCaption={"Update"} title={"Update Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>
+        <ConfirmButton disabled={!activated||!board?.status} buttonCaption={"Update"} title={"Update Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>
         <p>Are you sure you want to update?</p>
         </ConfirmButton>
-        <ConfirmButton disabled={!activated} buttonCaption={"Reset Board Configuration"} title={"Reset Board Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart-board-config')}>
+        <ConfirmButton disabled={!activated||!board?.status} buttonCaption={"Reset Board Configuration"} title={"Reset Board Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart-board-config')}>
         <p>Are you sure you want to reset board configurations?</p>
         <p>Board configurations will be wiped and board will be deactivated until reactivated</p>
         </ConfirmButton>
@@ -239,7 +259,7 @@ export default function Client(props:Props){
         <ConfigForm activated={activated} formLayout={props.boardForm} submissionHandle={handleUpdate} record={board} modalRef={updateModalRef}/>
         </ModalButton>
         <Dev>
-        <ConfirmButton disabled={!activated} buttonCaption={"Upload"} title={"Upload Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>
+        <ConfirmButton disabled={!activated||!board?.status} buttonCaption={"Upload"} title={"Upload Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>
         <p>Are you sure you want to upload?</p>
         <p>Board will no longer receive commands from the Proto until new firmware is uploaded from IDE or manual reset</p>
         </ConfirmButton>
@@ -263,7 +283,7 @@ export default function Client(props:Props){
         </TabGroup>
         </Col>
         <Col>
-        <RegularButton caption={"Refresh"} onClick={updateBoard}/>
+        <RegularButton caption={"Refresh"} onClick={refreshBoard}/>
         </Col>
         </Row> 
         <FormModal ref={passwordModalRef} title={"Password Change"} formRef={null} recordLayout={{password:'',passwordConfirm:''}} idKey={""}>

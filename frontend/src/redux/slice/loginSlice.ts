@@ -1,3 +1,4 @@
+import { ObjectRecord } from "@/NextBase";
 import { createSlice } from "@reduxjs/toolkit";
 interface LoginState{
     username:string;

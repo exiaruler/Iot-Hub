@@ -6,9 +6,13 @@ import TabComponent from "@/components/Tab/TabComponent";
 import TabGroup from "@/components/Tab/TabGroup";
 import TableComponentColumn from "@/components/Table/TableComponentColumn";
 import { Row, Col, Tab } from "react-bootstrap";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Content, { ContentRef, ObjectRecord } from "@/app/next-components/layout/Content";
 import TextInput from "@/app/next-components/input/TextInput";
+import ModalButton from "@/app/next-components/modal/modal-button/modal-button";
+import DeviceForm from "./device-form";
+import Form from "@/app/next-components/form/Form";
+import SaveButton from "@/app/next-components/buttons/SaveButton";
 interface Props{
     active:boolean;
     device:ObjectRecord;
@@ -21,6 +25,9 @@ export default function Device(props:Props){
     const functionTblRef=useRef<TableComponent>(null);
     const contentRef=useRef<ContentRef>(null);
     const tabRef=useRef<TabGroup>(null);
+    const formRef=useRef<Form>(null);
+    const [device,setDevice]=useState<ObjectRecord>(props.device);
+
     const openFunction=()=>{
         let id=0;
         const content=contentRef.current;
@@ -74,13 +81,16 @@ export default function Device(props:Props){
         }
         return type;
     }
-    const showData=(date:ObjectRecord)=>{
-        let dateStr="";
-        if(date!=null&&date?.active){
-            dateStr=new Date(date.scheduledTime).toDateString();
+    const updateDevice=()=>{
+        const form=formRef.current;
+        if(form!=null){
+            if(form.statusResponse==200){
+                const data=form.submissionResponse;
+                setDevice({...device,data});
+            }
         }
-        return dateStr;
     }
+
     const showDateTimeString=(date:ObjectRecord)=>{
         if(date!=null&&date?.active){
             return new Date(date.scheduledTime).toLocaleTimeString()+" "+new Date(date.scheduledTime).toDateString();
@@ -110,7 +120,11 @@ export default function Device(props:Props){
                 :null}
                 </Col>    
                 </Row>
-                <RegularButton caption={"Update Device"} size={undefined} type={undefined}/>
+                <ModalButton buttonCaption={"Update Device"} title={""}>
+                <DeviceForm ref={formRef} boardId={props.device?.id} submitHandle={updateDevice} formLayout={null}>
+                <SaveButton caption={"Update"}/>
+                </DeviceForm>
+                </ModalButton>
                 <RegularButton caption={"Delete Device"} onClick={()=>props.deleteDeviceMethod(props.index)} size={undefined} type={undefined}/>
                 </Col>
                 </Row>

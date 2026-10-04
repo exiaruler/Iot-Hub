@@ -20,9 +20,12 @@ public class BoardEventModelBase {
         this.setId(new TaskEventId(boardId, deviceId,null));
     }
     @PreUpdate
-    protected void onUpdate() {
+    protected void onUpdateSuper() {
         this.setUpdatedDate(Instant.now());
+        this.preUpdate();
     }
+
+    protected void preUpdate() {}
 
     public TaskEventId getId() {
         return this.id;

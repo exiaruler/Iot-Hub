@@ -1,9 +1,7 @@
 package com.scheduler.app.backend.aREST.Controller;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import com.scheduler.Base.ControllerBase;
 import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardLogin;

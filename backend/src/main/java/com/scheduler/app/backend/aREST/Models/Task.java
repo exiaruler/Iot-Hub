@@ -68,6 +68,9 @@ public class Task extends BoardEventModelBase {
     // scheduled run time for task
     @Column
     private Instant scheduledTime=Instant.now();
+    // interval delay from schedule
+    @Column
+    private long delayTime;
     // task to repeat once
     @Column 
     private boolean oneTimeJob=true;
@@ -103,8 +106,8 @@ public class Task extends BoardEventModelBase {
     private void prePersist(){
         
     }
-    @PreUpdate
-    private void preUpdate(){
+    @Override
+    protected void preUpdate(){
         
     }
     @PostLoad
@@ -121,7 +124,7 @@ public class Task extends BoardEventModelBase {
     public Task() {
     }
 
-    public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, long boardTaskId, String boardTaskJson, String url, String payload, String section, int priority, boolean motor, Instant scheduledTime, boolean oneTimeJob, boolean systemTask, TaskEventId parentTask, boolean updateDevice, boolean active, boolean httpTask, int retry, Schedule schedule) {
+    public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, long boardTaskId, String boardTaskJson, String url, String payload, String section, int priority, boolean motor, Instant scheduledTime, long delayTime, boolean oneTimeJob, boolean systemTask, TaskEventId parentTask, boolean updateDevice, boolean active, boolean httpTask, int retry, Schedule schedule) {
         this.initId(boardId, deviceId);
         this.application = application;
         this.deviceId = deviceId;
@@ -137,6 +140,7 @@ public class Task extends BoardEventModelBase {
         this.priority = priority;
         this.motor = motor;
         this.scheduledTime = scheduledTime;
+        this.delayTime = delayTime;
         this.oneTimeJob = oneTimeJob;
         this.systemTask = systemTask;
         this.parentTask = parentTask;
@@ -417,6 +421,11 @@ public class Task extends BoardEventModelBase {
         return this;
     }
 
+    public Task delayTime(long delayTime) {
+        setDelayTime(delayTime);
+        return this;
+    }
+
     public Task oneTimeJob(boolean oneTimeJob) {
         setOneTimeJob(oneTimeJob);
         return this;
@@ -457,6 +466,31 @@ public class Task extends BoardEventModelBase {
         return this;
     }
 
+    public long getBoardId() {
+        return this.boardId;
+    }
+
+    public void setBoardId(long boardId) {
+        this.boardId = boardId;
+    }
+
+    public Mode getModeTransient() {
+        return this.modeTransient;
+    }
+
+    public void setModeTransient(Mode modeTransient) {
+        this.modeTransient = modeTransient;
+    }
+
+    public long getDelayTime() {
+        return this.delayTime;
+    }
+
+    public void setDelayTime(long delayTime) {
+        this.delayTime = delayTime;
+    }
+
+
 
 
     @Override
@@ -467,23 +501,45 @@ public class Task extends BoardEventModelBase {
             return false;
         }
         Task task = (Task) o;
-        return Objects.equals(application, task.application) && deviceId == task.deviceId && boardId == task.boardId && routeId == task.routeId && modeId == task.modeId && commandId == task.commandId && boardTaskId == task.boardTaskId && Objects.equals(boardTaskJson, task.boardTaskJson) && Objects.equals(url, task.url) && Objects.equals(payload, task.payload) && Objects.equals(section, task.section) && priority == task.priority && motor == task.motor && Objects.equals(scheduledTime, task.scheduledTime) && oneTimeJob == task.oneTimeJob && systemTask == task.systemTask && Objects.equals(parentTask, task.parentTask) && updateDevice == task.updateDevice && active == task.active && httpTask == task.httpTask && retry == task.retry && Objects.equals(schedule, task.schedule);
+        return Objects.equals(application, task.application)
+            && deviceId == task.deviceId
+            && boardId == task.boardId
+            && routeId == task.routeId
+            && modeId == task.modeId
+            && commandId == task.commandId
+            && boardTaskId == task.boardTaskId
+            && Objects.equals(boardTaskJson, task.boardTaskJson)
+            && Objects.equals(url, task.url)
+            && Objects.equals(payload, task.payload)
+            && Objects.equals(section, task.section)
+            && priority == task.priority
+            && motor == task.motor
+            && Objects.equals(scheduledTime, task.scheduledTime)
+            && delayTime == task.delayTime
+            && oneTimeJob == task.oneTimeJob
+            && systemTask == task.systemTask
+            && Objects.equals(parentTask, task.parentTask)
+            && updateDevice == task.updateDevice
+            && active == task.active
+            && httpTask == task.httpTask
+            && retry == task.retry
+            && Objects.equals(schedule, task.schedule);
+           
     }
-    
-
 
     @Override
     public int hashCode() {
-        return Objects.hash(application, deviceId, boardId, routeId, modeId, commandId, boardTaskId, boardTaskJson, url, payload, section, priority, motor, scheduledTime, oneTimeJob, systemTask, parentTask, updateDevice, active, httpTask, retry, schedule);
+        return Objects.hash(application, deviceId, boardId, routeId, modeId, commandId, boardTaskId,
+            boardTaskJson, url, payload, section, priority, motor, scheduledTime, delayTime,
+            oneTimeJob, systemTask, parentTask, updateDevice, active, httpTask, retry, schedule);
     }
-    
 
     @Override
     public String toString() {
         return "{" +
             " application='" + getApplication() + "'" +
             ", deviceId='" + getDeviceId() + "'" +
-            ", board='" + getBoard() + "'" +
+            ", boardId='" + getBoardId() + "'" +
             ", routeId='" + getRouteId() + "'" +
             ", modeId='" + getModeId() + "'" +
             ", commandId='" + getCommandId() + "'" +
@@ -495,6 +551,7 @@ public class Task extends BoardEventModelBase {
             ", priority='" + getPriority() + "'" +
             ", motor='" + isMotor() + "'" +
             ", scheduledTime='" + getScheduledTime() + "'" +
+            ", delayTime='" + getDelayTime() + "'" +
             ", oneTimeJob='" + isOneTimeJob() + "'" +
             ", systemTask='" + isSystemTask() + "'" +
             ", parentTask='" + getParentTask() + "'" +
@@ -502,6 +559,7 @@ public class Task extends BoardEventModelBase {
             ", active='" + isActive() + "'" +
             ", httpTask='" + isHttpTask() + "'" +
             ", retry='" + getRetry() + "'" +
+            ", modeTransient='" + getModeTransient() + "'" +
             ", schedule='" + getSchedule() + "'" +
             "}";
     }

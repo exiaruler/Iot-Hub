@@ -15,6 +15,7 @@ public class ControllerBaseService<ID,T> extends ControllerBase {
     @Autowired
     BaseService<T,ID> service;
     
+    
     @PostMapping(value="/add-record")
     public ResponseEntity<T> addRecord(@RequestBody T entity){
         return ResponseEntity.ok(service.save(entity));

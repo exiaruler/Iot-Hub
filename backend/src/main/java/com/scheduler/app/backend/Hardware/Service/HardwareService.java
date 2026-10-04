@@ -7,11 +7,13 @@ import java.util.List;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scheduler.Base.Base;
+import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
 import com.scheduler.app.backend.Hardware.Models.HardwarePins;
 import com.scheduler.app.backend.Hardware.Repo.HardwarePinsRepo;
@@ -19,7 +21,7 @@ import com.scheduler.app.backend.Hardware.Repo.HardwareRepo;
 
 @Configuration
 @Service
-public class HardwareService extends Base {
+public class HardwareService extends BaseService<Hardware,Long> {
     public final HardwareRepo hardware;
     public final HardwarePinsRepo pins;
     private final ObjectMapper objectMapper;
@@ -42,10 +44,23 @@ public class HardwareService extends Base {
         }
         for(int i=0; i<hardwares.size(); i++){
             Hardware board=hardwares.get(i);
-            Hardware existBoard=hardware.findHardwareByBoardName(board.getBoardName());
-            //existBoard=hardware.getById(existBoard.getId());
+            long hardId=hardware.findHardwareIdByBoardName(board.getBoardName());
+            Hardware existBoard=this.findById(hardId);
             if(existBoard!=null){
-
+                List<HardwarePins> existingPins=existBoard.getPins();
+                for (HardwarePins boardPin : board.getPins()) {
+                    HardwarePins existingPin=existingPins.stream()
+                        .filter(pin -> pin.getPin()==boardPin.getPin())
+                        .findFirst()
+                        .orElse(null);
+                    if (existingPin!=null) {
+                        existingPin.setBoardPin(boardPin.getBoardPin());
+                    } else {
+                        existingPins.add(new HardwarePins(existBoard,boardPin.getBoardPin(),boardPin.getPin()));
+                    }
+                }
+                existBoard.setMaxRam(board.getMaxRam());
+                hardware.save(existBoard);
             }else
             {
                 List<HardwarePins> pins=board.getPins();
@@ -74,5 +89,11 @@ public class HardwareService extends Base {
     }
     public List<Hardware> getBoards(){
         return hardware.findAll();
+    }
+
+    @Override
+    protected JpaRepository<Hardware, Long> repository() {
+        // TODO Auto-generated method stub
+        return hardware;
     }
 }

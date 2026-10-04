@@ -1,7 +1,29 @@
 'use client'
 import { Component, createRef } from "react";
-import { InputInterface,State } from "../interface/input";
 import { FormContext, RecordContext } from "@/component-base/form/FormHandle";
+import FormHandle from "../form/FormHandle";
+
+export interface InputInterface{
+    label:string;
+        type?:string|'text';
+        name?:string;
+        rows:number;
+        required?:boolean;
+        readOnly?:boolean;
+        disable?:boolean;
+        hidden?:boolean;
+        onChange?:CallableFunction;
+        warning?:string;
+        value?:any;
+        size?:any;
+        md?:number;
+        xs?:number;
+        formRef?:FormHandle|any;
+}
+export interface State{
+    value:any;
+    warning:string;
+}
 // input base handlers
 export default class InputBase extends Component<InputInterface,State>{
     public warningComponent:any;

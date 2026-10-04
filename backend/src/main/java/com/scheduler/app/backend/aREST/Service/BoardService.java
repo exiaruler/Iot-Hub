@@ -129,7 +129,25 @@ public class BoardService extends BaseService<Board, Long> {
         if(entity.getStartup()){
             taskService.purgeOldTasks(entity.getId());
             entity.setLastLoginDateTime(dt);
+            entity.setStatus(true);
             scheduleService.startStartupSchedule(entity);
+            // if in dev mode set status to inactive and do display display board except last connection
+            if(entity.getDevMode()){
+                List <Long> devIds=new ArrayList<>();
+                entity.getDevice().stream().map(dev->devIds.add(dev.getId()));
+                entity.getBoardOperations().clear();
+                entity.setStatus(false);
+                entity.setMillis(0);
+                entity.setRamUsage(0);
+                entity.setHeap(0);
+                if(entity.getDevice().size()>0&&entity.getDevice()!=null){
+                    entity.getDevice().stream().forEach(dev->{
+                        dev.getRoutes().stream().forEach(route->{
+                            route.setDefaultMode();
+                        });
+                    });
+                }
+            }
         }
         if(entity.getUpdate()){
             if(!entity.getStartup()){
@@ -140,6 +158,24 @@ public class BoardService extends BaseService<Board, Long> {
                 }
             }
             entity.setLastConnectDateTime(dt);
+        }
+        if(entity.getTransaction().equals("offline")&&entity.getId()>0){
+            List <Long> devIds=new ArrayList<>();
+            entity.getDevice().stream().map(dev->devIds.add(dev.getId()));
+            entity.getBoardOperations().clear();
+            entity.setStatus(false);
+            entity.setMillis(0);
+            entity.setLastConnectDateTime(null);
+            entity.setRamUsage(0);
+            entity.setHeap(0);
+            Background.removeGlobal("board|online|"+entity.getId());
+            if(entity.getDevice().size()>0&&entity.getDevice()!=null){
+                    entity.getDevice().stream().forEach(dev->{
+                        dev.getRoutes().stream().forEach(route->{
+                            route.setDefaultMode();
+                        });
+                    });
+            }
         }
         if(persistedBoard!=null){
             entity.setBoardKey(persistedBoard.getBoardKey());
@@ -222,31 +258,13 @@ public class BoardService extends BaseService<Board, Long> {
         newBoard.setBoardId(boardUniqueId);
         return save(newBoard);
     }
-    private Board offlineBoard(Board board){
-        board.setMillis(0);
-        board.setLastConnectDateTime(null);
-        board.setRamUsage(0);
-        board.setHeap(0);
-        return board;
-    }
+  
     @Transactional
     public void offlineBoardRoutine(){
         List<Board> offline=boardRepo.getBoardsPassBy();
         if(offline.size()>0){
             for(Board bo:offline){
-                List <Long> devIds=new ArrayList<>();
-                bo.getDevice().stream().map(dev->devIds.add(dev.getId()));
-                bo.getBoardOperations().clear();
-                if(bo.getDevice().size()>0&&bo.getDevice()!=null){
-                    bo.getDevice().stream().forEach(dev->{
-                        dev.getRoutes().stream().forEach(route->{
-                            route.setDefaultMode();
-                        });
-                    });
-                }
-                //if(devIds.size()>0&&devIds!=null)deviceService.routesService.updateRouteOffline(devIds);
-                bo=offlineBoard(bo);
-                Background.removeGlobal("board|online|"+bo.getId());
+                bo.setTransaction("offline");
                 this.save(bo);
             }
             System.out.println("offline board size "+offline.size());
@@ -277,7 +295,6 @@ public class BoardService extends BaseService<Board, Long> {
             List <BoardTaskSerial> taskLists=new ArrayList<>();
             List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(boardExist.getId(),boardExist);
             if(scheduledTasks.size()>0)taskLists=scheduledTasks;
-            //System.out.println(taskLists.size());
             check.setTasks(taskLists);
             if(tid>0){
                 // delete or update board queue
@@ -387,6 +404,7 @@ public class BoardService extends BaseService<Board, Long> {
         Board exist=this.findById(boardIdLong);
         if(exist!=null){
             Background.putGlobal("startup|"+exist.getId(),"board startup");
+            Background.putGlobal("board-millis|"+exist.getId(),millis);
             // transaction type
             exist.setStartup(true);
             exist.setUpdate(true);
@@ -418,16 +436,13 @@ public class BoardService extends BaseService<Board, Long> {
             exist.setHeap(freeHeap);
             exist.setHeapTotal(heap);
             exist.setMillis(millis);
-            Background.putGlobal("board-millis|"+exist.getId(),millis);
             if(exist.getSsid()==null||exist.getSsid().equals("")||!exist.getSsid().equals(ssid)) exist.setSsid(ssid);
             if(exist.getMacAddress()==null||exist.getMacAddress().equals("")||!exist.getMacAddress().equals(macAddress)) exist.setMacAddress(macAddress);
             // activate device to register
             if(!exist.getActivated()){
                 exist.setActivatedDateTime(dt);
                 exist.setActivated(true);
-            }
-            
-           // scheduleService.startStartupSchedule(exist);
+            }            
             Background.putGlobal("board|online|"+exist.getId(),Instant.now());
             Board update=this.save(exist);
             Background.putGlobal("http-check|"+exist.getId(),"queueing");
@@ -444,6 +459,7 @@ public class BoardService extends BaseService<Board, Long> {
                     taskLists.add(new BoardTaskSerial(boTsk));
                     boardQueueService.addToQueueBoardTask(boTsk, update, null,dt);
                 }
+
             }else
             {
                 // perform mandatory update

@@ -99,7 +99,6 @@ public class HttpSchedule extends BaseThread{
                         if(sucess&&deviceName!=""){
                             state=deviceJson.findKeyValue("Status");
                             device.setState(state);
-                            System.out.println(state);
                         }else{
                             warning=deviceJson.findKeyValue("Warning");
                             device.setWarning(warning);

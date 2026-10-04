@@ -1,10 +1,11 @@
 'use client'
 import { NextBase,ObjectArray, ObjectRecord } from "@/NextBase";
 import { NextUIBase } from "@/NextUIBase";
+import { getLoginState } from "@/redux/slice/loginSlice";
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode, RefObject, Suspense, forwardRef, useImperativeHandle, useRef } from "react";
+import { ReactNode, RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { Container } from "react-bootstrap";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 export type {ObjectRecord} from "@/NextBase";
 export type {ObjectArray} from "@/NextBase";
 interface Props {
@@ -36,9 +37,10 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     const login = useSelector((state: ObjectRecord) => state!.login.login);
     const user = useSelector((state:ObjectRecord) => state!.login);
     const pages = useSelector((state:ObjectRecord) => state!.page.pages);
+    const expiry= useSelector((state: ObjectRecord) => state!.login.expiry);
     const util = new NextBase();
     const router=useRouter();
-
+    
     const location = usePathname();
 
     useImperativeHandle(ref, () => ({
@@ -108,7 +110,15 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
         pages,
         router
     }));
-    
+    const expiryCheck=()=>{
+        
+    }
+    /*
+    useEffect(()=>{
+        const timer=window.setInterval(expiryCheck,5000);
+        return ()=>window.clearInterval(timer);
+    },[])
+    */
     return (
             <Container>
             {props.children}

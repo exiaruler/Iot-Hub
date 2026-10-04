@@ -157,6 +157,9 @@ public class Board extends ModelBase {
     @JsonIgnore 
     @Transient
     private boolean startup;
+    // transaction mode
+    @Transient 
+    private String transaction="";
 
     @PostLoad
     public void loadBoard(){
@@ -176,7 +179,6 @@ public class Board extends ModelBase {
                 elapsedMillis = 0;
             }
             calculate = (this.millis + elapsedMillis) % UINT32_MAX;
-            setMillis(calculate);
             this.currentMillis=calculate;
         }
         return calculate;
@@ -705,6 +707,15 @@ public class Board extends ModelBase {
 
     public void setStartup(boolean startup) {
         this.startup = startup;
+    }
+
+
+    public String getTransaction() {
+        return this.transaction;
+    }
+
+    public void setTransaction(String transaction) {
+        this.transaction = transaction;
     }
 
 

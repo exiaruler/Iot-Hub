@@ -1,7 +1,6 @@
 package com.scheduler.app.backend.aREST.Controller;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,19 +11,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.scheduler.Base.ControllerBase;
 import com.scheduler.Base.ModelBase.TaskEventId;
+import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.InterfaceModels.Input.FunctionModeTestInput;
 import com.scheduler.app.backend.aREST.Models.Task;
 import com.scheduler.app.backend.aREST.Service.TaskService;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
 @RequestMapping(value = "/task")
-public class TaskController extends ControllerBase{
+public class TaskController extends ControllerBaseService<TaskEventId,Task>{
    
     @Autowired
     private TaskService service;

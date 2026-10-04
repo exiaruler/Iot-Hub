@@ -297,11 +297,13 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     public SentToClientResponse sendToClient(String sessionId,BoardTask task,long boardId,Task taskObj,Device device,Route route,Mode mode,String comMessage) throws IOException {
         SentToClientResponse resp=new SentToClientResponse();
         WebSocketSession session = sessions.get(sessionId);
+        Board board=null;
         if (session != null && session.isOpen()) {
             if(!sentMessages.containsKey(boardId)){
                 String message="";
                 if(task!=null){
                     task.initTaskId(boardId);
+                    board=boardService.findById(boardId);
                     message=objectToJson(task);
                 }else if(comMessage!=""){
                     message=comMessage;
@@ -316,10 +318,12 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                     session.sendMessage(new TextMessage(message));
                     if(log)sentMessages.put(boardId, task);
                     List<Task> nextTasks=taskService.taskComplete(taskObj, device, route, mode);
+                    long tskDelay=0;
+                    if(taskObj.getSchedule()!=null) tskDelay=taskObj.getSchedule().getTime();
                     resp.setSent(true);
                     resp.setNextTasks(nextTasks);
                     // add task to board queue if it's schedule type
-                    boardQueueService.addToQueueTask(taskObj);
+                    boardQueueService.addToQueueTask(taskObj,board,tskDelay);
                     // log message sent
                     if(log){
                         

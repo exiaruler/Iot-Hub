@@ -12,11 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.scheduler.Base.ControllerBase;
 import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Service.DeviceService;
-import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping(value = "/device")
@@ -32,6 +30,7 @@ public class DeviceController extends ControllerBaseService<Long,Device> {
         Device saveDevice=service.addDeviceSocket(payload,id);
         return ResponseEntity.ok(saveDevice);
     }
+    
     
     @GetMapping(value="/get-devices")
     public List<Device> getAllDevices(@RequestParam(name="query", required = false)String query){

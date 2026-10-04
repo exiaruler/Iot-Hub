@@ -10,11 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import com.scheduler.Base.Base;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.ModelBase.TaskEventId;
-import com.scheduler.Base.Service.BaseService;
 import com.scheduler.Base.ResourceNotFoundException;
+import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
@@ -213,10 +212,9 @@ public class ScheduleService extends BaseService<Schedule, Long> {
     // start task schedule start task
     public boolean startupTask(long id){
         boolean success=false;
-        Schedule schedule=scheRepo.findById(id).get();
+        Schedule schedule=this.findById(id);
         if(schedule!=null){
             Task task=schedule.getTask();
-            
             taskService.setTaskSchedule(task,false);
             success=true;
         }

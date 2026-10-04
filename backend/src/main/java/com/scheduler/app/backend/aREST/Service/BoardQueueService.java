@@ -39,8 +39,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
     }
     @Override
     protected void beforeSave(BoardQueue entity, Map<String, String> errors, Map<String, String> warnings) {
-        // TODO Auto-generated method stub
-    
+       
     }
   
     // handle board queue update and deletion
@@ -50,10 +49,12 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
         if(que!=null){
             if(que.getTaskRepeat()&&que.getExpiredDateTime()==null){
                     if(que.getExpiredDateTime()==null&&que.getSystemTask()&&que.getTaskRepeat()&&que.getNextOccurance()!=null){
-                    Instant curr=dataTimeNow.plusMillis(que.getDelay());
-                    if(curr!=null){
-                        que.setNextOccurance(curr);
-                    }
+                        Instant curr=dataTimeNow.plusMillis(que.getDelay());
+                        if(curr!=null){
+                            que.setNextOccurance(curr);
+                        }
+                        
+                        
                 }
                 this.save(que);
             }else
@@ -92,13 +93,13 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
     }
     // add to queue through task
     @Transactional
-    public BoardQueue addToQueueTask(Task task){
+    public BoardQueue addToQueueTask(Task task,Board board,long delayTime){
         BoardQueue rec=null;
         BoardTask boardTask=null;
         // handle system task
         if(task.getSystemTask()&&!task.getBoardTaskJson().equals("")){
             String jsonStr=task.getBoardTaskJson();
-            Board board=boardRepo.findById(task.getBoard()).orElse(null);
+            //Board board=boardRepo.findById(task.getBoard()).orElse(null);
             Device device=board.getDevice().stream().filter(dev->dev.getId()==task.getDeviceId()).findFirst().orElse(null);
             try {
                 boardTask=messageUtil.stringToObject(jsonStr);
@@ -111,9 +112,13 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
                     {
                         // calculate expiry
                         expiry=calculateExpiry(boardTask.getDelayInterval());
+                        if(task.getScheduledTime()!=null) expiry=task.getScheduledTime();
                     }
-                    rec=new BoardQueue(board, device, boardTask.getTaskId(), taskName(boardTask.getMethod()), boardTask.getSystemTask(), true, true, boardTask.getSystemTask(), taskRepeat, boardTask.getDelayInterval(), false, expiry, null,jsonStr, null, null);
-                    rec=this.save(rec);
+                    int taskExists=getDataInt("select count(board_task_id) from board_queue where board="+board.getId()+" and board_task_id="+boardTask.getTaskId());
+                    if(taskExists==0){
+                        rec=new BoardQueue(board, device, boardTask.getTaskId(), taskName(boardTask.getMethod()), boardTask.getSystemTask(), true, true, boardTask.getSystemTask(), taskRepeat, delayTime, false, expiry, null,jsonStr, null, null);
+                        rec=this.save(rec);
+                    }
                     
                 }
             } catch (Exception e) {
@@ -121,7 +126,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
             }
         // handle non system task
         }else if(!task.getSystemTask()&&task.getSchedule()!=null){
-            Board board=boardRepo.findById(task.getBoard()).orElse(null);
+            //Board board=boardRepo.findById(task.getBoard()).orElse(null);
             Device device=board.getDevice().stream().filter(dev->dev.getId()==task.getDeviceId()).findFirst().orElse(null);
             if(board!=null&&device!=null){
                 Route rou=device.getRoutes().stream().filter(r->r.getId()==task.getRouteId()).findFirst().orElse(null);

@@ -10,4 +10,7 @@ public interface HardwareRepo extends JpaRepository<Hardware, Long> {
     @Query(value="select * from hardware where board_name=?1",nativeQuery = true)
     Hardware findHardwareByBoardName(String board);
 
+     @Query(value="select id from hardware where board_name=?1",nativeQuery = true)
+    long findHardwareIdByBoardName(String board);
+
 }

@@ -41,7 +41,7 @@ export default class TimeInput extends InputBase{
                 min:0,
                 hour:0,
                 warning:"",
-                buttonName:"Show Mills",
+                buttonName:"Mills",
                 millsDisplay:false,
                 recordId:""
         };
@@ -166,6 +166,16 @@ public convertMiliSecondsToTime(mills:number): { hours: number; minutes: number;
     }
     
     public onChangeTime(seconds:number, mins:number, hours:number, event:React.ChangeEvent<HTMLInputElement>):void{
+        // Keep the last accepted values when an edited time part is outside
+        // its allowed range. The controlled inputs will then render that value
+        // again after this change event.
+        /*
+        if ((this.props.seconds && (!Number.isFinite(seconds) || seconds < 0 || seconds > 60)) ||
+            (this.props.mins && (!Number.isFinite(mins) || mins < 0 || mins > 60)) ||
+            (this.props.hour && (!Number.isFinite(hours) || hours < 0))) {
+            return;
+        }
+        */
         let value = 0;
         const stateCpy = { ...this.state };
         if(this.props.seconds){
@@ -209,10 +219,10 @@ public convertMiliSecondsToTime(mills:number): { hours: number; minutes: number;
     }
     public millsFieldChange=()=>{
         if(!this.state.millsDisplay){
-            this.setState(prevState => ({...prevState,millsDisplay:true,buttonName:"Show Formated Time"}));
+            this.setState(prevState => ({...prevState,millsDisplay:true,buttonName:"Time"}));
         }else
         {
-            this.setState(prevState => ({...prevState,millsDisplay:false,buttonName:"Show Mills"}));
+            this.setState(prevState => ({...prevState,millsDisplay:false,buttonName:"Mills"}));
         }
     }
 
