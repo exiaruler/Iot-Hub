@@ -1,5 +1,7 @@
 package com.scheduler.app.backend.aREST.Models;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import javax.persistence.CascadeType;
@@ -8,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PostLoad;
 import javax.persistence.Transient;
@@ -15,6 +18,7 @@ import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
+import com.scheduler.app.backend.Schedule.Models.NextSchedule;
 // schedule http request and device tasks
 @Entity
 public class Schedule extends ModelBase {
@@ -51,6 +55,9 @@ public class Schedule extends ModelBase {
     // http request body
     @Column
     private String body="";
+    // next schedule tasks
+    @OneToMany (mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NextSchedule> nextSchedules=new ArrayList<>();
     // link to task
     @JsonManagedReference("schedule-task")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "schedule", cascade = CascadeType.ALL)
@@ -91,6 +98,15 @@ public class Schedule extends ModelBase {
         this.deviceId=deviceId;
         this.routeId=routeId;
         this.modeId=modeId;
+    }
+    private void orderNextTasks(){
+        if(this.nextSchedules!=null && this.nextSchedules.size()>0){
+            int order=0;
+            for(NextSchedule ns:this.nextSchedules){
+                //ns.setOrder(order);
+                order++;
+            }
+        }
     }
 
     public Schedule() {

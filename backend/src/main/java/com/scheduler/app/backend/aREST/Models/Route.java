@@ -105,13 +105,17 @@ public class Route extends ModelBase{
             this.selectedMode=defMo;
         }
     }
+    @Override
+    protected void prePersist() {
+        this.calculateCurrent();
+    }
+    /* 
     @PrePersist
     private void prePersist() {
         this.calculateCurrent();
     }
-    @PreUpdate
-    protected void preUpdate() {
-    }
+    */
+    
     
     public List<BoardTask> cycleModeCalculateForward(Mode mode) {
         List<BoardTask> cycleModes=new ArrayList<>();

@@ -78,8 +78,18 @@ public class Firmware extends ModelBase{
         if(arr.length==3) valid=true;
         return valid;
     }
-    @PrePersist
-    @PreUpdate
+    @Override
+    protected void preUpdate() {
+        // TODO Auto-generated method stub
+        onCreateandUpdate();
+    }
+    @Override 
+    protected void prePersist() {
+        // TODO Auto-generated method stub
+        onCreateandUpdate();
+    }
+   // @PrePersist
+   // @PreUpdate
     protected void onCreateandUpdate(){
         this.mainFile.trim();
         this.bootloaderFile.trim();

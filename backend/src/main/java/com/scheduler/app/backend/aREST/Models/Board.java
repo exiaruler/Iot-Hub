@@ -1,26 +1,9 @@
 package com.scheduler.app.backend.aREST.Models;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.PostLoad;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import java.time.*;
+import java.util.*;
+import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Firmware.Model.Firmware;
 import com.scheduler.app.backend.Hardware.Models.Hardware;

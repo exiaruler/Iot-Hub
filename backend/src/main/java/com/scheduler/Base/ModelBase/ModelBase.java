@@ -28,11 +28,15 @@ public class ModelBase{
         }
         this.setCreatedDate(Instant.now());
         this.setUpdatedDate(Instant.now());
+        this.prePersist();
     }
+    protected void prePersist() {}
     @PreUpdate
     protected void onUpdateSuper() {
         this.setUpdatedDate(Instant.now());
+        this.preUpdate();
     }
+    protected void preUpdate() {}
     public ModelBase(){
         this.setUpdatedDate(Instant.now());
     }    
