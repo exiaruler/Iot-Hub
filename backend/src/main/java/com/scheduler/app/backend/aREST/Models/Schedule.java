@@ -56,8 +56,10 @@ public class Schedule extends ModelBase {
     @Column
     private String body="";
     // next schedule tasks
+    /*
     @OneToMany (mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NextSchedule> nextSchedules=new ArrayList<>();
+    */
     // link to task
     @JsonManagedReference("schedule-task")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "schedule", cascade = CascadeType.ALL)
@@ -99,6 +101,7 @@ public class Schedule extends ModelBase {
         this.routeId=routeId;
         this.modeId=modeId;
     }
+    /* 
     private void orderNextTasks(){
         if(this.nextSchedules!=null && this.nextSchedules.size()>0){
             int order=0;
@@ -108,6 +111,7 @@ public class Schedule extends ModelBase {
             }
         }
     }
+    */
 
     public Schedule() {
     }

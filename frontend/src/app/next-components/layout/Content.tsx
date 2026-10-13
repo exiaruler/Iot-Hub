@@ -3,8 +3,8 @@ import { NextBase,ObjectArray, ObjectRecord } from "@/NextBase";
 import { NextUIBase } from "@/NextUIBase";
 import { getLoginState } from "@/redux/slice/loginSlice";
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode, RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { Container } from "react-bootstrap";
+import { ReactNode, RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Alert, Container } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 export type {ObjectRecord} from "@/NextBase";
 export type {ObjectArray} from "@/NextBase";
@@ -24,6 +24,7 @@ export interface ContentRef {
     updateArrayByIndex:(data:ObjectRecord,index:number,array:ObjectArray)=>ObjectArray;
     pushToArray:(data:ObjectRecord,array:ObjectArray)=>ObjectArray;
     filteredArrayByDateTime:(array:ObjectArray,key:string,condition?:boolean)=>ObjectArray;
+    showAlert:(message:string,variant?:string,duration?:number)=>void;
     passDateTime:(dateTime:Date)=>boolean;
     login: boolean;
     user: Record<string, any>;
@@ -40,8 +41,12 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     const expiry= useSelector((state: ObjectRecord) => state!.login.expiry);
     const util = new NextBase();
     const router=useRouter();
-    
     const location = usePathname();
+    const [alert,setAlert]=useState({
+        'show':false,
+        'message':'',
+        'variant':'primary'
+    });
 
     useImperativeHandle(ref, () => ({
         generateKeyClient: () => {
@@ -103,6 +108,14 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
             const { hours, minutes, seconds } = convertMiliSecondsToTime(mills);
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         },
+        showAlert:(message:string,variant:string='primary',duration:number=5000)=>{
+            setAlert({ show: true, message, variant });
+            if (duration > 0) {
+                setTimeout(() => {
+                    setAlert({ show: false, message: '', variant });
+                }, duration);
+            }
+        },
         login,
         user,
         location,
@@ -113,6 +126,7 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     const expiryCheck=()=>{
         
     }
+
     /*
     useEffect(()=>{
         const timer=window.setInterval(expiryCheck,5000);
@@ -121,7 +135,16 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     */
     return (
             <Container>
-            {props.children}
+            <div style={{ position: "relative" }}>
+                {props.children}
+                {alert.show ? (
+                    <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", justifyContent: "center", alignItems: "flex-start", pointerEvents: "none" }}>
+                        <Alert variant={alert.variant} style={{ pointerEvents: "auto" }}>
+                            {alert.message}
+                        </Alert>
+                    </div>
+                ) : null}
+            </div>
             </Container>
     );
 });

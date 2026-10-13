@@ -31,6 +31,7 @@ import com.scheduler.app.backend.Firmware.Model.Firmware;
 import com.scheduler.app.backend.Firmware.Service.FirmwareService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
 import com.scheduler.app.backend.Hardware.Service.HardwareService;
+import com.scheduler.app.backend.InterfaceModels.Output.BoardResponse;
 import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardLogin;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
@@ -298,7 +299,7 @@ public class BoardService extends BaseService<Board, Long> {
             check.setTasks(taskLists);
             if(tid>0){
                 // delete or update board queue
-                boardQueueService.updateQueue(tid, id,dt);
+                boardQueueService.updateQueue(tid, id,dt,boardExist.getBoardOperations());
             }
             Background.removeGlobal("board-millis|"+boardExist.getId());
             Background.removeGlobal("http-check|"+id);
@@ -566,5 +567,10 @@ public class BoardService extends BaseService<Board, Long> {
         if( idLong<0) return null;
         return this.findById(idLong);
     }
-    
+    public BoardResponse getBoardByBoardIdResponse(String id){
+        long idLong=getDataLong("select id from board where board_id="+quoteParam(id));
+        if( idLong<0) return null;
+        Board board = this.findById(idLong);
+        return new BoardResponse(board, "Update successful");
+    }
 }

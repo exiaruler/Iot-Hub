@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://avnadmin:AVNS_S10K1WoKZWieIc1qHdc@mysql-224c8cda-samuelgh-c289.h.aivencloud.com:27829/proto_local?ssl-mode=REQUIRED
-    username: avnadmin
-    password: AVNS_S10K1WoKZWieIc1qHdc
+    url: ${sm://Iot_backend_database_url_dev}
+    username: ${sm://Iot_backend_database_username_dev}
+    password: ${sm://Iot_backend_database_password_dev}
 
   flyway:
     enabled: false

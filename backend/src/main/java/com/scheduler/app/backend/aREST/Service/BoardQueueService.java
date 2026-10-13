@@ -44,8 +44,14 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
   
     // handle board queue update and deletion
     @Transactional 
-    public void updateQueue(long id,long boardId,Instant dataTimeNow){
+    public void updateQueue(long id,long boardId,Instant dataTimeNow,List<BoardQueue> queue){
         BoardQueue que=boardQueueRepo.getQueueByTaskId(boardId,id);
+        // if queue is null, check in the provided list
+        if(que==null){
+            if(queue!=null&&queue.size()>0){
+                que=queue.stream().filter(q->q.getBoardTaskId()==id&&q.getBoard().getId()==boardId).findFirst().orElse(null);
+            }
+        }
         if(que!=null){
             if(que.getTaskRepeat()&&que.getExpiredDateTime()==null){
                     if(que.getExpiredDateTime()==null&&que.getSystemTask()&&que.getTaskRepeat()&&que.getNextOccurance()!=null){
@@ -53,8 +59,6 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
                         if(curr!=null){
                             que.setNextOccurance(curr);
                         }
-                        
-                        
                 }
                 this.save(que);
             }else

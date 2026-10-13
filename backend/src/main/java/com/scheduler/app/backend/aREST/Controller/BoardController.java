@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
+import com.scheduler.app.backend.InterfaceModels.Output.BoardResponse;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardLogin;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
 import com.scheduler.app.backend.Messaging.Board.Models.DeviceCheck;
@@ -58,6 +59,16 @@ public class BoardController extends ControllerBaseService<Long,Board>{
         Board board=service.getBoardByBoardId(id);
         if(board!=null){
             return ResponseEntity.ok(board);
+        }else{
+            return ResponseEntity.notFound().build();
+        }
+    }
+    // used for interval updates
+    @GetMapping(value="/get-board-id-response/{id}")
+    public ResponseEntity<BoardResponse> getBoardIdResponse(@PathVariable String id){
+        BoardResponse boardResponse=service.getBoardByBoardIdResponse(id);
+        if(boardResponse!=null){
+            return ResponseEntity.ok(boardResponse);
         }else{
             return ResponseEntity.notFound().build();
         }

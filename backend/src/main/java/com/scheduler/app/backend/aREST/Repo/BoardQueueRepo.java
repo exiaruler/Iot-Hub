@@ -24,7 +24,7 @@ public interface BoardQueueRepo extends JpaRepository<BoardQueue,TaskEventId> {
     @Query(value="delete from board_queue where expired_date_time <= ?1", nativeQuery = true)
     public void removeExpired(Instant dateTime);
     // get next board queue operation
-    @Query(value="Select ifnull(expired_date_time,next_occurance) as next_update from board_queue where board=?1 order by next_update asc limit 1",nativeQuery = true)
+    @Query(value="Select ifnull(expired_date_time,next_occurance) as next_update from board_queue where board=?1 and next_occurance >= NOW() or expired_date_time >= NOW() order by next_update asc limit 1",nativeQuery = true)
     public Instant getNextQueueOperation(long boardId);
     // get queue by board and task id
     @Query(value="Select * from board_queue where board_id=?1 and board=?1 and board_task_id=?2 limit 1",nativeQuery = true)

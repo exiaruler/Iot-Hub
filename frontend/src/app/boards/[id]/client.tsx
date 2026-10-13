@@ -43,6 +43,7 @@ export default function Client(props:Props){
     const lastNextOp=useRef<any>(null);
     const nextOpPassCount=useRef(0);
     const updateInProgress=useRef(false);
+    const updateTime=useRef<number>(1000);
     
 
     const openChangePass=()=>{
@@ -147,6 +148,7 @@ export default function Client(props:Props){
             setBoard((prev)=>({ ...(prev ?? {}), ...data }));
             setDevices(data.device);
             nextUpdateDt.current=data?.nextQueueOperation;
+            content.showAlert('Update successful','success',2500);
         }
     }
     const refreshBoard=async()=>{
@@ -155,6 +157,7 @@ export default function Client(props:Props){
         if(String(nextUpdateDt.current)!==String(previousNextOp)){
             lastNextOp.current=nextUpdateDt.current;
             nextOpPassCount.current=0;
+            updateTime.current=1000;
         }
     }
     const nextUpdate=async ()=>{
@@ -167,9 +170,13 @@ export default function Client(props:Props){
             if(lastNextOp.current!==nextOp){
                 lastNextOp.current=nextOp;
                 nextOpPassCount.current=0;
+                updateTime.current=1000;
+            }else
+            {
+                updateTime.current+=1000;
             }
             if(nextOpPassCount.current>=10||updateInProgress.current) return;
-            nextOpPassCount.current++;
+            nextOpPassCount.current++;            
             updateInProgress.current=true;
             try{
                 await updateBoard();
@@ -179,7 +186,8 @@ export default function Client(props:Props){
         }
     }
     useEffect(()=>{
-        const timer=window.setInterval(nextUpdate,1000);
+        const time=updateTime.current;
+        const timer=window.setInterval(nextUpdate,time);
         return ()=>window.clearInterval(timer);
     },[activated, board?.boardId, board?.nextQueueOperation, board?.millis]);
 
