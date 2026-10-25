@@ -76,7 +76,6 @@ public class Device extends ModelBase{
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "device", cascade =CascadeType.ALL)
     private List<BoardQueue> boardOperations=new ArrayList<>();
 
-
     public Device() {
     }
 

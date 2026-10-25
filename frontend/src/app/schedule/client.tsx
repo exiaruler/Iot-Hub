@@ -14,20 +14,24 @@ import TextInput from "../next-components/input/TextInput";
 import CheckBoxInput from "../next-components/input/CheckBoxInput";
 import TimeInput from "../next-components/input/TimeInput";
 import Content, { ContentRef, ObjectArray, ObjectRecord } from "../next-components/layout/Content";
+import DragList from "../next-components/input/draggable/DragList";
 interface Props{
     form:Object;
+    nextScheduleForm:ObjectRecord;
     schedule:ObjectArray;
     devices:ObjectArray;
 }
-export default function Client({form,schedule,devices}:Props){
+export default function Client({form,schedule,devices,nextScheduleForm}:Props){
     const [modeSelectView,setModeSelectView]=useState(true);
     const [devicesList,setDeviceList]=useState(devices);
     const [scheduleList,setScheduleList]=useState(schedule);
+    const [nextScheduleList,setNextScheduleList]=useState(schedule);
     const [deleteBtn,setDeleteBtn]=useState(true);
     const [selectedSchedule,setSelectedSchedule]=useState<ObjectRecord>(null);
     const [functions,setFunctions]=useState([]);
     const [modes,setModes]=useState([]);
     const tabRef=useRef<TabGroup>(null);
+    const scheduleTabRef=useRef<TabGroup>(null);
     const formRef=useRef<Form>(null);
     const tableRef=useRef<TableComponent|null>(null);
     const deviceRef=useRef<SelectInput>(null);
@@ -38,7 +42,9 @@ export default function Client({form,schedule,devices}:Props){
         startup:false,
         routine:false
     })
+    const selectScheduleRef=useRef<SelectInput>(null);
     const contentRef=useRef<ContentRef>(null);
+    const nextScheduleRef=useRef<DragList>(null);
     
     const submit=()=>{
         let form=formRef.current;
@@ -133,10 +139,12 @@ export default function Client({form,schedule,devices}:Props){
     const selectRecord=(record:Record<string,any>)=>{
         let table=tableRef.current;
         let form=formRef.current;
+        const scheuleTab=scheduleTabRef.current;
         if(!table?.sameRow){
+            scheuleTab?.handleTabSwitch('form');
             setRoutineHidden({...routineHidden,routine:false,startup:false});
             setSelectedSchedule(record);
-            //form?.setRecord(record);
+            setNextScheduleList(scheduleList.filter((rec:ObjectRecord)=>rec?.id!=record.id));
             let functions=devices.find((rec:ObjectRecord)=>rec?.id==record.deviceId)?.routes||[];
             setFunctions(functions);
             if(record.startup)setRoutineHidden({...routineHidden,routine:true,startup:false});
@@ -155,7 +163,9 @@ export default function Client({form,schedule,devices}:Props){
             setDeleteBtn(false);
         }else
         {
+            scheuleTab?.handleTabSwitch('form');
             form?.newRecord();
+            setNextScheduleList(scheduleList);
             setRoutineHidden({...routineHidden,routine:false,startup:false});
             setFunctions([]);
             setModeSelectView(true);
@@ -170,6 +180,18 @@ export default function Client({form,schedule,devices}:Props){
     const onChangeTaskType=(name:string,value:boolean)=>{
         formRef.current?.onChangeRecord(name,value);
     }
+    const addToNextSchedule=(event:React.ChangeEvent<HTMLSelectElement>)=>{
+        const nextSchedule=nextScheduleRef.current;
+        const select=selectScheduleRef.current;
+        const value=event.target.value;
+        const rec=nextScheduleList.find((rec:ObjectRecord)=>rec?.id==Number.parseInt(value));
+        if(rec!=null){
+            const newAdd:ObjectRecord={...(nextScheduleForm||{}),scheduleId:value,name:rec.name};
+            nextSchedule?.addToList(newAdd);
+        }
+        select?.clearValue();
+    }
+
     return(
         <div>
         <Content ref={contentRef}>
@@ -186,9 +208,11 @@ export default function Client({form,schedule,devices}:Props){
         </TableComponent> 
         </TabComponent>
         <TabComponent title={"Schedule"} eventKey={"form"}>
+        <Form record={selectedSchedule}  post={"/schedule/add-record"} put={"/schedule/update-record/"} recordLayout={form} ref={formRef} onSubmit={submit} idKey={"id"}>
+        <TabGroup ref={scheduleTabRef} defaultActiveKey={'form'}>
+        <TabComponent title={"Configuration"} eventKey={"form"}>
         <Row>
         <Col md={5}>
-        <Form record={selectedSchedule}  post={"/schedule/add-record"} put={"/schedule/update-record/"} recordLayout={form} ref={formRef} onSubmit={submit} idKey={"id"}>
         <TextInput formRef={formRef} label={"Name"} type={"text"} rows={0} name={"name"} required={true}/>
         <SelectInput ref={deviceRef} formRef={formRef} name={"deviceId"} size={undefined} api={""} label="Device" valueKey={"id"} displayKey={"name"} options={devicesList} onChange={(event: any) => deviceSelectChange(event.target.value)} type={""} rows={0}/>
         <SelectInput ref={functionRef} formRef={formRef} name={"routeId"} warning={""} size={undefined} api={""} label="Function" valueKey={"id"} displayKey={"route"} options={functions} onChange={(event: any) => functionSelectChange(event.target.value)} type={""} rows={0}/>
@@ -200,7 +224,7 @@ export default function Client({form,schedule,devices}:Props){
         <CheckBoxInput ref={startUpCheckRef} hidden={routineHidden.startup} formRef={formRef} type={""} size={undefined} label={"Startup"} name={"startup"} rows={0} onChange={routineChangeHandler}/>
         <CheckBoxInput ref={routineCheckRef} hidden={routineHidden.routine} formRef={formRef} type={""} size={undefined} label={"Routine"} name={"repeatTask"} rows={0} onChange={routineChangeHandler}/>
         </Stack>
-        {routineHidden.startup?
+        {!routineHidden.routine?
         <TimeInput name="time" formRef={formRef} seconds={true} mins={true} hour={true} label={"Time Set At"} type={""} rows={0}/>
         :null}
         <CheckBoxInput formRef={formRef} name={"status"} label={"Status"} size={undefined} type={""} rows={0}/>
@@ -208,9 +232,21 @@ export default function Client({form,schedule,devices}:Props){
         <RegularButton caption={"Delete"} size={undefined} type={"button"} disabled={deleteBtn} onClick={deleteRecord}/>
         <NewButton formRef={formRef} caption={""} size={undefined} type={undefined} onClick={newRecord}/>
         <SaveButton caption={"Save"} size={undefined} type={undefined}/>
-        </Form>
         </Col>
         </Row>
+        </TabComponent>
+        <TabComponent title={"Next Schedule"} eventKey={"next=schedule"}>
+        <Row>
+        <Col>
+        <SelectInput ref={selectScheduleRef} warning={""} onChange={addToNextSchedule} size={undefined} api={""} label="Next Schedule" valueKey={"id"} displayKey={"name"} options={nextScheduleList} type={""} rows={0}/>
+        </Col>
+        <Col>
+        <DragList ref={nextScheduleRef} formRef={formRef} name={'nextSchedules'} label={""} rows={0} recordLayout={nextScheduleForm||{}} idKey={"id"}/>
+        </Col>
+        </Row>
+        </TabComponent>
+        </TabGroup>
+        </Form>
         </TabComponent>
         </TabGroup>
         </Col>

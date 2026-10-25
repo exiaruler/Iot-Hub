@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.scheduler.Base.ControllerBase;
 import com.scheduler.Base.Service.ControllerBaseService;
+import com.scheduler.app.backend.Schedule.Models.NextSchedule;
 import com.scheduler.app.backend.aREST.Models.Schedule;
 import com.scheduler.app.backend.aREST.Service.ScheduleService;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -29,7 +32,10 @@ public class ScheduleController extends ControllerBaseService<Long,Schedule> {
     public ScheduleController() {
         this.objectClass="com.scheduler.app.backend.aREST.Models.Schedule";
     }
-
+    @GetMapping("/new-next-schedule")
+    public ResponseEntity<NextSchedule> newNextSchedule(){
+        return ResponseEntity.ok(new NextSchedule());
+    }
     @PostMapping("/add-schedule-socket")
     public ResponseEntity<Schedule> addSchedule(@RequestBody Schedule payload) {
         Schedule add=service.addScheduleSocket(payload);

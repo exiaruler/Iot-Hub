@@ -46,7 +46,8 @@ public class Mode extends ModelBase{
     private BoardTask boardAction;
     // scheduled mode
     @JsonManagedReference("schedule-mode")
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "mode",cascade =CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "mode",
+            cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.REFRESH, CascadeType.DETACH})
     private List<Schedule> scheduledModes=new ArrayList<>();    
     // board operations
     @JsonManagedReference("queue-mode")

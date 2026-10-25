@@ -691,10 +691,11 @@ export default function Client({
                                 </TabComponent>
                             )
                             }
-                            {addMode&&false?
+                            {addMode?
                             <TabComponent title={"Sequence"} eventKey={"transition"}>
                             <Row>
-                            <CheckBoxInput label={"Mode Loop Through"} rows={0}/>
+                            <CheckBoxInput formRef={formRef} name={"cycleForward"} label={"Forward Cycle"} rows={0}/>
+                            <CheckBoxInput formRef={formRef} name={"cycleBack"} label={"Backward Cycle"} rows={0}/>
                             </Row>
                             </TabComponent>
                             :null}

@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.time.Instant;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Board.SentToClientResponse;
@@ -87,7 +88,19 @@ public class SchedulerTask{
     public List<Task> queryQueueNow(long boardId){
         Instant dt=Instant.now();
         List<Task> filterList=queue.stream().filter(rec->rec.getScheduledTime().equals(dt)||rec.getScheduledTime().isBefore(dt)&&rec.getBoard()==boardId||rec.getSystemTask()&&rec.getBoard()==boardId).toList();
-        queue.removeIf(rec ->(rec.getScheduledTime().equals(dt)|| rec.getScheduledTime().isBefore(dt))&& rec.getBoard() == boardId||rec.getSystemTask()&&rec.getBoard()==boardId);
+        queue.removeIf(rec->rec.getScheduledTime().equals(dt)||rec.getScheduledTime().isBefore(dt)&&rec.getBoard()==boardId||rec.getSystemTask()&&rec.getBoard()==boardId);
+        return filterList;
+    }
+    // get system task by task id
+    public List<Task> getSystemTaskByTaskId(TaskEventId id){
+        List<Task> filterList=queue.stream().filter(t->t.getSystemTask()&&t.getParentTask().equals(id)&&!t.getBoardTaskJson().equals("")).toList();
+        queue.removeIf(t->(t.getSystemTask()&&t.getParentTask().equals(id)&&!t.getBoardTaskJson().equals("")));
+        return filterList;
+    }
+     // get system task by board id
+    public List<Task> getSystemTaskByBoardId(long id){
+        List<Task> filterList=queue.stream().filter(t->t.getSystemTask()&&t.getBoardId()==id&&!t.getBoardTaskJson().equals("")).toList();
+        queue.removeIf(t->(t.getSystemTask()&&t.getBoardId()==id&&!t.getBoardTaskJson().equals("")));
         return filterList;
     }
     // delete tasks that match board id
@@ -155,10 +168,7 @@ public class SchedulerTask{
         }
         return result;
     }
-    // get priority task 
-    private Task getPriority(Task task){
-        return task;
-    }
+  
     // get all running task
     public List<Task> getAllRunTask(){
         return runningQueue;
@@ -194,6 +204,7 @@ public class SchedulerTask{
     }
     // add single task to the queue
     public void addTaskToQueue(Task task){
+        if(task.getScheduledTime()==null||!task.getActive()) return;
         queue.add(task);
     }
     // add to completed task array queue
@@ -231,7 +242,7 @@ public class SchedulerTask{
     }
     public void updateQueue(Task task){
         task.setActive(false);
-        taskService.saveTask(task);
+        taskService.save(task);
     }
     public void updateTaskProcess(Task task){
         task.setActive(false);
@@ -241,28 +252,9 @@ public class SchedulerTask{
             queue.add(task);
         }
     }
-    public boolean removeTasksByBoardId(long id){
-        boolean deleteAll=false;
-        List<Task> queryList=queue.stream().filter(rec->rec.getBoard()==id).toList();
-        int delCount=0;
-        if(queryList.size()>0){
-            queue.removeAll(queryList);
-            deleteAll=true;
-            /* 
-            for(int i=0; i<queryList.size(); i++){
-                Task tsk=queryList.get(i);
-                int qIndex=queue.indexOf(tsk);
-                if(qIndex>-1){
-                    while(queue.indexOf(tsk)!=-1){
-                        queue.remove(qIndex);
-                        delCount++;
-                    }
-                }
-            }
-            */
-        }
-        if(queryList.size()==delCount) deleteAll=true;
-        return deleteAll;
+    // remove tasks by board id
+    public void removeTasksByBoardId(long id){
+        queue.removeIf(rec->rec.getBoard()==id);
     }
     public boolean batchRequeTasks(List<Task> batch){
         return queue.addAll(batch);

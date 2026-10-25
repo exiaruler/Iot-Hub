@@ -91,8 +91,8 @@ export default function Client(props:Props){
     }
     const deviceDeleteHandle=async (index:number)=>{
         const content=contentRef.current!;
-        const request=await content.util.fetchClientQuery('/device/delete-device/'+devices[index]?.id,'DELETE');
-        if(request.status==200){
+        const request=await content.fetchClient('/device/delete-device/'+devices[index]?.id,'DELETE');
+        if(request?.status==200){
             const arr=[...devices];
             arr.splice(index,1);
             setDevices(arr);
@@ -107,9 +107,10 @@ export default function Client(props:Props){
     
     const boardCommand=async(command:string)=>{
         const content=contentRef.current!;
-        const request=await content.util.fetchClient('/task/'+command+'/'+board?.boardId,'POST',null);
-        if(request.ok){
-            let result=await request.json();
+        const url="/task/run-command/"+board?.boardId+"/action/"+command+"/true"
+        const request=await content.fetchClient(url,'POST',null);
+        if(request?.ok){
+            let result=await request.json;
         }
     }
     const handleUpdate=(boardRec:Record<string,any>|null)=>{
@@ -141,14 +142,16 @@ export default function Client(props:Props){
     }
     const updateBoard=async()=>{
         const content=contentRef.current;
-        if(content==null) return;
-        const request=await content.util.fetchClientQuery('/board/get-board-id/'+board?.boardId,'GET');
-        if(request.status==200){
-            const data=request?.json ?? {};
-            setBoard((prev)=>({ ...(prev ?? {}), ...data }));
-            setDevices(data.device);
-            nextUpdateDt.current=data?.nextQueueOperation;
-            content.showAlert('Update successful','success',2500);
+        if(content==null) return;      
+        const request=await content.fetchClient('/board/get-board-id/'+board?.boardId,'GET');
+        if(request?.status==200){
+            const data:ObjectRecord=request?.json ?? null;
+            if(data!=null){
+                setBoard((prev)=>({ ...(prev ?? {}), ...data }));
+                setDevices(data.device);
+                nextUpdateDt.current=data?.nextQueueOperation;
+                content.showAlert('Update successful','success',1500);
+            }
         }
     }
     const refreshBoard=async()=>{
@@ -250,13 +253,13 @@ export default function Client(props:Props){
         </Col>
         </Row>
         </ModalButton>
-        <ConfirmButton disabled={!activated||!board?.status} buttonCaption={"Reset"} title={"Reset Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart')}>
+        <ConfirmButton disabled={!activated||!board?.status} buttonCaption={"Reset"} title={"Reset Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('reset')}>
         <p>Are you sure you want to restart board?</p>
         </ConfirmButton>
         <ConfirmButton disabled={!activated||!board?.status} buttonCaption={"Update"} title={"Update Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('update')}>
         <p>Are you sure you want to update?</p>
         </ConfirmButton>
-        <ConfirmButton disabled={!activated||!board?.status} buttonCaption={"Reset Board Configuration"} title={"Reset Board Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restart-board-config')}>
+        <ConfirmButton disabled={!activated||!board?.status} buttonCaption={"Reset Board Configuration"} title={"Reset Board Confirmation"} submitCaption={"Confirm"} submit={()=>boardCommand('restartboard')}>
         <p>Are you sure you want to reset board configurations?</p>
         <p>Board configurations will be wiped and board will be deactivated until reactivated</p>
         </ConfirmButton>

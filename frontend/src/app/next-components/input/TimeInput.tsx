@@ -147,7 +147,7 @@ export default class TimeInput extends InputBase{
                 const currId=curr.props.record[prevCurr.props.idKey];
                 if(pastId!==currId||prevState.recordId!=currId){
                     val=curr.props.record[this.props.name];
-                   this.setTimeRead(val);
+                    this.setTimeRead(val);
                 }
             }else{
                 val=curr.props.recordLayout[this.props.name];

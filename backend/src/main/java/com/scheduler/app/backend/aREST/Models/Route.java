@@ -13,8 +13,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -54,9 +52,11 @@ public class Route extends ModelBase{
     @Column
     private boolean switchDevice=false;
     // cycle forward
-    //private boolean cycleForward;
+    @Column
+    private boolean cycleForward=false;
     // cycle back
-    //private boolean cycleBack;
+    @Column
+    private boolean cycleBack=false;
     // bi-direction cycle
     // default mode id
     @Column
@@ -80,7 +80,8 @@ public class Route extends ModelBase{
     private BoardTask boardAction;
     // routes that are scheduled
     @JsonManagedReference("route-schedule")
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "route", cascade =CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "route",
+            cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.REFRESH, CascadeType.DETACH})
     private List<Schedule> scheduledRoutes=new ArrayList<>();
     // route/function currently in operations
     @JsonManagedReference("queue-route")
@@ -109,19 +110,37 @@ public class Route extends ModelBase{
     protected void prePersist() {
         this.calculateCurrent();
     }
-    /* 
-    @PrePersist
-    private void prePersist() {
-        this.calculateCurrent();
+    // set mode for function
+    public List<BoardTask> activateMode(long id){
+        List<BoardTask> tasks=new ArrayList<>();
+        this.setSelectedModeId(id);
+        Mode mode=this.mode.stream().filter(rec->rec.getId()==id).findFirst().orElse(null);
+        // if cycle back or forward not enable get board task normally
+        if(!this.cycleBack&&!this.cycleForward){
+            if(mode!=null){
+                tasks.add(mode.getBoardAction());
+            }
+
+        }else
+        {
+            if(this.cycleForward){
+                tasks.addAll(cycleModeCalculateForward(mode));
+            }
+            if(this.cycleBack){
+                tasks.addAll(cycleModeCalculateBackward(mode));
+            }
+
+        }
+        return tasks;
     }
-    */
+
     
-    
+    // cycle forward
     public List<BoardTask> cycleModeCalculateForward(Mode mode) {
         List<BoardTask> cycleModes=new ArrayList<>();
         if(selectedMode!=null){
             int selIndex=this.mode.indexOf(selectedMode);
-            List<Mode> subFirst=this.mode.subList(selIndex,this.mode.size());
+            List<Mode> subFirst=this.mode.subList(selIndex+1,this.mode.size());
             if(subFirst.contains(mode)){
                 cycleModes=this.mode.subList(selIndex,this.mode.indexOf(mode)).stream().filter(m->m.getBoardAction()!=null).map(m->m.getBoardAction()).toList();
             }else
@@ -143,6 +162,7 @@ public class Route extends ModelBase{
         }
         return cycleModes;
     }
+    // cycle backward
     public List<BoardTask> cycleModeCalculateBackward(Mode mode) {
         List<BoardTask> cycleModes = new ArrayList<>();
         if (selectedMode != null) {
@@ -306,7 +326,7 @@ public class Route extends ModelBase{
     public Route() {
     }
 
-    public Route(Device device, String route, boolean modes, String electrode, Command command, long commandId, boolean switchDevice, long defaultModeId, long selectedModeId, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes, List<BoardQueue> boardOperations) {
+    public Route(Device device, String route, boolean modes, String electrode, Command command, long commandId, boolean switchDevice, boolean cycleForward, boolean cycleBack, long defaultModeId, long selectedModeId, List<Mode> mode, BoardTask boardAction, List<Schedule> scheduledRoutes, List<BoardQueue> boardOperations) {
         this.device = device;
         this.route = route;
         this.modes = modes;
@@ -314,6 +334,8 @@ public class Route extends ModelBase{
         this.command = command;
         this.commandId = commandId;
         this.switchDevice = switchDevice;
+        this.cycleForward = cycleForward;
+        this.cycleBack = cycleBack;
         this.defaultModeId = defaultModeId;
         this.selectedModeId = selectedModeId;
         this.mode = mode;
@@ -385,6 +407,30 @@ public class Route extends ModelBase{
 
     public void setSwitchDevice(boolean switchDevice) {
         this.switchDevice = switchDevice;
+    }
+
+    public boolean isCycleForward() {
+        return this.cycleForward;
+    }
+
+    public boolean getCycleForward() {
+        return this.cycleForward;
+    }
+
+    public void setCycleForward(boolean cycleForward) {
+        this.cycleForward = cycleForward;
+    }
+
+    public boolean isCycleBack() {
+        return this.cycleBack;
+    }
+
+    public boolean getCycleBack() {
+        return this.cycleBack;
+    }
+
+    public void setCycleBack(boolean cycleBack) {
+        this.cycleBack = cycleBack;
     }
 
     public List<Mode> getMode() {
@@ -501,8 +547,6 @@ public class Route extends ModelBase{
         this.selectedMode = selectedMode;
     }
 
-
-
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -518,6 +562,8 @@ public class Route extends ModelBase{
                 && Objects.equals(command, other.command)
                 && commandId == other.commandId
                 && switchDevice == other.switchDevice
+                && cycleForward == other.cycleForward
+                && cycleBack == other.cycleBack
                 && defaultModeId == other.defaultModeId
                 && selectedModeId == other.selectedModeId
                 && Objects.equals(mode, other.mode)
@@ -528,7 +574,7 @@ public class Route extends ModelBase{
 
     @Override
     public int hashCode() {
-        return Objects.hash(device, route, modes, electrode, command, commandId, switchDevice, defaultModeId, selectedModeId, mode, boardAction, scheduledRoutes, boardOperations);
+        return Objects.hash(device, route, modes, electrode, command, commandId, switchDevice, cycleForward, cycleBack, defaultModeId, selectedModeId, mode, boardAction, scheduledRoutes, boardOperations);
     }
 
     @Override
@@ -541,6 +587,8 @@ public class Route extends ModelBase{
             ", command='" + getCommand() + "'" +
             ", commandId='" + getCommandId() + "'" +
             ", switchDevice='" + isSwitchDevice() + "'" +
+            ", cycleForward='" + isCycleForward() + "'" +
+            ", cycleBack='" + isCycleBack() + "'" +
             ", defaultModeId='" + getDefaultModeId() + "'" +
             ", defaultMode='" + getDefaultMode() + "'" +
             ", selectedModeId='" + getSelectedModeId() + "'" +

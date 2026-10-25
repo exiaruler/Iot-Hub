@@ -55,11 +55,10 @@ public class Schedule extends ModelBase {
     // http request body
     @Column
     private String body="";
-    // next schedule tasks
-    /*
+    // Entries owned by this schedule; each entry separately references its target schedule.
+    @JsonManagedReference("route-next")
     @OneToMany (mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NextSchedule> nextSchedules=new ArrayList<>();
-    */
     // link to task
     @JsonManagedReference("schedule-task")
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "schedule", cascade = CascadeType.ALL)
@@ -100,23 +99,37 @@ public class Schedule extends ModelBase {
         this.deviceId=deviceId;
         this.routeId=routeId;
         this.modeId=modeId;
-    }
-    /* 
-    private void orderNextTasks(){
-        if(this.nextSchedules!=null && this.nextSchedules.size()>0){
-            int order=0;
-            for(NextSchedule ns:this.nextSchedules){
-                //ns.setOrder(order);
-                order++;
-            }
+        if (this.nextSchedules != null) {
+            this.nextSchedules.sort((a, b) -> Integer.compare(a.getScheduleOrder(), b.getScheduleOrder()));
         }
     }
-    */
+
+    public void prepareNextSchedules() {
+        if (this.nextSchedules == null) {
+            return;
+        }
+
+        int order = 1;
+        for (NextSchedule nextSchedule : this.nextSchedules) {
+            nextSchedule.setSchedule(this);
+            nextSchedule.setScheduleOrder(order++);
+        }
+    }
+
+    @Override
+    protected void prePersist() {
+        prepareNextSchedules();
+    }
+
+    @Override
+    protected void preUpdate() {
+        prepareNextSchedules();
+    }
 
     public Schedule() {
     }
 
-    public Schedule(String name, long time, boolean repeatTask, boolean startup, boolean modeRandom, long nextTask, String modeValue, int retries, boolean status, String url, String body, Task task, Device device, Route route, Mode mode) {
+    public Schedule(String name, long time, boolean repeatTask, boolean startup, boolean modeRandom, long nextTask, String modeValue, int retries, boolean status, String url, String body, List<NextSchedule> nextSchedules, Task task, Device device, Route route, Mode mode) {
         this.name = name;
         this.time = time;
         this.repeatTask = repeatTask;
@@ -128,6 +141,7 @@ public class Schedule extends ModelBase {
         this.status = status;
         this.url = url;
         this.body = body;
+        this.nextSchedules = nextSchedules;
         this.task = task;
         this.device = device;
         this.route = route;
@@ -236,6 +250,14 @@ public class Schedule extends ModelBase {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public List<NextSchedule> getNextSchedules() {
+        return this.nextSchedules;
+    }
+
+    public void setNextSchedules(List<NextSchedule> nextSchedules) {
+        this.nextSchedules = nextSchedules;
     }
 
     public Task getTask() {
@@ -349,6 +371,11 @@ public class Schedule extends ModelBase {
         return this;
     }
 
+    public Schedule nextSchedules(List<NextSchedule> nextSchedules) {
+        setNextSchedules(nextSchedules);
+        return this;
+    }
+
     public Schedule task(Task task) {
         setTask(task);
         return this;
@@ -395,12 +422,12 @@ public class Schedule extends ModelBase {
             return false;
         }
         Schedule schedule = (Schedule) o;
-        return Objects.equals(name, schedule.name) && time == schedule.time && repeatTask == schedule.repeatTask && startup == schedule.startup && modeRandom == schedule.modeRandom && nextTask == schedule.nextTask && Objects.equals(modeValue, schedule.modeValue) && retries == schedule.retries && status == schedule.status && Objects.equals(url, schedule.url) && Objects.equals(body, schedule.body) && Objects.equals(task, schedule.task) && Objects.equals(device, schedule.device) && Objects.equals(route, schedule.route) && Objects.equals(mode, schedule.mode);
+        return Objects.equals(name, schedule.name) && time == schedule.time && repeatTask == schedule.repeatTask && startup == schedule.startup && modeRandom == schedule.modeRandom && nextTask == schedule.nextTask && Objects.equals(modeValue, schedule.modeValue) && retries == schedule.retries && status == schedule.status && Objects.equals(url, schedule.url) && Objects.equals(body, schedule.body) && Objects.equals(nextSchedules, schedule.nextSchedules) && Objects.equals(task, schedule.task) && Objects.equals(device, schedule.device) && Objects.equals(route, schedule.route) && Objects.equals(mode, schedule.mode);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, time, repeatTask, startup, modeRandom, nextTask, modeValue, retries, status, url, body, task, device, route, mode);
+        return Objects.hash(name, time, repeatTask, startup, modeRandom, nextTask, modeValue, retries, status, url, body, nextSchedules, task, device, route, mode);
     }
     
 
@@ -418,13 +445,10 @@ public class Schedule extends ModelBase {
             ", status='" + isStatus() + "'" +
             ", url='" + getUrl() + "'" +
             ", body='" + getBody() + "'" +
-            ", task='" + getTask() + "'" +
-            ", device='" + getDevice() + "'" +
-            ", deviceId='" + getDeviceId() + "'" +
-            ", route='" + getRoute() + "'" +
-            ", routeId='" + getRouteId() + "'" +
-            ", mode='" + getMode() + "'" +
-            ", modeId='" + getModeId() + "'" +
+            ", taskId='" + (getTask() == null ? null : getTask().getId()) + "'" +
+            ", deviceId='" + (getDevice() == null ? getDeviceId() : getDevice().getId()) + "'" +
+            ", routeId='" + (getRoute() == null ? getRouteId() : getRoute().getId()) + "'" +
+            ", modeId='" + (getMode() == null ? getModeId() : getMode().getId()) + "'" +
             "}";
     }
 

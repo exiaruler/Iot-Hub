@@ -72,6 +72,10 @@ export default class SelectBase extends InputBase{
         val=this.props.options.find((rec:any)=>rec[this.props.valueKey]==value);
         return val;
     }
+    public clearValue():void{
+        this.value=0;
+        this.setState({...this.state,value:0});
+    }
     public onChange(event:any):void{
         const value=event.target.value;
         this.value=event.target.value;

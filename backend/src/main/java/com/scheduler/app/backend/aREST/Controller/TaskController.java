@@ -1,11 +1,9 @@
 package com.scheduler.app.backend.aREST.Controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,13 +51,12 @@ public class TaskController extends ControllerBaseService<TaskEventId,Task>{
     }
     
     @GetMapping(value="/get-task/{id}")
-    public Optional<Task> getTask(@PathVariable TaskEventId id){
-        return service.getTask(id);
+    public ResponseEntity<Task> getTask(@PathVariable TaskEventId id){
+        Task task=service.findById(id);
+        if(task==null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(task);
     }
-    @GetMapping(value="/getalltask")
-    public List<Task> getAllTask(){
-        return service.getAllTask();
-    }
+
     @GetMapping("/get-tasks-schedule")
     public List<Task> getMethodName() {
         return service.getTasksScheduler();
@@ -78,23 +75,8 @@ public class TaskController extends ControllerBaseService<TaskEventId,Task>{
     public boolean checkRun(){
         return service.checkCurrentRun();
     }
-    @DeleteMapping(value="/delete-task/{id}")
-    public void deleteTask(@PathVariable TaskEventId id){
-        Task task=service.getTask(id).get();
-        if(task!=null){
-            service.deleteTask(task);
-        }
-    }
-    @GetMapping(value = "/master-clear")
-    public String masterClear(){
-        service.masterDelete();
-        return "Everything clear";
-    }
-    @GetMapping(value = "/task-clear")
-    public String clearTasks(){
-        service.clearQueue();
-        return "tasks clear";
-    }
+
+  
     // route to start device
     @GetMapping(value="/start-device/{device}")
     public void addTaskFromRequestStart(@PathVariable String device){

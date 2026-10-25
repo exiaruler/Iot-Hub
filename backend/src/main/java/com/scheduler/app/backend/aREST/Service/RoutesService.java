@@ -2,13 +2,13 @@ package com.scheduler.app.backend.aREST.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.scheduler.Base.Background;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Command.Models.Command;
@@ -70,6 +70,11 @@ public class RoutesService extends BaseService<Route, Long> {
                 entity.setModes(true);
             }
         }
+        if(entity.getCycleForward()&&entity.getCycleBack()){
+            String msg="Selection of Forward Cycle and Backward Cyycle is not allowed";
+            errors.put("cycleForward", msg);
+            errors.put("cycleBack", msg);
+        }
 
         if(errors.size()>0) throw new ValidationException(errors, null);
 
@@ -87,12 +92,24 @@ public class RoutesService extends BaseService<Route, Long> {
                 List<Mode> updatedModeList=new ArrayList<>(entity.getMode());
                 List<Mode> existModeList=rec.getMode();
 
+                // A route edit may omit modes that are still referenced by
+                // schedules. Keep those persisted mode entities in the update.
+                for (Mode existingMode : existModeList) {
+                    if (existingMode.getScheduledModes() != null
+                            && !existingMode.getScheduledModes().isEmpty()
+                            && updatedModeList.stream()
+                                    .noneMatch(mode -> mode.getId() == existingMode.getId())) {
+                        updatedModeList.add(existingMode);
+                    }
+                }
+
                 entity.setCommand(com);
                 entity.setCommandId(com.getId());
                 if(entity.getMode().size()>0){
                     entity.setModes(true);
                 }
-                existModeList.removeIf(exist->updatedModeList.stream().noneMatch(m->m.getId()==exist.getId()));
+                existModeList.removeIf(exist -> updatedModeList.stream()
+                        .noneMatch(mode -> mode.getId() == exist.getId()));
                 
                 // Use the persisted mode instances for existing modes, then put
                 // the reconciled collection back onto the incoming entity.
@@ -127,14 +144,19 @@ public class RoutesService extends BaseService<Route, Long> {
             {
                 entity.setCommand(com);
                 entity.setCommandId(com != null ? com.getId() : 0);
-                entity.getMode().clear();
+                boolean hasScheduledModes = rec.getMode().stream()
+                        .anyMatch(mode -> mode.getScheduledModes() != null
+                                && !mode.getScheduledModes().isEmpty());
+                if (hasScheduledModes) {
+                    errors.put("command", "Cannot change the command while a mode is used by a schedule");
+                } else {
+                    entity.getMode().clear();
+                }
             }
             if(errors.size()>0) throw new ValidationException(errors, null);
-            entity.calculateCurrent();
-            //entity.setDefaultMode();
             entity.setDevice(rec.getDevice());
         }
-
+        entity.calculateCurrent();
     }
     @Override
     protected void afterSave(Route entity) {
@@ -143,8 +165,6 @@ public class RoutesService extends BaseService<Route, Long> {
             entity.setDefaultMode();
             routeRepo.save(entity);
         }
-        String boardLiveKey="board-live|"+entity.getDevice().getBoard().getId();
-        // Background.putGlobal(boardLiveKey,entity.getDevice().getBoard());
     }
     // add route and mode socket
     public Route addRouteandModes(Route route,String deviceId){
@@ -159,15 +179,18 @@ public class RoutesService extends BaseService<Route, Long> {
         return route;
     }
     // update route and modes
+    @Transactional
     public Route updateRoute(Route entry,Long id){
-        Route rec=null;
-        if(routeRepo.existsById(id)){
-            // The route ID belongs to the URL.  Ensure beforeSave receives it
-            // even when the request body does not include an id field.
-            //entry.setId(id);
-            rec=this.save(entry);
+        Route existingRoute = routeRepo.findById(id).orElse(null);
+        if (existingRoute == null) {
+            return null;
         }
-        return rec;
+        // The request may omit inverse relationships. Keep the persisted
+        // schedule collection and device while applying the route update.
+        entry.setId(id);
+        entry.setDevice(existingRoute.getDevice());
+        entry.setScheduledRoutes(existingRoute.getScheduledRoutes());
+        return this.save(entry);
     }
     // route/function config update
     public Route updateRouteConfig(Route entry,Long id){

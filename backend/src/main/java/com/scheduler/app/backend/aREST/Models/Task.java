@@ -14,7 +14,6 @@ import javax.persistence.Lob;
 import javax.persistence.OneToOne;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -101,6 +100,12 @@ public class Task extends BoardEventModelBase {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "schedule_id",referencedColumnName = "id")
     private Schedule schedule;
+    // transaction
+    @Transient
+    private String transaction="";
+    // add to scheduler
+    @Transient 
+    private boolean addtoSchedule;
 
     @PrePersist
     private void prePersist(){
@@ -491,6 +496,28 @@ public class Task extends BoardEventModelBase {
     }
 
 
+    public String getTransaction() {
+        return this.transaction;
+    }
+
+    public void setTransaction(String transaction) {
+        this.transaction = transaction;
+    }
+
+    public boolean isAddtoSchedule() {
+        return this.addtoSchedule;
+    }
+
+    public boolean getAddtoSchedule() {
+        return this.addtoSchedule;
+    }
+
+    public void setAddtoSchedule(boolean addtoSchedule) {
+        this.addtoSchedule = addtoSchedule;
+    }
+    
+
+
 
 
     @Override
@@ -559,8 +586,8 @@ public class Task extends BoardEventModelBase {
             ", active='" + isActive() + "'" +
             ", httpTask='" + isHttpTask() + "'" +
             ", retry='" + getRetry() + "'" +
-            ", modeTransient='" + getModeTransient() + "'" +
-            ", schedule='" + getSchedule() + "'" +
+            ", modeId='" + (getModeTransient() == null ? getModeId() : getModeTransient().getId()) + "'" +
+            ", scheduleId='" + (getSchedule() == null ? null : getSchedule().getId()) + "'" +
             "}";
     }
     

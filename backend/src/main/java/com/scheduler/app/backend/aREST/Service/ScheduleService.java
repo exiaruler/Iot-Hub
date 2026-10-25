@@ -1,6 +1,13 @@
 package com.scheduler.app.backend.aREST.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -9,6 +16,7 @@ import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.Base.ResourceNotFoundException;
 import com.scheduler.Base.Service.BaseService;
+import com.scheduler.app.backend.Schedule.Models.NextSchedule;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
@@ -54,7 +62,7 @@ public class ScheduleService extends BaseService<Schedule, Long> {
     public Task createTask(TaskEventId id,String application,String url,long routeId,long modeId,boolean hasMotor,Schedule schedule,Device device,Route route){
         Task tsk=null;
         if(id!=null&&schedule!=null){
-            Task task=taskService.getTask(id).get();
+            Task task=taskService.findById(id);
             if(task!=null){
                 if(device!=null){
                     task.setRouteId(routeId);
@@ -88,6 +96,7 @@ public class ScheduleService extends BaseService<Schedule, Long> {
     }
     @Override
     protected void beforeSave(Schedule entity, Map<String, String> errors, Map<String, String> warnings) {
+        entity.prepareNextSchedules();
         boolean existingSchedule = entity.getId() > 0 && scheRepo.existsById(entity.getId());
 
         if (entity.getStartup() && entity.getRepeatTask()) {
@@ -148,12 +157,26 @@ public class ScheduleService extends BaseService<Schedule, Long> {
         }
         task.setSchedule(entity);
         entity.setTask(task);
+        // next schedule set
+        if (entity.getNextSchedules() != null) {
+            for (NextSchedule nextSchedule : entity.getNextSchedules()) {
+                if (nextSchedule.getTargetSchedule() == null) {
+                    Schedule targetSchedule = this.findById(nextSchedule.getScheduleId());
+                    if (targetSchedule != null) {
+                        nextSchedule.setTargetSchedule(targetSchedule);
+                    }
+                }
+            }
+        }
     }
 
     @Override
     protected void afterSave(Schedule entity) {
         if (entity.getRepeatTask()) {
-            taskService.setTaskSchedule(entity.getTask(), true);
+            Task tsk=entity.getTask();
+            tsk.setTransaction("queue");
+            tsk.setAddtoSchedule(true);
+            taskService.save(tsk);
         }
     }
     public Schedule addScheduleSocket(Schedule schedule){
@@ -166,16 +189,14 @@ public class ScheduleService extends BaseService<Schedule, Long> {
         schedule.setId(id);
         return save(schedule);
     }
-
-
+    // start schedule tasks
+    @Transactional
     public boolean startStartupSchedule(Board board){
         boolean exist=false;
         long [] devicesIds=deviceService.getDevicesById(board.getId());
         if(devicesIds.length>0){
             String devIdList=Arrays.toString(devicesIds).replace("[", "").replace("]", "");
-            List<Long> activeStartups=scheRepo.getActiveStartupSchedules(devIdList);
-            List<Long> activeRoutine=scheRepo.getActiveRoutineSchedules(devIdList);
-            activeStartups.addAll(activeRoutine);
+            List<Long> activeStartups=scheRepo.getActiveRoutineSchedules(devIdList);
             for(int i=0; i<activeStartups.size(); i++){
                 Long scheId=activeStartups.get(i);
                 startupTask(scheId);
@@ -185,7 +206,8 @@ public class ScheduleService extends BaseService<Schedule, Long> {
         }
         return exist;
     }
-    
+
+    @Transactional
     public boolean startRoutineSchedule(Board board){
         boolean exist=false;
         long [] devicesIds=deviceService.getDevicesById(board.getId());
@@ -199,7 +221,6 @@ public class ScheduleService extends BaseService<Schedule, Long> {
                 startupTask(scheId);
                 exist=true;
             }
-            taskService.addToScheduler();
         }
         return exist;
     }
@@ -208,9 +229,11 @@ public class ScheduleService extends BaseService<Schedule, Long> {
     public boolean startupTask(long id){
         boolean success=false;
         Schedule schedule=this.findById(id);
-        if(schedule!=null){
+        if(schedule!=null&&schedule.getStartup()||schedule!=null&&schedule.getRepeatTask()){
             Task task=schedule.getTask();
-            taskService.setTaskSchedule(task,false);
+            task.setTransaction("queue");
+            //task.setAddtoSchedule(true);
+            taskService.save(task);
             success=true;
         }
         return success;
@@ -221,7 +244,8 @@ public class ScheduleService extends BaseService<Schedule, Long> {
         Schedule schedule=scheRepo.getReferenceById(id);
         if(schedule!=null){
             Task task=schedule.getTask();
-            taskService.setTaskSchedule(task,true);
+            
+            //taskService.setTaskSchedule(task,true);
             success=true;
         }
         return success;

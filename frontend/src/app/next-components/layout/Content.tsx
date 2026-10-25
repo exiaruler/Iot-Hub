@@ -26,6 +26,7 @@ export interface ContentRef {
     filteredArrayByDateTime:(array:ObjectArray,key:string,condition?:boolean)=>ObjectArray;
     showAlert:(message:string,variant?:string,duration?:number)=>void;
     passDateTime:(dateTime:Date)=>boolean;
+    fetchClient:(url:string,method:string,body?:Record<string,any>|null)=>Promise<Response|void>;
     login: boolean;
     user: Record<string, any>;
     location: string|null;
@@ -66,6 +67,27 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
             const exists = array.current.find((ele: any) => component === ele) || null;
             if (exists === null) array.current.push(component);
             return array;
+        },
+        fetchClient:async (url:string,method:string,body:Record<string,any>|null=null):Promise<Response|void>=>{
+            try{
+                const request=await util.fetch(url,method,body);
+                if (!request.ok) {
+                    const error = new Error(`HTTP Error: ${request.status}`);
+                    throw error;                    // Force execution into the catch block
+                }
+                if(request.ok){
+                    const data=await request.json();
+                    const status=await request.status;
+                    if(data!=null){
+                        request.json=data;
+                    }
+                }
+                return request;
+            }catch(error:unknown){
+                if(error instanceof Error){
+                    showAlert(error.message, "danger", 5000);
+                }
+            }
         },
         forceUpdateRefComponents: (array: RefObject<Array<any>>) => {
             array.current.forEach((ele: any) => {
@@ -108,13 +130,8 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
             const { hours, minutes, seconds } = convertMiliSecondsToTime(mills);
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         },
-        showAlert:(message:string,variant:string='primary',duration:number=5000)=>{
-            setAlert({ show: true, message, variant });
-            if (duration > 0) {
-                setTimeout(() => {
-                    setAlert({ show: false, message: '', variant });
-                }, duration);
-            }
+        showAlert:(message:string,variant:string='primary',duration:number=5000):void=>{
+            showAlert(message,variant,duration);
         },
         login,
         user,
@@ -125,6 +142,14 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     }));
     const expiryCheck=()=>{
         
+    }
+    const showAlert=(message:string,variant:string='primary',duration:number=5000):void=>{
+        setAlert({ show: true, message, variant });
+        if (duration > 0) {
+            setTimeout(() => {
+                setAlert({ show: false, message: '', variant });
+            }, duration);
+        }
     }
 
     /*

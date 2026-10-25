@@ -109,7 +109,7 @@ public class BoardService extends BaseService<Board, Long> {
         if (!isBlank(boardId) && getDataInt("select count(board_id) from board where board_id=" + quoteParam(boardId) + " and id!=" + id) > 0) {
             errors.put("boardId", "Unique Board ID already exists");
         }
-        if (isBlank(boardId)) errors.put("boardId", "Unique Board ID is required");
+        //if (isBlank(boardId)) errors.put("boardId", "Unique Board ID is required");
         if (TimeUnit.MILLISECONDS.toMinutes(entity.getOffline()) < 30) {
             errors.put("offline", "Offline time must be at least 30 minutes or more");
         }
@@ -132,6 +132,13 @@ public class BoardService extends BaseService<Board, Long> {
             entity.setLastLoginDateTime(dt);
             entity.setStatus(true);
             scheduleService.startStartupSchedule(entity);
+            if(entity.getDevice().size()>0&&entity.getDevice()!=null){
+                    entity.getDevice().stream().forEach(dev->{
+                        dev.getRoutes().stream().forEach(route->{
+                            route.setDefaultMode();
+                        });
+                    });
+            }
             // if in dev mode set status to inactive and do display display board except last connection
             if(entity.getDevMode()){
                 List <Long> devIds=new ArrayList<>();
@@ -141,13 +148,6 @@ public class BoardService extends BaseService<Board, Long> {
                 entity.setMillis(0);
                 entity.setRamUsage(0);
                 entity.setHeap(0);
-                if(entity.getDevice().size()>0&&entity.getDevice()!=null){
-                    entity.getDevice().stream().forEach(dev->{
-                        dev.getRoutes().stream().forEach(route->{
-                            route.setDefaultMode();
-                        });
-                    });
-                }
             }
         }
         if(entity.getUpdate()){
@@ -290,6 +290,11 @@ public class BoardService extends BaseService<Board, Long> {
             boardExist.setRamUsage(ram);
             if(boardExist.getIp()!=ip&&ip!="") boardExist.setIp(ip);
             check=createDeviceCheck(boardExist);
+            if(tid>0){
+                //Background.putGlobal("tid|"+boardExist.getId(),tid);
+                // update and or delete board queue
+                boardExist.setBoardOperations(boardQueueService.updateQueueTask(id,tid,dt,boardExist.getBoardOperations()));
+            } 
             boardExist=this.save(boardExist);
             Background.putGlobal("http-check|"+id,"queueing");
 
@@ -297,10 +302,12 @@ public class BoardService extends BaseService<Board, Long> {
             List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(boardExist.getId(),boardExist);
             if(scheduledTasks.size()>0)taskLists=scheduledTasks;
             check.setTasks(taskLists);
+            /* 
             if(tid>0){
                 // delete or update board queue
                 boardQueueService.updateQueue(tid, id,dt,boardExist.getBoardOperations());
             }
+            */
             Background.removeGlobal("board-millis|"+boardExist.getId());
             Background.removeGlobal("http-check|"+id);
         }
@@ -418,7 +425,6 @@ public class BoardService extends BaseService<Board, Long> {
                 Background.removeGlobal("update|board|"+exist.getId());
             }
             Instant dt=Instant.now();
-            //taskService.purgeOldTasks(exist.getId());
             Firmware firmware=firmwareService.getVersion(version);
             // add or update firmware version that board is using
             if(exist.getFirmware()==null||!exist.getFirmwareVersion().equals(version)){
@@ -477,7 +483,6 @@ public class BoardService extends BaseService<Board, Long> {
             Background.removeGlobal("board-millis|"+exist.getId());
             Background.removeGlobal("http-check|"+exist.getId());
             Background.removeGlobal("startup|"+exist.getId());
-
         }
         return check;
     }

@@ -69,7 +69,7 @@ public class DeviceService extends BaseService<Device, Long> {
             deviceRepo.save(entity);
         }
     }
-
+  
     public Device addDeviceSocket(Device entry,long boardId){
         Board board=boardRepo.getReferenceById(boardId);
         entry.setBoard(board);

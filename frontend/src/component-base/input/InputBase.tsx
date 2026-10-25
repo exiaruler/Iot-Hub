@@ -87,6 +87,7 @@ export default class InputBase extends Component<InputInterface,State>{
     public setWarning(warning:string):void{
         this.warning=warning;
     }
+    
     // return error value
     public formHandleValueSetUpdate(prevProps: Readonly<InputInterface>,prevState: Readonly<State>):void{
         if(prevProps.formRef&&this.props.formRef&&this.props.name){
@@ -135,7 +136,7 @@ export default class InputBase extends Component<InputInterface,State>{
             this.props?.onChange(event);
         }
     }
-    public onChangeValue(value:string):void{
+    public onChangeValue(value:any):void{
         this.value=value;
         this.setState({...this.state,value:value});
         if(this.props.formRef){

@@ -7,7 +7,8 @@ async function getData(){
     const fetchApis:any=await base.fetchGetApi([
     {api: "/schedule/new-record",key: "newSchedule"},
     {api: "/schedule/get-schedules",key: "schedule",result:[]},
-    {api: "/device/get-devices?query=device-routes",key: "devices",result:[]}
+    {api: "/device/get-devices?query=device-routes",key: "devices",result:[]},
+    {api:"/schedule/new-next-schedule",key:"newNext"}
     
   ]);
   return fetchApis;
@@ -15,6 +16,6 @@ async function getData(){
 export default async function page(){
     const data=await getData();
     return(
-        <Client form={data.newSchedule} schedule={data.schedule} devices={data.devices}/>
+        <Client nextScheduleForm={data.newNext} form={data.newSchedule} schedule={data.schedule} devices={data.devices}/>
     );
 }

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import javax.transaction.Transactional;
 
@@ -41,7 +42,33 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
     protected void beforeSave(BoardQueue entity, Map<String, String> errors, Map<String, String> warnings) {
        
     }
-  
+    public List<BoardQueue> updateQueueTask(long boardId,long taskId,Instant dataTimeNow,List<BoardQueue> queue){
+        BoardQueue que=boardQueueRepo.getQueueByTaskId(boardId,taskId);
+        int index=-1;
+        // if queue is null, check in the provided list
+        if(que==null){
+            if(queue!=null&&queue.size()>0){
+                index=IntStream.range(0, queue.size()).filter(i->queue.get(i).getBoardTaskId()==taskId&&queue.get(i).getBoard().getId()==boardId).findFirst().orElse(-1);
+                if(index>-1){
+                    que=queue.get(index);
+                }
+            }
+        }
+        if(que!=null){
+            if(que.getTaskRepeat()&&que.getExpiredDateTime()==null){
+                    if(que.getExpiredDateTime()==null&&que.getSystemTask()&&que.getTaskRepeat()&&que.getNextOccurance()!=null){
+                        Instant curr=dataTimeNow.plusMillis(que.getDelay());
+                        if(curr!=null){
+                            que.setNextOccurance(curr);
+                        }
+                }
+            }else
+            {
+                queue.remove(que);
+            }
+        }
+        return queue;
+    }
     // handle board queue update and deletion
     @Transactional 
     public void updateQueue(long id,long boardId,Instant dataTimeNow,List<BoardQueue> queue){
@@ -49,6 +76,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
         // if queue is null, check in the provided list
         if(que==null){
             if(queue!=null&&queue.size()>0){
+                
                 que=queue.stream().filter(q->q.getBoardTaskId()==id&&q.getBoard().getId()==boardId).findFirst().orElse(null);
             }
         }

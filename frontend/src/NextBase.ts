@@ -85,6 +85,12 @@ export class NextBase extends Util{
         }
         return response;
     }
+    public async fetch(url:string,method:string,body:Record<string,any>|null=null):Promise<Response>{
+        const config=this.apiCallConfig(method,body,false);
+        let encrypt="";
+        encrypt=config.headers.encrypt;
+        return await fetch(this.baseURL+'/api/app/iot?url='+url,config);
+    }
     public async fetchClientQuery(url:string,method:string,body:Record<string,any>|null=null):Promise<requestResponse>{
         let response:requestResponse=this.newResponse();
         let encrypt="";
