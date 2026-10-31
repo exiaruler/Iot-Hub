@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Service;
+package com.scheduler.app.backend.Schedule.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,13 +17,16 @@ import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.Base.ResourceNotFoundException;
 import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Schedule.Models.NextSchedule;
+import com.scheduler.app.backend.Schedule.Models.Schedule;
+import com.scheduler.app.backend.Schedule.Repo.ScheduleRepo;
+import com.scheduler.app.backend.Task.Model.Task;
+import com.scheduler.app.backend.Task.Service.TaskService;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
 import com.scheduler.app.backend.aREST.Models.Route;
-import com.scheduler.app.backend.aREST.Models.Schedule;
-import com.scheduler.app.backend.aREST.Models.Task;
-import com.scheduler.app.backend.aREST.Repo.ScheduleRepo;
+import com.scheduler.app.backend.aREST.Service.DeviceService;
+import com.scheduler.app.backend.aREST.Service.RoutesService;
 
 @Service
 public class ScheduleService extends BaseService<Schedule, Long> {
@@ -164,6 +167,7 @@ public class ScheduleService extends BaseService<Schedule, Long> {
                     Schedule targetSchedule = this.findById(nextSchedule.getScheduleId());
                     if (targetSchedule != null) {
                         nextSchedule.setTargetSchedule(targetSchedule);
+                        nextSchedule.setSchedule(entity);
                     }
                 }
             }
@@ -194,15 +198,17 @@ public class ScheduleService extends BaseService<Schedule, Long> {
     public boolean startStartupSchedule(Board board){
         boolean exist=false;
         long [] devicesIds=deviceService.getDevicesById(board.getId());
+        List<Task> tasks=new ArrayList<>();
         if(devicesIds.length>0){
             String devIdList=Arrays.toString(devicesIds).replace("[", "").replace("]", "");
             List<Long> activeStartups=scheRepo.getActiveRoutineSchedules(devIdList);
             for(int i=0; i<activeStartups.size(); i++){
                 Long scheId=activeStartups.get(i);
-                startupTask(scheId);
+                Task task=startupTask(scheId,true);
+                tasks.add(task);
                 exist=true;
             }
-            taskService.addToScheduler();
+            //taskService.addAllTasks(tasks);
         }
         return exist;
     }
@@ -218,7 +224,7 @@ public class ScheduleService extends BaseService<Schedule, Long> {
             activeStartups.addAll(activeRoutine);
             for(int i=0; i<activeStartups.size(); i++){
                 Long scheId=activeStartups.get(i);
-                startupTask(scheId);
+                startupTask(scheId,false);
                 exist=true;
             }
         }
@@ -226,17 +232,17 @@ public class ScheduleService extends BaseService<Schedule, Long> {
     }
     
     // start task schedule start task
-    public boolean startupTask(long id){
-        boolean success=false;
+    @Transactional
+    public Task startupTask(long id,boolean addToScheduler){
         Schedule schedule=this.findById(id);
+        Task task=null;
         if(schedule!=null&&schedule.getStartup()||schedule!=null&&schedule.getRepeatTask()){
-            Task task=schedule.getTask();
-            task.setTransaction("queue");
-            //task.setAddtoSchedule(true);
+            task=schedule.getTask();
+            task.setTransaction("queue-add");
+            if(addToScheduler) task.setAddtoSchedule(true);
             taskService.save(task);
-            success=true;
         }
-        return success;
+        return task;
     }
     
     public boolean testTask(long id){

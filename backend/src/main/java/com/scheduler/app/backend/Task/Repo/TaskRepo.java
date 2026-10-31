@@ -1,0 +1,59 @@
+package com.scheduler.app.backend.Task.Repo;
+import java.util.List;
+
+import javax.transaction.Transactional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
+import com.scheduler.Base.ModelBase.TaskEventId;
+import com.scheduler.app.backend.InterfaceModels.Reference.TaskEventIdView;
+import com.scheduler.app.backend.Task.Model.Task;
+public interface TaskRepo extends JpaRepository<Task, TaskEventId>{
+    @Query(value="select * from task where active= ?1 and scheduled_time is not null",
+    nativeQuery=true)
+    List<Task> getAllTaskAct(boolean active);
+
+    @Query(value="select * from task where one_time_job=true and board_id=?1",nativeQuery = true)
+    List<Task> getOneTimeJobs(long boardId);
+
+    // get active task ids that are one time jobs or schedule tasks that are routine type
+    @Query(value = """
+        select t.board_id as boardId,
+               t.device_id as deviceId,
+               t.event_time as eventTime
+        from task t
+        join schedule s on t.schedule_id = s.id
+        where t.board_id = ?1
+          and t.active = true
+          and (t.one_time_job = true
+               or (s.startup = false and s.repeat_task = false))
+        """, nativeQuery = true)
+    List<TaskEventIdView> getActiveTaskIds(long boardId);
+    // get active tasks by board id
+    @Query(value = """
+        select t.board_id as boardId,
+               t.device_id as deviceId,
+               t.event_time as eventTime
+        from task t
+        where t.board_id = ?1
+        and t.active = true
+        """, nativeQuery = true)
+    List<TaskEventIdView> getActiveTaskIdsTest(long boardId);
+    // delete tasks that are one time jobs
+    @Modifying(clearAutomatically = true) 
+    @Transactional
+    @Query (value="delete from task where one_time_job=true and board_id=?1 and active=?2",nativeQuery =true)
+    void deleteOneTimeTaskByBoardId(long boardId,boolean active);
+    
+    @Query(value="select * from task where active=true and board_id=?1",nativeQuery = true)
+    List<Task> getRoutineJobs(long boardId);
+
+    @Query(value="select * from task right join schedule on task.schedule_id=schedule.id and schedule.status=true where board_id=?1",nativeQuery = true)
+    List<Task> getRoutineJobsScheduled(long boardId);
+    // get board routine tasks
+     @Query(value ="select * from task right outer join schedule on schedule_device_id = task.device_id and task.schedule_id=schedule.id where task.device_id in (?1) and task.active=?2 order by scheduled_time desc",nativeQuery = true)
+    List<Task> getDeviceRoutineTasks(List<Long> ids,boolean active);
+
+}

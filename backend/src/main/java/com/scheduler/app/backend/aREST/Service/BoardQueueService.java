@@ -14,12 +14,12 @@ import org.springframework.stereotype.Service;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
+import com.scheduler.app.backend.Task.Model.Task;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.BoardQueue;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
 import com.scheduler.app.backend.aREST.Models.Route;
-import com.scheduler.app.backend.aREST.Models.Task;
 import com.scheduler.app.backend.aREST.Repo.BoardQueueRepo;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 
@@ -192,7 +192,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
     }
     public List<BoardQueue> getQueues(String boardId,String deviceId){
         List<BoardQueue> queue=new ArrayList<>();
-        if(boardId!=""){
+        if(!boardId.equals("")){
             long id=getDataLong("select id from board where board_id="+quoteParam(boardId));
             if(id>-1){
                 queue=boardQueueRepo.getQueueByBoard(id);

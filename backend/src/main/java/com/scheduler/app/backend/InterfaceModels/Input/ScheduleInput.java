@@ -2,7 +2,7 @@ package com.scheduler.app.backend.InterfaceModels.Input;
 
 import java.util.Objects;
 
-import com.scheduler.app.backend.aREST.Models.Schedule;
+import com.scheduler.app.backend.Schedule.Models.Schedule;
 
 public class ScheduleInput extends Schedule {
     private long deviceId;

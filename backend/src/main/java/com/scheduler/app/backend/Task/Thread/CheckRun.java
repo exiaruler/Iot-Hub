@@ -3,7 +3,7 @@ package com.scheduler.app.backend.Task.Thread;
 import java.util.List;
 
 import com.scheduler.Base.ThreadBase.BaseThread;
-import com.scheduler.app.backend.aREST.Models.Task;
+import com.scheduler.app.backend.Task.Model.Task;
 
 public class CheckRun extends BaseThread{
     private List <Task> tasks;

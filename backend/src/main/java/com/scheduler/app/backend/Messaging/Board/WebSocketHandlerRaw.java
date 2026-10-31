@@ -23,21 +23,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scheduler.Base.Background;
-import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
+import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInput;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInputTask;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.Messaging.Models.BoardVariable;
+import com.scheduler.app.backend.Schedule.Service.ScheduleService;
+import com.scheduler.app.backend.Task.Model.Task;
+import com.scheduler.app.backend.Task.Service.TaskService;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Models.Mode;
 import com.scheduler.app.backend.aREST.Models.Route;
-import com.scheduler.app.backend.aREST.Models.Task;
 import com.scheduler.app.backend.aREST.Service.BoardQueueService;
 import com.scheduler.app.backend.aREST.Service.BoardService;
-import com.scheduler.app.backend.aREST.Service.ScheduleService;
-import com.scheduler.app.backend.aREST.Service.TaskService;
 
 // websocket handler
 @Component
@@ -303,9 +303,11 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                 String message="";
                 if(task!=null){
                     task.initTaskId(boardId);
+                    BoardTaskSerial serial=new BoardTaskSerial(task);
                     board=boardService.findById(boardId);
-                    message=objectToJson(task);
+                    message=objectToJson(serial);
                 }else if(comMessage!=""){
+                    //BoardTask btTask=boardTaskToObject(comMessage);
                     message=comMessage;
                 }
                 if(message!=""){

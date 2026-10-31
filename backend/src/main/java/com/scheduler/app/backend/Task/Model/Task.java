@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Models;
+package com.scheduler.app.backend.Task.Model;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -17,8 +17,13 @@ import javax.persistence.PrePersist;
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.scheduler.Base.Background;
 import com.scheduler.Base.ModelBase.BoardEventModelBase;
 import com.scheduler.Base.ModelBase.TaskEventId;
+import com.scheduler.app.backend.Schedule.Models.Schedule;
+import com.scheduler.app.backend.aREST.Models.Mode;
+import com.scheduler.app.backend.aREST.Models.Route;
 
 @Entity
 public class Task extends BoardEventModelBase {
@@ -95,6 +100,9 @@ public class Task extends BoardEventModelBase {
     // retry attempt
     @Column
     private int retry=0;
+    // in scheduler
+    @Column 
+    private boolean inScheduler=false;
     // schedule task
     @JsonBackReference("schedule-task")
     @OneToOne(cascade = CascadeType.ALL)
@@ -106,10 +114,16 @@ public class Task extends BoardEventModelBase {
     // add to scheduler
     @Transient 
     private boolean addtoSchedule;
+    // route/function object to process
+    @Transient 
+    @JsonIgnore 
+    private Route route;
 
     @PrePersist
     private void prePersist(){
-        
+        if(schedule!=null){
+            
+        }
     }
     @Override
     protected void preUpdate(){
@@ -121,6 +135,10 @@ public class Task extends BoardEventModelBase {
         if(this.modeId>0&&this.schedule!=null){
             if(this.schedule.getMode()!=null)this.modeTransient=this.schedule.getMode();
         }
+        // set add to scheduler false if task out of the scheduler
+        if(Background.globalExist("scheduler-out|"+this.getId().toString())){
+            this.addtoSchedule=false;
+        }
         
     }
     
@@ -130,6 +148,10 @@ public class Task extends BoardEventModelBase {
     }
 
     public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, long boardTaskId, String boardTaskJson, String url, String payload, String section, int priority, boolean motor, Instant scheduledTime, long delayTime, boolean oneTimeJob, boolean systemTask, TaskEventId parentTask, boolean updateDevice, boolean active, boolean httpTask, int retry, Schedule schedule) {
+        this(application, deviceId, board, routeId, modeId, commandId, boardTaskId, boardTaskJson, url, payload, section, priority, motor, scheduledTime, delayTime, oneTimeJob, systemTask, parentTask, updateDevice, active, httpTask, retry, false, schedule);
+    }
+
+    public Task(String application, long deviceId, long board, long routeId, long modeId, long commandId, long boardTaskId, String boardTaskJson, String url, String payload, String section, int priority, boolean motor, Instant scheduledTime, long delayTime, boolean oneTimeJob, boolean systemTask, TaskEventId parentTask, boolean updateDevice, boolean active, boolean httpTask, int retry, boolean inScheduler, Schedule schedule) {
         this.initId(boardId, deviceId);
         this.application = application;
         this.deviceId = deviceId;
@@ -153,6 +175,7 @@ public class Task extends BoardEventModelBase {
         this.active = active;
         this.httpTask = httpTask;
         this.retry = retry;
+        this.inScheduler = inScheduler;
         this.schedule = schedule;
     }
 
@@ -348,6 +371,18 @@ public class Task extends BoardEventModelBase {
         this.retry = retry;
     }
 
+    public boolean isInScheduler() {
+        return this.inScheduler;
+    }
+
+    public boolean getInScheduler() {
+        return this.inScheduler;
+    }
+
+    public void setInScheduler(boolean inScheduler) {
+        this.inScheduler = inScheduler;
+    }
+
     public Schedule getSchedule() {
         return this.schedule;
     }
@@ -466,6 +501,11 @@ public class Task extends BoardEventModelBase {
         return this;
     }
 
+    public Task inScheduler(boolean inScheduler) {
+        setInScheduler(inScheduler);
+        return this;
+    }
+
     public Task schedule(Schedule schedule) {
         setSchedule(schedule);
         return this;
@@ -517,8 +557,17 @@ public class Task extends BoardEventModelBase {
     }
     
 
+    public Route getRoute() {
+        return this.route;
+    }
 
+    public void setRoute(Route route) {
+        this.route = route;
+    }
 
+    private Long getScheduleIdValue() {
+        return this.schedule == null ? null : this.schedule.getId();
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -528,7 +577,10 @@ public class Task extends BoardEventModelBase {
             return false;
         }
         Task task = (Task) o;
-        return Objects.equals(application, task.application)
+        return Objects.equals(getId(), task.getId())
+            && Objects.equals(getCreatedDate(), task.getCreatedDate())
+            && Objects.equals(getUpdatedDate(), task.getUpdatedDate())
+            && Objects.equals(application, task.application)
             && deviceId == task.deviceId
             && boardId == task.boardId
             && routeId == task.routeId
@@ -550,21 +602,26 @@ public class Task extends BoardEventModelBase {
             && active == task.active
             && httpTask == task.httpTask
             && retry == task.retry
-            && Objects.equals(schedule, task.schedule);
+            && inScheduler == task.inScheduler
+            && Objects.equals(getScheduleIdValue(), task.getScheduleIdValue());
            
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(application, deviceId, boardId, routeId, modeId, commandId, boardTaskId,
-            boardTaskJson, url, payload, section, priority, motor, scheduledTime, delayTime,
-            oneTimeJob, systemTask, parentTask, updateDevice, active, httpTask, retry, schedule);
+        return Objects.hash(getId(), getCreatedDate(), getUpdatedDate(), application, deviceId, boardId, routeId,
+            modeId, commandId, boardTaskId, boardTaskJson, url, payload, section, priority, motor,
+            scheduledTime, delayTime, oneTimeJob, systemTask, parentTask, updateDevice, active, httpTask,
+            retry, inScheduler, getScheduleIdValue());
     }
 
     @Override
     public String toString() {
         return "{" +
-            " application='" + getApplication() + "'" +
+            " id='" + getId() + "'" +
+            ", createdDate='" + getCreatedDate() + "'" +
+            ", updatedDate='" + getUpdatedDate() + "'" +
+            ", application='" + getApplication() + "'" +
             ", deviceId='" + getDeviceId() + "'" +
             ", boardId='" + getBoardId() + "'" +
             ", routeId='" + getRouteId() + "'" +
@@ -586,8 +643,9 @@ public class Task extends BoardEventModelBase {
             ", active='" + isActive() + "'" +
             ", httpTask='" + isHttpTask() + "'" +
             ", retry='" + getRetry() + "'" +
+            ", inScheduler='" + isInScheduler() + "'" +
             ", modeId='" + (getModeTransient() == null ? getModeId() : getModeTransient().getId()) + "'" +
-            ", scheduleId='" + (getSchedule() == null ? null : getSchedule().getId()) + "'" +
+            ", scheduleId='" + getScheduleIdValue() + "'" +
             "}";
     }
     

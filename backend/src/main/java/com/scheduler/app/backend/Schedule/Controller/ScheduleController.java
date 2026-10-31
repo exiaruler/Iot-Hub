@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Controller;
+package com.scheduler.app.backend.Schedule.Controller;
 import java.util.List;
 import java.util.Map;
 
@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.scheduler.Base.ControllerBase;
 import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.Schedule.Models.NextSchedule;
-import com.scheduler.app.backend.aREST.Models.Schedule;
-import com.scheduler.app.backend.aREST.Service.ScheduleService;
+import com.scheduler.app.backend.Schedule.Models.Schedule;
+import com.scheduler.app.backend.Schedule.Service.ScheduleService;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
@@ -30,7 +30,7 @@ public class ScheduleController extends ControllerBaseService<Long,Schedule> {
     private ScheduleService service;
 
     public ScheduleController() {
-        this.objectClass="com.scheduler.app.backend.aREST.Models.Schedule";
+        this.objectClass="com.scheduler.app.backend.Schedule.Models.Schedule";
     }
     @GetMapping("/new-next-schedule")
     public ResponseEntity<NextSchedule> newNextSchedule(){
@@ -69,7 +69,7 @@ public class ScheduleController extends ControllerBaseService<Long,Schedule> {
     public boolean startup(@RequestBody Map<String, Object> entity) {
         boolean success=false;
         long id=(int) entity.get("id");
-        success=service.startupTask(id);
+        service.startupTask(id,false);
         return success;
     }
     // boot route from device
@@ -78,7 +78,7 @@ public class ScheduleController extends ControllerBaseService<Long,Schedule> {
         boolean success=false;
         String id=(String) entity.get("id");
         int intId=Integer.valueOf(id);
-        success=service.startupTask(intId);
+        service.startupTask(intId,false);
         return success;
     }
     @PostMapping("/test-task")

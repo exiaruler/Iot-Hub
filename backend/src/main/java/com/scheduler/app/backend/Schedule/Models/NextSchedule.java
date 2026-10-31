@@ -12,7 +12,6 @@ import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.scheduler.Base.ModelBase.ModelBase;
-import com.scheduler.app.backend.aREST.Models.Schedule;
 
 @Entity 
 public class NextSchedule extends ModelBase{
@@ -119,6 +118,14 @@ public class NextSchedule extends ModelBase{
     }
 
 
+    private Long getScheduleIdValue() {
+        return this.schedule == null ? null : this.schedule.getId();
+    }
+
+    private Long getTargetScheduleIdValue() {
+        return this.targetSchedule == null ? null : this.targetSchedule.getId();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -127,23 +134,30 @@ public class NextSchedule extends ModelBase{
             return false;
         }
         NextSchedule nextSchedule = (NextSchedule) o;
-        return scheduleOrder == nextSchedule.scheduleOrder && Objects.equals(schedule, nextSchedule.schedule)
-                && Objects.equals(targetSchedule, nextSchedule.targetSchedule);
+        return getId() == nextSchedule.getId()
+            && Objects.equals(getCreatedDate(), nextSchedule.getCreatedDate())
+            && Objects.equals(getUpdatedDate(), nextSchedule.getUpdatedDate())
+            && scheduleOrder == nextSchedule.scheduleOrder
+            && Objects.equals(getScheduleIdValue(), nextSchedule.getScheduleIdValue())
+            && Objects.equals(getTargetScheduleIdValue(), nextSchedule.getTargetScheduleIdValue());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(scheduleOrder, schedule, targetSchedule);
+        return Objects.hash(getId(), getCreatedDate(), getUpdatedDate(), scheduleOrder, getScheduleIdValue(),
+            getTargetScheduleIdValue());
     }
 
     @Override
     public String toString() {
         return "{" +
-            " scheduleOrder='" + getScheduleOrder() + "'" +
-            ", schedule='" + getSchedule() + "'" +
-            ", targetSchedule='" + getTargetSchedule() + "'" +
-            ", scheduleId='" + getScheduleId() + "'" +
-            ", name='" + getName() + "'" +
+            " id='" + getId() + "'" +
+            ", createdDate='" + getCreatedDate() + "'" +
+            ", updatedDate='" + getUpdatedDate() + "'" +
+            ", scheduleOrder='" + getScheduleOrder() + "'" +
+            ", scheduleId='" + getScheduleIdValue() + "'" +
+            ", targetScheduleId='" + getTargetScheduleIdValue() + "'" +
+            ", scheduleName='" + getName() + "'" +
             "}";
     }
     

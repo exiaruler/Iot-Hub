@@ -1,11 +1,11 @@
-package com.scheduler.app.backend.aREST.Repo;
+package com.scheduler.app.backend.Schedule.Repo;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.scheduler.app.backend.aREST.Models.Schedule;
+import com.scheduler.app.backend.Schedule.Models.Schedule;
 
 public interface ScheduleRepo extends JpaRepository<Schedule,Long>{
 

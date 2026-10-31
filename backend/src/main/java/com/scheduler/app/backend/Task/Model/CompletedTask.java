@@ -3,7 +3,7 @@ package com.scheduler.app.backend.Task.Model;
 import java.util.Objects;
 
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Models.Task;
+import com.scheduler.app.backend.Task.Model.Task;
 
 public class CompletedTask {
     private Device device;

@@ -37,6 +37,8 @@ import com.scheduler.app.backend.Messaging.Board.Models.BoardLogin;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardRegister;
 import com.scheduler.app.backend.Messaging.Board.Models.DeviceCheck;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
+import com.scheduler.app.backend.Schedule.Service.ScheduleService;
+import com.scheduler.app.backend.Task.Service.TaskService;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 
@@ -127,8 +129,9 @@ public class BoardService extends BaseService<Board, Long> {
         String devWsUrl = entity.getDevWsUrl();
         long offline = entity.getOffline();
         boolean restartTimeout = entity.getRestartTimeout();
+        
         if(entity.getStartup()){
-            taskService.purgeOldTasks(entity.getId());
+            taskService.removeTasksFromScheduler(id);
             entity.setLastLoginDateTime(dt);
             entity.setStatus(true);
             scheduleService.startStartupSchedule(entity);
@@ -291,7 +294,6 @@ public class BoardService extends BaseService<Board, Long> {
             if(boardExist.getIp()!=ip&&ip!="") boardExist.setIp(ip);
             check=createDeviceCheck(boardExist);
             if(tid>0){
-                //Background.putGlobal("tid|"+boardExist.getId(),tid);
                 // update and or delete board queue
                 boardExist.setBoardOperations(boardQueueService.updateQueueTask(id,tid,dt,boardExist.getBoardOperations()));
             } 
@@ -302,12 +304,6 @@ public class BoardService extends BaseService<Board, Long> {
             List <BoardTaskSerial> scheduledTasks=taskService.getNextTasks(boardExist.getId(),boardExist);
             if(scheduledTasks.size()>0)taskLists=scheduledTasks;
             check.setTasks(taskLists);
-            /* 
-            if(tid>0){
-                // delete or update board queue
-                boardQueueService.updateQueue(tid, id,dt,boardExist.getBoardOperations());
-            }
-            */
             Background.removeGlobal("board-millis|"+boardExist.getId());
             Background.removeGlobal("http-check|"+id);
         }

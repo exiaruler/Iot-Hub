@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.scheduler.app.backend.aREST.Models.Task;
+import com.scheduler.app.backend.Task.Model.Task;
 
 public class SentToClientResponse {
     // command sent

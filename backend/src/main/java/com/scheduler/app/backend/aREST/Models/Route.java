@@ -23,6 +23,7 @@ import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.Messaging.Models.InputCurrent;
 import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
+import com.scheduler.app.backend.Schedule.Models.Schedule;
 // device functions
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity

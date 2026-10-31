@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Models;
+package com.scheduler.app.backend.Schedule.Models;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,11 @@ import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
-import com.scheduler.app.backend.Schedule.Models.NextSchedule;
+import com.scheduler.app.backend.aREST.Models.Board;
+import com.scheduler.app.backend.aREST.Models.Device;
+import com.scheduler.app.backend.aREST.Models.Mode;
+import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.Task.Model.Task;
 // schedule http request and device tasks
 @Entity
 public class Schedule extends ModelBase {
@@ -414,6 +418,33 @@ public class Schedule extends ModelBase {
     
 
 
+    private List<Long> getNextScheduleIds() {
+        if (this.nextSchedules == null) {
+            return null;
+        }
+        List<Long> ids = new ArrayList<>();
+        for (NextSchedule nextSchedule : this.nextSchedules) {
+            ids.add(nextSchedule == null ? null : nextSchedule.getId());
+        }
+        return ids;
+    }
+
+    private Object getTaskIdValue() {
+        return this.task == null ? null : this.task.getId();
+    }
+
+    private Long getDeviceIdValue() {
+        return this.device == null ? null : this.device.getId();
+    }
+
+    private Long getRouteIdValue() {
+        return this.route == null ? null : this.route.getId();
+    }
+
+    private Long getModeIdValue() {
+        return this.mode == null ? null : this.mode.getId();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -422,19 +453,42 @@ public class Schedule extends ModelBase {
             return false;
         }
         Schedule schedule = (Schedule) o;
-        return Objects.equals(name, schedule.name) && time == schedule.time && repeatTask == schedule.repeatTask && startup == schedule.startup && modeRandom == schedule.modeRandom && nextTask == schedule.nextTask && Objects.equals(modeValue, schedule.modeValue) && retries == schedule.retries && status == schedule.status && Objects.equals(url, schedule.url) && Objects.equals(body, schedule.body) && Objects.equals(nextSchedules, schedule.nextSchedules) && Objects.equals(task, schedule.task) && Objects.equals(device, schedule.device) && Objects.equals(route, schedule.route) && Objects.equals(mode, schedule.mode);
+        return getId() == schedule.getId()
+            && Objects.equals(getCreatedDate(), schedule.getCreatedDate())
+            && Objects.equals(getUpdatedDate(), schedule.getUpdatedDate())
+            && Objects.equals(name, schedule.name)
+            && time == schedule.time
+            && repeatTask == schedule.repeatTask
+            && startup == schedule.startup
+            && modeRandom == schedule.modeRandom
+            && nextTask == schedule.nextTask
+            && Objects.equals(modeValue, schedule.modeValue)
+            && retries == schedule.retries
+            && status == schedule.status
+            && Objects.equals(url, schedule.url)
+            && Objects.equals(body, schedule.body)
+            && Objects.equals(getNextScheduleIds(), schedule.getNextScheduleIds())
+            && Objects.equals(getTaskIdValue(), schedule.getTaskIdValue())
+            && Objects.equals(getDeviceIdValue(), schedule.getDeviceIdValue())
+            && Objects.equals(getRouteIdValue(), schedule.getRouteIdValue())
+            && Objects.equals(getModeIdValue(), schedule.getModeIdValue());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, time, repeatTask, startup, modeRandom, nextTask, modeValue, retries, status, url, body, nextSchedules, task, device, route, mode);
+        return Objects.hash(getId(), getCreatedDate(), getUpdatedDate(), name, time, repeatTask, startup, modeRandom,
+            nextTask, modeValue, retries, status, url, body, getNextScheduleIds(), getTaskIdValue(),
+            getDeviceIdValue(), getRouteIdValue(), getModeIdValue());
     }
     
 
     @Override
     public String toString() {
         return "{" +
-            " name='" + getName() + "'" +
+            " id='" + getId() + "'" +
+            ", createdDate='" + getCreatedDate() + "'" +
+            ", updatedDate='" + getUpdatedDate() + "'" +
+            ", name='" + getName() + "'" +
             ", time='" + getTime() + "'" +
             ", repeatTask='" + isRepeatTask() + "'" +
             ", startup='" + isStartup() + "'" +
@@ -445,7 +499,8 @@ public class Schedule extends ModelBase {
             ", status='" + isStatus() + "'" +
             ", url='" + getUrl() + "'" +
             ", body='" + getBody() + "'" +
-            ", taskId='" + (getTask() == null ? null : getTask().getId()) + "'" +
+            ", nextScheduleIds='" + getNextScheduleIds() + "'" +
+            ", taskId='" + getTaskIdValue() + "'" +
             ", deviceId='" + (getDevice() == null ? getDeviceId() : getDevice().getId()) + "'" +
             ", routeId='" + (getRoute() == null ? getRouteId() : getRoute().getId()) + "'" +
             ", modeId='" + (getMode() == null ? getModeId() : getMode().getId()) + "'" +

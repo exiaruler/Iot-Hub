@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
+import com.scheduler.app.backend.Schedule.Models.Schedule;
 @Entity
 @Table(indexes = @Index(columnList = "mode"))
 public class Mode extends ModelBase{

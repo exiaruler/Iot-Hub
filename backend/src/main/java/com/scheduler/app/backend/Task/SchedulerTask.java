@@ -2,6 +2,8 @@ package com.scheduler.app.backend.Task;
 import java.util.ArrayList;
 import java.util.List;
 import com.scheduler.app.backend.Task.Model.CompletedTask;
+import com.scheduler.app.backend.Task.Model.Task;
+import com.scheduler.app.backend.Task.Service.TaskService;
 import com.scheduler.app.backend.Task.Thread.HttpSchedule;
 import com.scheduler.app.backend.Task.Thread.CheckRun;
 import com.scheduler.app.backend.aREST.Models.*;
@@ -247,16 +249,21 @@ public class SchedulerTask{
     public void updateTaskProcess(Task task){
         task.setActive(false);
     }
-    public void requeueTask(Task task){
-        if(task.getActive()&&task!=null&&!queue.contains(task)){
+    public void requeueTask(Task task,Board board){
+        Instant dt=Instant.now();
+        if(task.getActive()&&task!=null&&!queue.contains(task)&&task.getScheduledTime().isBefore(dt)){
             queue.add(task);
+        }else
+        {
+            taskService.taskFailed(task, board);
         }
     }
     // remove tasks by board id
     public void removeTasksByBoardId(long id){
         queue.removeIf(rec->rec.getBoard()==id);
     }
-    public boolean batchRequeTasks(List<Task> batch){
+    // add batch of tasks to queue
+    public boolean addAllTasks(List<Task> batch){
         return queue.addAll(batch);
     }
     public boolean batchRemove(List<Task> batch){
@@ -321,12 +328,14 @@ public class SchedulerTask{
                     try {
                         SentToClientResponse sent=websocketHandler.sendToClient(wsId, commandInput,boardId,task,device,route,mode,commandMsg);
                         if(sent.getSent()){
-                            batchRequeTasks(sent.getNextTasks());
+                            addAllTasks(sent.getNextTasks());
                         } else if(!sent.getSent()){
                             Task retTask=taskService.taskFailed(task,board);
+                            /* 
                             if(retTask!=null){
-                                requeueTask(retTask);
+                                requeueTask(retTask,board);
                             }
+                            */
                         }
                         // check the type of task
                         // if the task is a 1 time only check the scheduled time and compare to the current time
@@ -334,17 +343,16 @@ public class SchedulerTask{
                     } catch (IOException e) {
                         // requeue task
                         taskService.taskFailed(task,board);
-                        e.printStackTrace();
                     }
                 }else{
-                    requeueTask(task);
+                    requeueTask(task,board);
                 }
                 long endTime = System.nanoTime();
         }else
         {
             Task retTask=taskService.taskFailed(task,board);
             if(retTask!=null){
-                requeueTask(retTask);
+                requeueTask(retTask,board);
             }
         }
     }

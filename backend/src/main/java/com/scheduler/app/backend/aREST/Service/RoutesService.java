@@ -160,7 +160,6 @@ public class RoutesService extends BaseService<Route, Long> {
     }
     @Override
     protected void afterSave(Route entity) {
-        // TODO Auto-generated method stub
         if(entity.getSelectedModeId()==0){
             entity.setDefaultMode();
             routeRepo.save(entity);

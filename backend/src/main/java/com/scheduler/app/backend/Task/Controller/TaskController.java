@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Controller;
+package com.scheduler.app.backend.Task.Controller;
 
 import java.util.List;
 
@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.InterfaceModels.Input.FunctionModeTestInput;
-import com.scheduler.app.backend.aREST.Models.Task;
-import com.scheduler.app.backend.aREST.Service.TaskService;
+import com.scheduler.app.backend.Task.Model.Task;
+import com.scheduler.app.backend.Task.Service.TaskService;
 
 
 @RestController

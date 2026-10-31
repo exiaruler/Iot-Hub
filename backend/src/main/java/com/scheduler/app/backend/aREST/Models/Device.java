@@ -16,6 +16,7 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
+import com.scheduler.app.backend.Schedule.Models.Schedule;
 
 @Entity
 @Table(indexes = @Index(columnList = "name,device_id"))
