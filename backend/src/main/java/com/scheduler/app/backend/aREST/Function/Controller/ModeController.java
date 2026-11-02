@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Controller;
+package com.scheduler.app.backend.aREST.Function.Controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,6 +9,6 @@ import com.scheduler.Base.ControllerBase;
 public class ModeController extends ControllerBase{
 
     public ModeController(){
-        objectClass="com.scheduler.app.backend.aREST.Models.Mode";
+        objectClass="com.scheduler.app.backend.aREST.Function.Models.Mode";
     }
 }

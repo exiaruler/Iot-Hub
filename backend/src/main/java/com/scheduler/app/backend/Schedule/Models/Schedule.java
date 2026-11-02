@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Models.Mode;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.Task.Model.Task;
 // schedule http request and device tasks
 @Entity

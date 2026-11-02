@@ -3,6 +3,7 @@ package com.scheduler.app.backend.aREST.Models;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 import org.junit.jupiter.api.Test;
 
 class RouteJacksonTest {

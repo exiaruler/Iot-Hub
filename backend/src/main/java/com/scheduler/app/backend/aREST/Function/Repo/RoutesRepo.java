@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Repo;
+package com.scheduler.app.backend.aREST.Function.Repo;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 public interface  RoutesRepo extends JpaRepository<Route, Long>{
 
     @Query(value="select * from route where route= :param and device_id= :id",nativeQuery = true)

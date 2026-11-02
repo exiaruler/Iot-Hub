@@ -34,8 +34,8 @@ import com.scheduler.app.backend.Task.Model.Task;
 import com.scheduler.app.backend.Task.Service.TaskService;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Models.Mode;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.aREST.Service.BoardQueueService;
 import com.scheduler.app.backend.aREST.Service.BoardService;
 
@@ -153,7 +153,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                 // board startup/power up
                 if(action.equals("startup")){
                     // set a state in the board to stop processing message when board starting up
-                    taskService.purgeOldTasks(boardId);
+                    taskService.removeTasksFromScheduler(boardId);
                     // system route
                     BoardTask routinewsConn=commandService.getWSConnection();
                     routinewsConn.initTaskId(boardId);
@@ -319,11 +319,16 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                     //System.out.println("schedule time formatted "+taskObj.getScheduledTime().getHour()+":"+taskObj.getScheduledTime().getMinute()+":"+taskObj.getScheduledTime().getSecond());
                     session.sendMessage(new TextMessage(message));
                     if(log)sentMessages.put(boardId, task);
-                    List<Task> nextTasks=taskService.taskComplete(taskObj, device, route, mode);
+                    long routeId=0;
+                    long modeId=0;
+                    if(route!=null) routeId=route.getId();
+                    if(mode!=null) modeId=mode.getId();
+                    taskService.completeTask(taskObj, device,routeId, modeId);
+                    //List<Task> nextTasks=taskService.taskComplete(taskObj, device, route, mode);
                     long tskDelay=0;
                     if(taskObj.getSchedule()!=null) tskDelay=taskObj.getSchedule().getTime();
                     resp.setSent(true);
-                    resp.setNextTasks(nextTasks);
+                    //resp.setNextTasks(nextTasks);
                     // add task to board queue if it's schedule type
                     boardQueueService.addToQueueTask(taskObj,board,tskDelay);
                     // log message sent

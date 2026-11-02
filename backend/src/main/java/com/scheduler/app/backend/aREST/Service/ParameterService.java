@@ -3,7 +3,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import com.scheduler.Base.Base;
 import com.scheduler.app.backend.aREST.Repo.ParamRepo;
-import com.scheduler.app.backend.aREST.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
 import com.scheduler.app.backend.aREST.Models.Parameter;
 @Service
 public class ParameterService extends Base{

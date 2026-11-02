@@ -22,8 +22,8 @@ import com.scheduler.Base.Background;
 import com.scheduler.Base.ModelBase.BoardEventModelBase;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.Schedule.Models.Schedule;
-import com.scheduler.app.backend.aREST.Models.Mode;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 
 @Entity
 public class Task extends BoardEventModelBase {

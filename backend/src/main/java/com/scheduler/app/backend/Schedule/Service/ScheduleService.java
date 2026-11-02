@@ -23,10 +23,10 @@ import com.scheduler.app.backend.Task.Model.Task;
 import com.scheduler.app.backend.Task.Service.TaskService;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Models.Mode;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.aREST.Service.DeviceService;
-import com.scheduler.app.backend.aREST.Service.RoutesService;
+import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
 
 @Service
 public class ScheduleService extends BaseService<Schedule, Long> {
@@ -208,7 +208,6 @@ public class ScheduleService extends BaseService<Schedule, Long> {
                 tasks.add(task);
                 exist=true;
             }
-            //taskService.addAllTasks(tasks);
         }
         return exist;
     }

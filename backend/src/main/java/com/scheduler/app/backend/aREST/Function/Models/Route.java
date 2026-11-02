@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Models;
+package com.scheduler.app.backend.aREST.Function.Models;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,12 +18,15 @@ import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.scheduler.Base.Background;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.Messaging.Models.InputCurrent;
 import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
 import com.scheduler.app.backend.Schedule.Models.Schedule;
+import com.scheduler.app.backend.aREST.Models.BoardQueue;
+import com.scheduler.app.backend.aREST.Models.Device;
 // device functions
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
@@ -116,6 +119,13 @@ public class Route extends ModelBase{
         List<BoardTask> tasks=new ArrayList<>();
         this.setSelectedModeId(id);
         Mode mode=this.mode.stream().filter(rec->rec.getId()==id).findFirst().orElse(null);
+        /* 
+        if(mode!=null){
+            long boardId=this.getDevice().getBoard().getId();
+            long functionId=this.getId();
+            long deviceId=this.getDevice().getId();
+        }
+        */
         // if cycle back or forward not enable get board task normally
         if(!this.cycleBack&&!this.cycleForward){
             if(mode!=null){
@@ -137,7 +147,7 @@ public class Route extends ModelBase{
 
     
     // cycle forward
-    public List<BoardTask> cycleModeCalculateForward(Mode mode) {
+    private List<BoardTask> cycleModeCalculateForward(Mode mode) {
         List<BoardTask> cycleModes=new ArrayList<>();
         if(selectedMode!=null){
             int selIndex=this.mode.indexOf(selectedMode);
@@ -164,7 +174,7 @@ public class Route extends ModelBase{
         return cycleModes;
     }
     // cycle backward
-    public List<BoardTask> cycleModeCalculateBackward(Mode mode) {
+    private List<BoardTask> cycleModeCalculateBackward(Mode mode) {
         List<BoardTask> cycleModes = new ArrayList<>();
         if (selectedMode != null) {
             int selIndex = this.mode.indexOf(selectedMode);

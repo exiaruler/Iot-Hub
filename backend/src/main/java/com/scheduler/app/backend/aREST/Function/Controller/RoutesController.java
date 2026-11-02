@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Controller;
+package com.scheduler.app.backend.aREST.Function.Controller;
 
 import java.util.List;
 
@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.scheduler.Base.ControllerBase;
 import com.scheduler.Base.Service.ControllerBaseService;
-import com.scheduler.app.backend.aREST.Models.Route;
-import com.scheduler.app.backend.aREST.Service.RoutesService;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
 
 @RestController
 @RequestMapping(value = "/route")
@@ -25,7 +25,7 @@ public class RoutesController extends ControllerBaseService<Long,Route> {
     private RoutesService service;
 
     public RoutesController() {
-        objectClass="com.scheduler.app.backend.aREST.Models.Route";
+        objectClass="com.scheduler.app.backend.aREST.Function.Models.Route";
     }
 
     @GetMapping(value="/get-all-routes")

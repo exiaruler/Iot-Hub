@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Models;
+package com.scheduler.app.backend.aREST.Function.Models;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.Schedule.Models.Schedule;
+import com.scheduler.app.backend.aREST.Models.BoardQueue;
+import com.scheduler.app.backend.aREST.Models.Parameter;
 @Entity
 @Table(indexes = @Index(columnList = "mode"))
 public class Mode extends ModelBase{

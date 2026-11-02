@@ -1,11 +1,11 @@
-package com.scheduler.app.backend.aREST.Repo;
+package com.scheduler.app.backend.aREST.Function.Repo;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.scheduler.app.backend.aREST.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
 
 public interface ModeRepo  extends JpaRepository<Mode, Long>{
 

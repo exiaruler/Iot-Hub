@@ -37,13 +37,13 @@ import com.scheduler.app.backend.Task.Repo.TaskRepo;
 import com.scheduler.app.backend.Task.SchedulerTask;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Models.Mode;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 import com.scheduler.app.backend.aREST.Service.BoardQueueService;
 import com.scheduler.app.backend.aREST.Service.BoardService;
 import com.scheduler.app.backend.aREST.Service.DeviceService;
-import com.scheduler.app.backend.aREST.Service.RoutesService;
+import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
 // crud on database. does not manipulate scheduler
 @Service
 public class TaskService extends BaseService<Task,TaskEventId>{
@@ -73,6 +73,7 @@ public class TaskService extends BaseService<Task,TaskEventId>{
     // transaction types
     // queue - use for automated task scheduling and update device state
     // queue-add - add task to scheduler but not update route/function state
+    // queue-add-batch - add task to scheduler in batch
     // queue-add-trans - user add task to scheduler not update route/function state
     // disable - disable task but trigger next tasks
     // disable-end - disable task but does not trigger next tasks
@@ -94,6 +95,11 @@ public class TaskService extends BaseService<Task,TaskEventId>{
         if(entity.getTransaction().equals("disable")||entity.getTransaction().equals("disable-end")){
             entity.setActive(false);
             entity.setInScheduler(false);
+        }
+        // add task to scheduler batch
+        if(entity.getTransaction().equals("queue-add-batch")){
+            entity.setActive(true);
+            entity.setInScheduler(true);
         }
         // queue task to schedule
         if(entity.getTransaction().equals("queue")||entity.getTransaction().equals("queue-add")){
@@ -352,8 +358,6 @@ public class TaskService extends BaseService<Task,TaskEventId>{
     public void removeTasksFromScheduler(long boardId){
         // disabled automated and startup schedule tasks
         scheduler.removeTasksByBoardId(boardId);
-        // delete one time tasks
-        //taskRepo.deleteOneTimeTaskByBoardId(boardId,true);
         // gets active tasks
         List<TaskEventIdView> ids=taskRepo.getActiveTaskIdsTest(boardId);
         for(TaskEventIdView id:ids){
@@ -615,6 +619,7 @@ public class TaskService extends BaseService<Task,TaskEventId>{
         boolean results=false;
         List <Task> list=taskRepo.getAllTaskAct(true);
         if(list.size()>0) results=true;
+        //addAllTasks(list);
         scheduler.addToQueue(list);
         return results;
     }

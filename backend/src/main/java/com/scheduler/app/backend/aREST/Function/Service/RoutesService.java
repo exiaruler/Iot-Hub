@@ -1,4 +1,4 @@
-package com.scheduler.app.backend.aREST.Service;
+package com.scheduler.app.backend.aREST.Function.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,11 +15,12 @@ import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Models.Mode;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.aREST.Repo.DeviceRepo;
-import com.scheduler.app.backend.aREST.Repo.ModeRepo;
-import com.scheduler.app.backend.aREST.Repo.RoutesRepo;
+import com.scheduler.app.backend.aREST.Function.Repo.ModeRepo;
+import com.scheduler.app.backend.aREST.Function.Repo.RoutesRepo;
+import com.scheduler.app.backend.aREST.Service.ParameterService;
 // Functio and modes
 @Service
 public class RoutesService extends BaseService<Route, Long> {
@@ -51,7 +52,14 @@ public class RoutesService extends BaseService<Route, Long> {
     /* */
     @Override
     protected void beforeSave(Route entity, Map<String, String> errors, Map<String, String> warnings) {
-        boolean exRec=routeRepo.existsById(entity.getId());
+        boolean exRec=false;
+        try{
+            exRec=routeRepo.existsById(entity.getId());
+        }catch(Exception e){
+            if(entity!=null){
+                if(entity.getId()>0) exRec=true;
+            }
+        }
         // validate default mode
         if(entity.getMode().size()>0){
             boolean defModeSel=false;

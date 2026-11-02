@@ -18,8 +18,8 @@ import com.scheduler.app.backend.Task.Model.Task;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.BoardQueue;
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Models.Mode;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.aREST.Repo.BoardQueueRepo;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 

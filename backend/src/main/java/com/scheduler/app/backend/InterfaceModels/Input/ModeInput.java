@@ -2,7 +2,7 @@ package com.scheduler.app.backend.InterfaceModels.Input;
 
 import java.util.Objects;
 
-import com.scheduler.app.backend.aREST.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
 
 public class ModeInput {
 

@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.TaskModelBase;
 import com.scheduler.app.backend.Command.Models.Command;
-import com.scheduler.app.backend.aREST.Models.Mode;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 // background task data structure in device
 @Entity
 @Table(name="board_task",indexes = @Index(columnList = "task_id"))

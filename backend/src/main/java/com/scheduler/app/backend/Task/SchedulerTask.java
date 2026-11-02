@@ -8,6 +8,8 @@ import com.scheduler.app.backend.Task.Thread.HttpSchedule;
 import com.scheduler.app.backend.Task.Thread.CheckRun;
 import com.scheduler.app.backend.aREST.Models.*;
 import com.scheduler.app.backend.aREST.Service.*;
+import com.scheduler.app.backend.aREST.Function.Models.*;
+import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -209,6 +211,12 @@ public class SchedulerTask{
         if(task.getScheduledTime()==null||!task.getActive()) return;
         queue.add(task);
     }
+    // validate task before enter queue
+    private boolean taskCheck(Task task){
+        boolean res=true;
+        if(task.getScheduledTime()==null||!task.getActive()) res=false;
+        return res;
+    }
     // add to completed task array queue
     public void addToComplete(Device device,boolean status,String state,String warning,boolean complete,Task task){
         //if(complete){
@@ -264,6 +272,10 @@ public class SchedulerTask{
     }
     // add batch of tasks to queue
     public boolean addAllTasks(List<Task> batch){
+        for(Task task:batch){
+            task.setTransaction("queue-add-batch");
+            if(taskCheck(task)) taskService.save(task);
+        }
         return queue.addAll(batch);
     }
     public boolean batchRemove(List<Task> batch){
@@ -328,7 +340,7 @@ public class SchedulerTask{
                     try {
                         SentToClientResponse sent=websocketHandler.sendToClient(wsId, commandInput,boardId,task,device,route,mode,commandMsg);
                         if(sent.getSent()){
-                            addAllTasks(sent.getNextTasks());
+                            //addAllTasks(sent.getNextTasks());
                         } else if(!sent.getSent()){
                             Task retTask=taskService.taskFailed(task,board);
                             /* 

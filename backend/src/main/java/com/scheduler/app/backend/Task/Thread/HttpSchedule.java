@@ -5,8 +5,8 @@ import java.lang.reflect.Method;
 import com.scheduler.Base.JsonObject.JsonObject;
 import com.scheduler.Base.ThreadBase.BaseThread;
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Models.Mode;
-import com.scheduler.app.backend.aREST.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.Task.Model.Task;
 // sends action http request to device
 public class HttpSchedule extends BaseThread{

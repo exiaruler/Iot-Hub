@@ -9,6 +9,7 @@ import javax.persistence.ManyToOne;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.scheduler.Base.ModelBase.ModelBase;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
 // parameters for command
 @Entity
 public class Parameter extends ModelBase {
