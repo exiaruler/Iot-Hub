@@ -1,8 +1,6 @@
 package com.scheduler.app.backend.Task.Repo;
 import java.util.List;
 
-import javax.transaction.Transactional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.InterfaceModels.Reference.TaskEventIdView;
 import com.scheduler.app.backend.Task.Model.Task;
+
+import jakarta.transaction.Transactional;
 public interface TaskRepo extends JpaRepository<Task, TaskEventId>{
     @Query(value="select * from task where active= ?1 and scheduled_time is not null",
     nativeQuery=true)

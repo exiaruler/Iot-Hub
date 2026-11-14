@@ -19,9 +19,9 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import com.scheduler.app.backend.JacksonConfig;
 import com.scheduler.Base.Background;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
@@ -48,6 +48,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     public final ScheduleService scheduleService;
     public final TaskService taskService;
     public final BoardQueueService boardQueueService;
+    private final ObjectMapper objectMapper = JacksonConfig.createObjectMapper();
     
     // board Id and boardTask
     public static HashMap<Long,BoardTask> sentMessages=new HashMap<>();
@@ -84,7 +85,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
         long taskId=Long.parseLong(strId);
         return taskId;
     }
-    public String uponConnect(Board board) throws JsonProcessingException{
+    public String uponConnect(Board board) throws JacksonException{
         String jsonString="";
         //Command command=commandService.getCommandByCommand("status", "action",true);
         BoardTask comTask=commandService.getStatus();
@@ -275,22 +276,20 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
         }
     }
     // convert board task to json string
-    private String objectToJson(BoardTask task) throws JsonProcessingException{
-        ObjectMapper mapper = new ObjectMapper();
+    private String objectToJson(BoardTask task) throws JacksonException{
         String json="";  
         try {
             task=pruneBoardTask(task);
-            json = mapper.writeValueAsString(task);
+            json = objectMapper.writeValueAsString(task);
         } catch (Exception e) {
             json="";
         }
         return json;
     }
     // map board input to object
-    private BoardInput stringToObject(String json) throws JsonMappingException, JsonProcessingException{
+    private BoardInput stringToObject(String json) throws JacksonException{
         BoardInput boardInput=null;
-        ObjectMapper mapper = new ObjectMapper();
-        boardInput=mapper.readValue(json,BoardInput.class);
+        boardInput=objectMapper.readValue(json,BoardInput.class);
         return boardInput;
     }
     // use in scheduler, sent message commands to board

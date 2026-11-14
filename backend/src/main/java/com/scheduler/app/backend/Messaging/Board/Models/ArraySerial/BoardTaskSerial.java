@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.ListSerial.SingleInputListSerializer;
 import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.ListSerial.SingleOutputListSerializer;
 import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.ListSerial.SinglePinListSerializer;

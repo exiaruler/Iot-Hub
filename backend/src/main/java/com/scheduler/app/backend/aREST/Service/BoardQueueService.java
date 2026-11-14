@@ -1,12 +1,14 @@
 package com.scheduler.app.backend.aREST.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -40,7 +42,10 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
     }
     @Override
     protected void beforeSave(BoardQueue entity, Map<String, String> errors, Map<String, String> warnings) {
-       
+        // update next occurance if current date time is not null and id is not null
+        if(entity.getCurrentDateTime()!=null&&entity.getId()!=null){
+            entity.setNextOccurance(entity.getCurrentDateTime().plusMillis(entity.getDelay()));
+        }
     }
     public List<BoardQueue> updateQueueTask(long boardId,long taskId,Instant dataTimeNow,List<BoardQueue> queue){
         BoardQueue que=boardQueueRepo.getQueueByTaskId(boardId,taskId);
@@ -57,10 +62,13 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
         if(que!=null){
             if(que.getTaskRepeat()&&que.getExpiredDateTime()==null){
                     if(que.getExpiredDateTime()==null&&que.getSystemTask()&&que.getTaskRepeat()&&que.getNextOccurance()!=null){
+                        que.setCurrentDateTime(dataTimeNow);
+                        /* 
                         Instant curr=dataTimeNow.plusMillis(que.getDelay());
                         if(curr!=null){
                             que.setNextOccurance(curr);
                         }
+                        */
                 }
             }else
             {
@@ -83,10 +91,13 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
         if(que!=null){
             if(que.getTaskRepeat()&&que.getExpiredDateTime()==null){
                     if(que.getExpiredDateTime()==null&&que.getSystemTask()&&que.getTaskRepeat()&&que.getNextOccurance()!=null){
-                        Instant curr=dataTimeNow.plusMillis(que.getDelay());
+                        que.setCurrentDateTime(dataTimeNow);
+                        /* 
+                        Instant curr=que.getCurrentDateTime().plusMillis(que.getDelay());
                         if(curr!=null){
                             que.setNextOccurance(curr);
                         }
+                        */
                 }
                 this.save(que);
             }else
@@ -207,8 +218,10 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
         }
         return queue;
     }
-    public Instant getNextQueueOperation(long boardId){
-        return boardQueueRepo.getNextQueueOperation(boardId);
+    // BoardQueueService.java
+    public Instant getNextQueueOperation(long boardId) {
+        LocalDateTime next = boardQueueRepo.getNextQueueOperationLocal(boardId);
+        return next == null ? null : next.toInstant(ZoneOffset.UTC);
     }
     // remove expired tasks
     @Transactional

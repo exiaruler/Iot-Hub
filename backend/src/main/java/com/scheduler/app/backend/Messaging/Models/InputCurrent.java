@@ -2,9 +2,9 @@ package com.scheduler.app.backend.Messaging.Models;
 
 import java.util.Objects;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 // store input current

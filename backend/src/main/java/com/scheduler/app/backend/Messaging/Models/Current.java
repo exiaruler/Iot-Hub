@@ -1,7 +1,7 @@
 package com.scheduler.app.backend.Messaging.Models;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 
 import com.scheduler.Base.ModelBase.TaskModelBase;
 // current

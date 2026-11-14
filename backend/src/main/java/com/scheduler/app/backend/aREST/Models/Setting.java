@@ -1,8 +1,8 @@
 package com.scheduler.app.backend.aREST.Models;
 import java.util.Objects;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 
 import com.scheduler.Base.ModelBase.ModelBase;
 @Entity

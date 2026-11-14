@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -156,9 +156,11 @@ public class BoardService extends BaseService<Board, Long> {
         if(entity.getUpdate()){
             if(!entity.getStartup()){
                 Instant lastCon=entity.getLastConnectDateTime();
-                long diff=Duration.between(lastCon, dt).toMillis();
-                if(diff>=entity.getOffline()){
-                    scheduleService.startRoutineSchedule(entity);
+                if(lastCon!=null){
+                    long diff=Duration.between(lastCon, dt).toMillis();
+                    if(diff>=entity.getOffline()){
+                        scheduleService.startRoutineSchedule(entity);
+                    }
                 }
             }
             entity.setLastConnectDateTime(dt);
@@ -240,7 +242,6 @@ public class BoardService extends BaseService<Board, Long> {
     @Override
     protected void afterDelete(Long id) {
         // TODO Auto-generated method stub
-        
         Background.removeGlobal("board-next-op|"+id);
     }
     @Override

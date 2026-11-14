@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -21,12 +19,14 @@ import com.scheduler.app.backend.Schedule.Models.Schedule;
 import com.scheduler.app.backend.Schedule.Repo.ScheduleRepo;
 import com.scheduler.app.backend.Task.Model.Task;
 import com.scheduler.app.backend.Task.Service.TaskService;
-import com.scheduler.app.backend.aREST.Models.Board;
-import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Function.Models.Mode;
 import com.scheduler.app.backend.aREST.Function.Models.Route;
-import com.scheduler.app.backend.aREST.Service.DeviceService;
 import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
+import com.scheduler.app.backend.aREST.Models.Board;
+import com.scheduler.app.backend.aREST.Models.Device;
+import com.scheduler.app.backend.aREST.Service.DeviceService;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ScheduleService extends BaseService<Schedule, Long> {

@@ -1,6 +1,7 @@
 package com.scheduler.app.backend.aREST.Repo;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,11 +27,19 @@ public interface BoardQueueRepo extends JpaRepository<BoardQueue,TaskEventId> {
     // get next board queue operation
     @Query(value="Select ifnull(expired_date_time,next_occurance) as next_update from board_queue where board=?1 and next_occurance >= NOW() or expired_date_time >= NOW() order by next_update asc limit 1",nativeQuery = true)
     public Instant getNextQueueOperation(long boardId);
+    /// get next board queue operation as local date time
+    @Query(value = "SELECT IFNULL(expired_date_time, next_occurance) AS next_update " +
+                "FROM board_queue " +
+                "WHERE board = ?1 " +
+                "AND (next_occurance >= NOW() OR expired_date_time >= NOW()) " +
+                "ORDER BY next_update ASC LIMIT 1",
+        nativeQuery = true)
+    LocalDateTime getNextQueueOperationLocal(long boardId);
     // get queue by board and task id
     @Query(value="Select * from board_queue where board_id=?1 and board=?1 and board_task_id=?2 limit 1",nativeQuery = true)
     public BoardQueue getQueueByTaskId(long board,long taskId);
     // get event time
-    @Query(value="select event_time from board_queue where board_id=?1 and board_task_id=2? and device_id=?3",nativeQuery = true)
+    @Query(value="select event_time from board_queue where board_id=?1 and board_task_id=?2 and device_id=?3",nativeQuery = true)
     public Instant getEventTime(long boardId,long taskId,long deviceId);
 
 }

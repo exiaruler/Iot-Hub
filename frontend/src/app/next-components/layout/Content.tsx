@@ -26,6 +26,7 @@ export interface ContentRef {
     filteredArrayByDateTime:(array:ObjectArray,key:string,condition?:boolean)=>ObjectArray;
     showAlert:(message:string,variant?:string,duration?:number)=>void;
     passDateTime:(dateTime:Date)=>boolean;
+    regularUpdateOccurrence:(name:string,nextUpdateDate:Date|null,enabled:boolean,update:()=>Promise<void>,duration?:number)=>Promise<void>;
     fetchClient:(url:string,method:string,body?:Record<string,any>|null)=>Promise<Response|void>;
     login: boolean;
     user: Record<string, any>;
@@ -33,6 +34,14 @@ export interface ContentRef {
     util: NextBase;
     pages: ObjectArray;
     router: ReturnType<typeof useRouter>;
+}
+interface RoutineCheck{
+    name:string;
+    nextUpdateDate:Date|null;
+    lastNextOp:Date|null;
+    nextOpPassCount:number|0;
+    updateInProgress:boolean;
+    updateTime:number|1000;
 }
 
 const Content = forwardRef<ContentRef, Props>((props, ref) => {
@@ -48,6 +57,7 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
         'message':'',
         'variant':'primary'
     });
+    const routines=useRef<RoutineCheck[]>([]);
 
     useImperativeHandle(ref, () => ({
         generateKeyClient: () => {
@@ -104,6 +114,37 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
         passDateTime:(dateTime:Date):boolean=>{
             return passDateTime(dateTime);
         },
+        regularUpdateOccurrence:async(name:string,nextUpdateDate:Date|null,enabled:boolean,update:()=>Promise<void>,durration?:number):Promise<void>=>{
+            const date=nextUpdateDate==null?null:new Date(nextUpdateDate);
+            let routine=getRoutineCheck(name);
+            if(routine==null){
+                routine=createRoutineCheck(name,date,durration);
+            }else if(routine.nextUpdateDate?.getTime()!==date?.getTime()){
+                routine.nextUpdateDate=date;
+                routine.lastNextOp=date;
+                routine.nextOpPassCount=0;
+                routine.updateTime=1000;
+            }
+
+            if(date==null||!enabled||!passDateTime(date)) return;
+            if(routine.lastNextOp?.getTime()!==date.getTime()){
+                routine.lastNextOp=date;
+                routine.nextOpPassCount=0;
+                routine.updateTime=1000;
+            }else{
+                routine.updateTime+=1000;
+            }
+            if(routine.nextOpPassCount>=10||routine.updateInProgress) return;
+
+            routine.nextOpPassCount++;
+            routine.updateInProgress=true;
+            try{
+                await update();
+            }finally{
+                routine.updateInProgress=false;
+            }
+            updateRoutineCheck(routine);
+        },
         filteredArrayByDateTime:(array:ObjectArray,key:string,condition:Boolean=false):ObjectArray=>{
             const filteredQueue = array.filter((q:ObjectRecord)=>{
             return q?.[key] == null || condition==passDateTime(q?.[key]);
@@ -142,6 +183,31 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     }));
     const expiryCheck=()=>{
         
+    }
+    // create new routine check
+    const createRoutineCheck=(name:string,nextUpdateDate:Date|null,updateTime:number=1000):RoutineCheck=>{
+        const routine:RoutineCheck={
+            name,
+            nextUpdateDate:nextUpdateDate,
+            lastNextOp:null,
+            nextOpPassCount:0,
+            updateInProgress:false,
+            updateTime
+        };
+        if(getRoutineCheck(name)!=null) throw new Error(`Routine with name "${name}" already exists.`);
+        routines.current.push(routine);
+        return routine;
+    }
+    // get routine check by name
+    const getRoutineCheck=(name:string):RoutineCheck|null=>{
+        const routine=routines.current.find((r:RoutineCheck)=>r.name===name);
+        return routine||null;
+    }
+    const updateRoutineCheck=(routine:RoutineCheck):void=>{
+        const index=routines.current.findIndex((r:RoutineCheck)=>r.name===routine.name);
+        if(index!==-1){
+            routines.current[index]=routine;
+        }
     }
     const showAlert=(message:string,variant:string='primary',duration:number=5000):void=>{
         setAlert({ show: true, message, variant });
@@ -192,4 +258,3 @@ function convertMiliSecondsToTime(mills: number): { hours: any; minutes: any; se
     const hours = Math.floor(totalMinutes / 60);
     return { hours, minutes, seconds };
 }
-

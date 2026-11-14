@@ -14,7 +14,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.scheduler.Base.Background;
 import com.scheduler.Base.Exception.ErrorException;
 import com.scheduler.Base.ModelBase.TaskEventId;
@@ -35,15 +34,17 @@ import com.scheduler.app.backend.Schedule.Models.Schedule;
 import com.scheduler.app.backend.Task.Model.Task;
 import com.scheduler.app.backend.Task.Repo.TaskRepo;
 import com.scheduler.app.backend.Task.SchedulerTask;
-import com.scheduler.app.backend.aREST.Models.Board;
-import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Function.Models.Mode;
 import com.scheduler.app.backend.aREST.Function.Models.Route;
+import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
+import com.scheduler.app.backend.aREST.Models.Board;
+import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 import com.scheduler.app.backend.aREST.Service.BoardQueueService;
 import com.scheduler.app.backend.aREST.Service.BoardService;
 import com.scheduler.app.backend.aREST.Service.DeviceService;
-import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
+
+import tools.jackson.core.JacksonException;
 // crud on database. does not manipulate scheduler
 @Service
 public class TaskService extends BaseService<Task,TaskEventId>{
@@ -83,12 +84,15 @@ public class TaskService extends BaseService<Task,TaskEventId>{
         if(!entity.getTransaction().equals("")){
             Background.putGlobal("transaction|"+entity.getId().toString(),entity.getTransaction());
         }
+        if(entity.getAddtoSchedule()&&entity.getOneTimeJob()){
+            entity.setActive(true);
+        }
         // set task delay time from schedule
         if(entity.getSchedule()!=null){
             entity.setDelayTime(entity.getSchedule().getTime());
         }
         // update route/function state 
-        if(entity.getTransaction().equals("queue")&&entity.getRoute()!=null||entity.getTransaction().equals("disable")||entity.getTransaction().equals("disable-end")&&entity.getRoute()!=null){
+        if(entity.getRoute()!=null&&(entity.getTransaction().equals("queue")||entity.getTransaction().equals("disable")||entity.getTransaction().equals("disable-end"))){
             routesService.save(entity.getRoute());
         }
         // disable task
@@ -161,7 +165,7 @@ public class TaskService extends BaseService<Task,TaskEventId>{
                         String commStr="";
                         try {
                             commStr=messageUtil.objectToJsonString(tempTask);
-                        } catch (JsonProcessingException e) {
+                        } catch (JacksonException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
@@ -234,29 +238,27 @@ public class TaskService extends BaseService<Task,TaskEventId>{
         Task task=this.findById(id);
         String deleGlob="";
         String key="remove|"+id.toString();
+        if(task!=null){
+            if(task.getActive()&&deleGlob.equals("")){
+                Board board=boardService.findById(task.getBoard());
+                boardQueueService.addToQueueTask(task, board, task.getDelayTime());
+            }
+        
+            if(task.getActive()&&deleGlob.equals("remove")){
+            // delete existing board operation
+                if(task.getBoardTaskId()>0){
+                    boardTaskService.deleteBoardTask(task.getBoardTaskId());
+                }
+            }
+        }
         if(Background.globalExist(key)){
             deleGlob=(String)Background.getGlobal(key);
-        }
-        if(task.getActive()&&deleGlob.equals("")){
-            Board board=boardService.findById(task.getBoard());
-            boardQueueService.addToQueueTask(task, board, task.getDelayTime());
-        }
-        
-        if(task.getActive()&&deleGlob.equals("remove")){
-            // delete existing board operation
-            if(task.getBoardTaskId()>0){
-                boardTaskService.deleteBoardTask(task.getBoardTaskId());
-            }
         }
         Background.removeGlobal(key);
     }
  
     public MessageUtil getMsgUtil(){
         return new MessageUtil();
-    }
-    // add all tasks to scheduler
-    public void addAllTasks(List<Task> tasks){
-        scheduler.addAllTasks(tasks);
     }
     public Task addTask(Task entry){
         Instant setDt=addDuration(1000,false,false);
@@ -324,36 +326,15 @@ public class TaskService extends BaseService<Task,TaskEventId>{
         tsk.setBoard(boardId);
         tsk.setDeviceId(deviceId);
         tsk.initId(boardId, deviceId);
-        tsk.setActive(true);
         tsk.setApplication(description);
         tsk.setCommandId(commandId);
         tsk.setModeId(modeId);
         tsk.setSystemTask(systemTask);
+        tsk.setAddtoSchedule(true);
         tsk=this.save(tsk);
-        addTaskToScheduler(tsk);
         return tsk;
     }
-    // delete 1 time tasks that are 1 time only when board start up and disable active tasks
-    @Transactional
-    public List<Task> purgeOldTasks(long boardId){
-        List<Task> modTasks=new ArrayList<>();
-        // disabled automated and startup schedule tasks
-        scheduler.removeTasksByBoardId(boardId);
-        // purge 1 time jobs from database
-        List<Task> taskIds=taskRepo.getOneTimeJobs(boardId);
-        if(taskIds.size()>0){
-            for(int i=0; i<taskIds.size(); i++){
-                Task tsk=taskIds.get(i);
-                if(tsk!=null){
-                    if(tsk.getBoardTaskId()>0){
-                        boardTaskService.deleteBoardTask(tsk.getBoardTaskId());
-                    }
-                    this.delete(tsk.getId());
-                }
-            }
-        }
-        return modTasks;
-    }
+    // remove tasks from scheduler and disable active tasks or delete tasks that are not automated
     @Transactional 
     public void removeTasksFromScheduler(long boardId){
         // disabled automated and startup schedule tasks
@@ -538,6 +519,11 @@ public class TaskService extends BaseService<Task,TaskEventId>{
                 if(diff>=board.getOffline()){
                     task.setTransaction("disable");
                     task=this.save(task);
+                    // set board offline
+                    if(board.getStatus()){
+                        board.setTransaction("offline");
+                        boardService.save(board);
+                    }
                 }else scheduler.addTaskToQueue(task);
             }else 
             {
@@ -619,7 +605,6 @@ public class TaskService extends BaseService<Task,TaskEventId>{
         boolean results=false;
         List <Task> list=taskRepo.getAllTaskAct(true);
         if(list.size()>0) results=true;
-        //addAllTasks(list);
         scheduler.addToQueue(list);
         return results;
     }

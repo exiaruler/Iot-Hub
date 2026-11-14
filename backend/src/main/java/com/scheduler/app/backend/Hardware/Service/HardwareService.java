@@ -10,8 +10,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.scheduler.Base.Base;
 import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Hardware.Models.Hardware;

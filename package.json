@@ -9,6 +9,7 @@
     "app-server": "cd .. && cd personal-website && cd server && npm run dev",
     "load-local":"cp config/local/backend/application.properties backend/src/main/resources && cp config/local/backend/application.yml backend && cp config/local/frontend/config.json frontend/",
     "load-dev-local":"cp config/dev/backend/application.properties backend/src/main/resources && cp config/dev/backend/application.yml backend && cp config/dev/frontend/config.json frontend/",
+    "load-dev-local-backend":"cp config/dev/backend/application.properties backend/src/main/resources && cp config/dev/backend/application.yml backend",
     "dev-frontend": "npm run dev --prefix frontend",
     "deploy-backend-dev":"npm run load-dev-local && cd backend && gcloud config set project iot-proto-dev && gcloud config set run/region australia-southeast1 && gcloud run deploy proto-backend --source . --timeout=300s && cd .. && npm run load-local",
     "deploy-app-dev":"npm run load-dev-local && cd frontend && gcloud config set project iot-proto-dev && gcloud run deploy proto-app --source . && cd .. && npm run load-local",

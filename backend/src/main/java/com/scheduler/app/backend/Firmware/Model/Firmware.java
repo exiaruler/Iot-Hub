@@ -4,16 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Index;
-import javax.persistence.OneToMany;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Table;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.aREST.Models.Board;
@@ -59,6 +60,7 @@ public class Firmware extends ModelBase{
     @Column
     private String partitionFile="";
     // boards that thuse this firmware
+    @JsonIgnore
     @JsonManagedReference("firmware-board")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "firmware", cascade =CascadeType.ALL)
     private List<Board> boardUsedFirmware=new ArrayList<>();

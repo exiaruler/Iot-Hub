@@ -1,7 +1,7 @@
 package com.scheduler.app.backend.aREST.Function.Repo;
 import java.util.List;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

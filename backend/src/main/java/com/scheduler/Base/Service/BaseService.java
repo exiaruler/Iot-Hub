@@ -4,11 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.transaction.Transactional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.scheduler.Base.Base;
+
+import jakarta.transaction.Transactional;
 @Transactional
 public abstract class BaseService<T,ID> extends Base{
     protected abstract JpaRepository<T, ID> repository();

@@ -40,7 +40,7 @@ export default function Client(props:Props){
     const [hardware,setHardware]=useState<ObjectRecord>(props.boardHardware);
     // use to store next update occurance
     const nextUpdateDt=useRef<Date>(null);
-    const lastNextOp=useRef<any>(null);
+    const lastNextOp=useRef<Date>(null);
     const nextOpPassCount=useRef(0);
     const updateInProgress=useRef(false);
     const updateTime=useRef<number>(1000);

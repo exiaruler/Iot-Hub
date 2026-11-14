@@ -2,16 +2,17 @@ package com.scheduler.app.backend.aREST.Models;
 import java.time.Instant;
 import java.util.Objects;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.scheduler.Base.ModelBase.BoardEventModelBase;
@@ -81,6 +82,9 @@ public class BoardQueue extends BoardEventModelBase{
     @JoinColumn(name="mode_id")
     @JsonBackReference("queue-mode")
     private Mode mode;
+    // current date and time for transaction
+    @Transient 
+    private Instant currentDateTime=null;
 
     @PrePersist
     protected void prePersist(){
@@ -353,7 +357,23 @@ public class BoardQueue extends BoardEventModelBase{
         this.nextOccurance = nextOccurance;
     }
 
+    public Instant getCurrentDateTime() {
+        return this.currentDateTime;
+    }
 
+    public void setCurrentDateTime(Instant currentDateTime) {
+        this.currentDateTime = currentDateTime;
+    }
+
+    public BoardQueue nextOccurance(Instant nextOccurance) {
+        setNextOccurance(nextOccurance);
+        return this;
+    }
+
+    public BoardQueue currentDateTime(Instant currentDateTime) {
+        setCurrentDateTime(currentDateTime);
+        return this;
+    }
 
     @Override
     public boolean equals(Object o) {

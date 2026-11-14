@@ -4,19 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Index;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.aREST.Function.Models.Route;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 // store route method and class origin
 @Entity
 @Table(indexes = @Index(columnList = "command"))
@@ -41,7 +42,7 @@ public class Command extends ModelBase{
     // is a system command
     @Column boolean systemCommand=false;
     // list of routes that use command
-    //@JsonIgnore
+    @JsonIgnore
     @JsonManagedReference("command-route")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "command", cascade =CascadeType.ALL)
     private List<Route> commandUsedRoutes=new ArrayList<>();

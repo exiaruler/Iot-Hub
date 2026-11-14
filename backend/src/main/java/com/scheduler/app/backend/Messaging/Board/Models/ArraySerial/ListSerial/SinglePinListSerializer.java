@@ -1,18 +1,16 @@
 package com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.ListSerial;
 
-import java.io.IOException;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.SerializationContext;
 import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardPinSerial;
 
-public class SinglePinListSerializer extends JsonSerializer<List<BoardPinSerial>>{
+public class SinglePinListSerializer extends ValueSerializer<List<BoardPinSerial>>{
 
     @Override
-    public void serialize(List<BoardPinSerial> value, JsonGenerator gen, SerializerProvider serializers)
-            throws IOException {
+    public void serialize(List<BoardPinSerial> value, JsonGenerator gen, SerializationContext context) {
             gen.writeStartArray();
             for (BoardPinSerial pin : value) {
                 gen.writeNumber(pin.getPin());

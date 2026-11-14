@@ -3,18 +3,18 @@ package com.scheduler.app.backend.Task.Model;
 import java.time.Instant;
 import java.util.Objects;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.OneToOne;
-import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-import javax.persistence.Transient;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -43,6 +43,7 @@ public class Task extends BoardEventModelBase {
     private long modeId;
     // mode object
     @Transient
+    @JsonIgnore
     private Mode modeTransient;
     // command id
     @Column
@@ -111,7 +112,7 @@ public class Task extends BoardEventModelBase {
     // transaction
     @Transient
     private String transaction="";
-    // add to scheduler
+    // add task to scheduler
     @Transient 
     private boolean addtoSchedule;
     // route/function object to process

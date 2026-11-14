@@ -2,10 +2,10 @@ package com.scheduler.Base.ModelBase;
 
 import java.time.Instant;
 
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PreUpdate;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PreUpdate;
 
 @MappedSuperclass
 public class BoardEventModelBase {

@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.scheduler.Base.ControllerBase;
 import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.aREST.Function.Service.RoutesService;

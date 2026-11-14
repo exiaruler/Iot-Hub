@@ -9,6 +9,7 @@ import com.scheduler.app.backend.Task.Thread.CheckRun;
 import com.scheduler.app.backend.aREST.Models.*;
 import com.scheduler.app.backend.aREST.Service.*;
 import com.scheduler.app.backend.aREST.Function.Models.*;
+import com.scheduler.app.backend.aREST.Function.Service.ModeService;
 import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.Instant;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import com.scheduler.app.backend.JacksonConfig;
 import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
@@ -52,6 +54,8 @@ public class SchedulerTask{
     @Autowired
     private RoutesService routeService;
     @Autowired
+    private ModeService modeService;
+    @Autowired
     private ParameterService parameterService;
     @Autowired
     public WebSocketHandlerRaw websocketHandler;
@@ -66,6 +70,7 @@ public class SchedulerTask{
     private static List<Task> runningQueue=new ArrayList<Task>();
     // task finished processing 
     private static List<CompletedTask> completeTaskQueue=new ArrayList<CompletedTask>();
+    private final ObjectMapper objectMapper = JacksonConfig.createObjectMapper();
     
     @Scheduled(fixedRate = 1000)
     public void runSche(){
@@ -117,9 +122,8 @@ public class SchedulerTask{
     }
     public BoardTask boardTaskToObject(String json){
         BoardTask tsk=null;
-        ObjectMapper mapper = new ObjectMapper();
         try {
-            tsk=mapper.readValue(json,BoardTask.class);
+            tsk=objectMapper.readValue(json,BoardTask.class);
         } catch (Exception e) {
             return null;
         }
@@ -134,10 +138,11 @@ public class SchedulerTask{
                         Route route=null;
                         Mode mode=null;
                         try {
-                            board=boardService.getBoardById(task.getBoard());
-                            device=deviceService.getDevice(task.getDeviceId());
-                            route=routeService.getRouteById(task.getRouteId());
+                            board=boardService.findById(task.getBoard());
+                            device=deviceService.findById(task.getDeviceId());
+                            route=routeService.findById(task.getRouteId());
                             mode=routeService.getMode(task.getModeId());
+                            //mode=modeService.findById(task.getModeId());
                         } catch (Exception e) {
                             
                         }

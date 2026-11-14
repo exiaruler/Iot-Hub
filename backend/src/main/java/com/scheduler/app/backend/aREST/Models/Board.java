@@ -5,25 +5,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.PostLoad;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.scheduler.Base.ModelBase.ModelBase;
 import com.scheduler.app.backend.Firmware.Model.Firmware;
 import com.scheduler.app.backend.Hardware.Models.Hardware;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(indexes = @Index(columnList = "board_id"))
@@ -138,7 +138,8 @@ public class Board extends ModelBase {
     @ManyToOne
     @JoinColumn(name="hardware_id")
     private Hardware hardware;
-    // Board queue
+    // Board queue operations 
+    @JsonIgnore
     @JsonManagedReference("queue-board")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "board", cascade =CascadeType.ALL, orphanRemoval = true)
     private List<BoardQueue> boardOperations=new ArrayList<>();
