@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.scheduler.Base.ControllerBase;
+import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
@@ -20,28 +20,28 @@ import com.scheduler.app.backend.Messaging.Models.BoardTask;
 
 @RestController
 @RequestMapping(value = "/command")
-public class CommandController extends ControllerBase{
+public class CommandController extends ControllerBaseService<Long, Command>{
     @Autowired
-    private CommandService commandService;
+    private CommandService service;
     public CommandController(){
         this.objectClass=this.pathBase+".Command.Models.Command";
     }
     @GetMapping("/get-commands")
     public List<Command> getCommands() {
-        return commandService.getCommands();
+        return service.getCommands();
     }
     @GetMapping("/new-task-record-complete")
     public BoardTask newTaskRecord(){
-        return commandService.newRecordComplete();
+        return service.newRecordComplete();
     }
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteCommand(@PathVariable long id){
-        commandService.deleteCommand(id);
+        service.deleteCommand(id);
         return ResponseEntity.ok().build();
     }
     @PostMapping("/init")
     public void initDataSystem() {
-        commandService.initDataSystem();
+        service.initDataSystem();
     }
     public String postMethodName(@RequestBody String entity) {
         //TODO: process POST request
@@ -51,6 +51,6 @@ public class CommandController extends ControllerBase{
     
     @DeleteMapping("/restart")
     public void restart(){
-        commandService.restartCommands();
+        service.restartCommands();
     }
 }

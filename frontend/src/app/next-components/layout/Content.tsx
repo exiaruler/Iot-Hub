@@ -19,13 +19,16 @@ export interface ContentRef {
     forceUpdateRefComponents: (array: RefObject<Array<any>>) => void;
     getQuery:()=>URLSearchParams;
     getQueryField:(field:string)=>string|null;
+    stringTime:(dateTime:string|Date|null)=>string;
+    stringDate:(dateTime:string|Date|null)=>string;
     convertMiliSecondsToTime:(mills:number)=>{ hours: number; minutes: number; seconds: number };
     convertMillisecondsToTimeString:(mills:number)=>string;
     updateArrayByIndex:(data:ObjectRecord,index:number,array:ObjectArray)=>ObjectArray;
     pushToArray:(data:ObjectRecord,array:ObjectArray)=>ObjectArray;
     filteredArrayByDateTime:(array:ObjectArray,key:string,condition?:boolean)=>ObjectArray;
+    convertObjectArrayToArray:(obj:ObjectArray|null)=>Record<string, any>[];
     showAlert:(message:string,variant?:string,duration?:number)=>void;
-    passDateTime:(dateTime:Date)=>boolean;
+    passDateTime:(dateTime:string|Date|null)=>boolean;
     regularUpdateOccurrence:(name:string,nextUpdateDate:Date|null,enabled:boolean,update:()=>Promise<void>,duration?:number)=>Promise<void>;
     fetchClient:(url:string,method:string,body?:Record<string,any>|null)=>Promise<Response|void>;
     login: boolean;
@@ -61,17 +64,16 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
 
     useImperativeHandle(ref, () => ({
         generateKeyClient: () => {
-            const key = util.generateEncryptKey();
-            sessionStorage.setItem(util.originUrl + "-en", key);
+            generateKeyClient(util);
         },
         updateArrayByIndex(data:ObjectRecord,index:number,array:ObjectArray): ObjectArray {
-            return [...array.slice(0, index), data, ...array.slice(index + 1)] as ObjectArray;
+            return updateArrayByIndex(data,index,array);
         },
         pushToArray(data:ObjectRecord,array:ObjectArray){
-            return [...array,data] as ObjectArray;
+            return pushToArray(data,array);
         },
         checkKey: () => {
-            return sessionStorage.getItem(util.originUrl + "-en");
+            return checkKey(util);
         },
         addInputRefComponent: (array: RefObject<Array<any>>, component: any) => {
             const exists = array.current.find((ele: any) => component === ele) || null;
@@ -105,13 +107,18 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
             });
         },
         getQuery:()=>{
-            return new URLSearchParams(window.location.search);
+            return getQuery();
         },
         getQueryField:(field:string)=>{
-            const query= new URLSearchParams(window.location.search);
-            return query.get(field);
+            return getQueryField(field);
         },
-        passDateTime:(dateTime:Date):boolean=>{
+        stringTime:(dateTime:string|Date|null):string=>{
+            return stringTime(dateTime);
+        },
+        stringDate:(dateTime:string|Date|null):string=>{
+            return stringDate(dateTime);
+        },
+        passDateTime:(dateTime:string|Date|null):boolean=>{
             return passDateTime(dateTime);
         },
         regularUpdateOccurrence:async(name:string,nextUpdateDate:Date|null,enabled:boolean,update:()=>Promise<void>,durration?:number):Promise<void>=>{
@@ -145,32 +152,12 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
             }
             updateRoutineCheck(routine);
         },
-        filteredArrayByDateTime:(array:ObjectArray,key:string,condition:Boolean=false):ObjectArray=>{
-            const filteredQueue = array.filter((q:ObjectRecord)=>{
-            return q?.[key] == null || condition==passDateTime(q?.[key]);
-            });
-            return filteredQueue;
+        filteredArrayByDateTime:(array:ObjectArray,key:string,condition:boolean=false):ObjectArray=>{
+            return filteredArrayByDateTime(array,key,condition);
         },
-        convertObjectArrayToArray:(obj:ObjectArray):Record<string, any>[]=>{
-            if(obj==null) return [];
-            const arr:Record<string, any>[]=[];
-            obj.forEach((ele:ObjectRecord)=>{
-                if(ele!=null) arr.push(ele);
-            });
-            return arr;
-        },
-        convertMiliSecondsToTime:(mills:number):{ hours: number; minutes: number; seconds: number }=>{
-            const totalSeconds = Math.floor(mills / 1000);
-            const seconds = totalSeconds % 60;
-            const totalMinutes = Math.floor(totalSeconds / 60);
-            const minutes = totalMinutes % 60;
-            const hours = Math.floor(totalMinutes / 60);
-            return { hours, minutes, seconds };
-        },
-        convertMillisecondsToTimeString:(mills:number):string=>{
-            const { hours, minutes, seconds } = convertMiliSecondsToTime(mills);
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        },
+        convertObjectArrayToArray,
+        convertMiliSecondsToTime,
+        convertMillisecondsToTimeString,
         showAlert:(message:string,variant:string='primary',duration:number=5000):void=>{
             showAlert(message,variant,duration);
         },
@@ -240,21 +227,63 @@ const Content = forwardRef<ContentRef, Props>((props, ref) => {
     );
 });
 export default Content;
-function passDateTime(dateTime: Date | null): boolean {
+export function generateKeyClient(util: NextBase = new NextBase()): void {
+    const key = util.generateEncryptKey();
+    sessionStorage.setItem(util.originUrl + "-en", key);
+}
+export function checkKey(util: NextBase = new NextBase()): string | null {
+    return sessionStorage.getItem(util.originUrl + "-en");
+}
+export function getQuery(): URLSearchParams {
+    return new URLSearchParams(window.location.search);
+}
+export function getQueryField(field: string): string | null {
+    return getQuery().get(field);
+}
+export function stringTime(dateTime: string | Date | null): string {
+    if (dateTime == null) return "";
+    const date = new Date(dateTime);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleTimeString();
+}
+export function stringDate(dateTime: string | Date | null): string {
+    if (dateTime == null) return "";
+    const date = new Date(dateTime);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString();
+}
+export function updateArrayByIndex(data: ObjectRecord, index: number, array: ObjectArray): ObjectArray {
+    return [...array.slice(0, index), data, ...array.slice(index + 1)] as ObjectArray;
+}
+export function pushToArray(data: ObjectRecord, array: ObjectArray): ObjectArray {
+    return [...array, data] as ObjectArray;
+}
+export function convertObjectArrayToArray(obj: ObjectArray | null): Record<string, any>[] {
+    if (obj == null) return [];
+    return obj.filter((entry): entry is Record<string, any> => entry != null);
+}
+export function filteredArrayByDateTime(array: ObjectArray, key: string, condition: boolean = false): ObjectArray {
+    return array.filter((record: ObjectRecord) => {
+        return record?.[key] == null || condition === passDateTime(record[key]);
+    });
+}
+export function passDateTime(dateTime: string | Date | null): boolean {
     if (dateTime !== null) {
         const dt = new Date();
         const compareDt = new Date(dateTime);
-        if (dt > compareDt) {
-            return true;
-        }
+        return dt > compareDt;
     }
     return false;
 }
-function convertMiliSecondsToTime(mills: number): { hours: any; minutes: any; seconds: any; } {
+export function convertMiliSecondsToTime(mills: number): { hours: number; minutes: number; seconds: number } {
     const totalSeconds = Math.floor(mills / 1000);
     const seconds = totalSeconds % 60;
     const totalMinutes = Math.floor(totalSeconds / 60);
     const minutes = totalMinutes % 60;
     const hours = Math.floor(totalMinutes / 60);
     return { hours, minutes, seconds };
+}
+export function convertMillisecondsToTimeString(mills: number): string {
+    const { hours, minutes, seconds } = convertMiliSecondsToTime(mills);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }

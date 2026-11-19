@@ -9,12 +9,13 @@ import java.util.Objects;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import com.scheduler.Base.Base;
+import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Models.CommandParameter;
 import com.scheduler.app.backend.Command.Repo.CommandRepo;
@@ -28,7 +29,7 @@ import com.scheduler.app.backend.Messaging.Service.BoardTaskService;
 
 @Configuration
 @Service
-public class CommandService extends Base {
+public class CommandService extends BaseService<Command, Long> {
     public final CommandRepo command;
     public final CommandParameterService commandParaService;
     private final BoardTaskService boardTaskService;
@@ -41,6 +42,12 @@ public class CommandService extends Base {
         this.boardTaskService = boardTaskService;
         this.objectMapper = objectMapper;
     }
+
+    @Override
+    protected JpaRepository<Command, Long> repository() {
+        return command;
+    }
+
     public Command getCommand(long id){
         return command.findById(id).get();
     }

@@ -9,17 +9,18 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.scheduler.Base.Background;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Command.Models.Command;
 import com.scheduler.app.backend.Command.Service.CommandService;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
-import com.scheduler.app.backend.aREST.Models.Device;
 import com.scheduler.app.backend.aREST.Function.Models.Mode;
 import com.scheduler.app.backend.aREST.Function.Models.Route;
-import com.scheduler.app.backend.aREST.Repo.DeviceRepo;
 import com.scheduler.app.backend.aREST.Function.Repo.ModeRepo;
 import com.scheduler.app.backend.aREST.Function.Repo.RoutesRepo;
+import com.scheduler.app.backend.aREST.Models.Device;
+import com.scheduler.app.backend.aREST.Repo.DeviceRepo;
 import com.scheduler.app.backend.aREST.Service.ParameterService;
 // Functio and modes
 @Service
@@ -58,6 +59,17 @@ public class RoutesService extends BaseService<Route, Long> {
         }catch(Exception e){
             if(entity!=null){
                 if(entity.getId()>0) exRec=true;
+            }
+        }
+        if(exRec&&entity.getTransaction().equals("mode-change")&&entity.getModes()){
+            long currSelModeId=getDataLong("select selected_mode_id from route where id="+entity.getId());
+            //entity.setSelectedModeId(entity.getSelectModeTransaction());
+            if(entity.getSelectModeTransaction()!=currSelModeId){
+                // log mode change
+                Route currRou=this.findById(entity.getId());
+                String currMode=getDataString("select mode from mode where id="+currSelModeId);
+                logService.addResponseLog(entity,String.valueOf(entity.getDevice().getId()),"Current Mode:"+currMode+" next mode:"+entity.getSelectedMode().getMode(),currRou.toString());
+                Background.putGlobal("transaction|"+entity.getId(),entity.getTransaction());                
             }
         }
         // validate default mode
@@ -164,14 +176,29 @@ public class RoutesService extends BaseService<Route, Long> {
             if(errors.size()>0) throw new ValidationException(errors, null);
             entity.setDevice(rec.getDevice());
         }
-        entity.calculateCurrent();
+        // calculate current
+        if(!entity.getElectrode().equals("")&&!entity.getTransaction().equals("mode-change")){
+            String elect=getDataString("select electrode from route where id="+entity.getId());
+            if(!entity.getElectrode().equals(elect)) entity.calculateCurrent();
+        }
     }
     @Override
     protected void afterSave(Route entity) {
+        String transaction="";
+        Object transactionObj = Background.getGlobal("transaction|"+entity.getId());
+        if (transactionObj != null) {
+            transaction = transactionObj.toString();
+        }
+        // mode change success
+        if(transaction.equals("mode-change")){
+            logService.addResponseLog(entity,String.valueOf(entity.getDevice().getId()),"Mode changed to "+entity.getSelectedMode().getMode(),entity.toString());
+        }
         if(entity.getSelectedModeId()==0){
             entity.setDefaultMode();
             routeRepo.save(entity);
         }
+        Background.removeGlobal("transaction|"+entity.getId());
+
     }
     // add route and mode socket
     public Route addRouteandModes(Route route,String deviceId){
@@ -221,8 +248,9 @@ public class RoutesService extends BaseService<Route, Long> {
         Route rou=routeRepo.findById(id).get();
         return rou;
     }
+    @Transactional(readOnly = true)
     public Route getRouteByIdDisplay(Long id){
-        Route rou=routeRepo.findById(id).get();
+        Route rou=this.findById(id);
         rou.calculateOutputDisplay();
         return rou;
     }

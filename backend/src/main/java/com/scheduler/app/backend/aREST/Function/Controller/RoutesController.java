@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.scheduler.Base.Service.ControllerBaseService;
 import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
@@ -31,8 +32,8 @@ public class RoutesController extends ControllerBaseService<Long,Route> {
         return service.getAllRoutes();
     }
     @GetMapping("/get-route/{id}")
-    public Route getRoute(@PathVariable long id) {
-        return service.getRouteByIdDisplay(id);
+    public ResponseEntity<Route> getRoute(@PathVariable long id) {
+        return ResponseEntity.ok(service.getRouteByIdDisplay(id));
     }
     @PostMapping("/add-route-socket/{deviceId}")
     public ResponseEntity<Route> addRouteSocket(@PathVariable String deviceId,@RequestBody Route entity) {

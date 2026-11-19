@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import tools.jackson.databind.ObjectMapper;
 import com.scheduler.app.backend.JacksonConfig;
 import com.scheduler.Base.Background;
 import com.scheduler.app.backend.Command.Service.CommandService;
+import com.scheduler.app.backend.Log.Service.LogService;
 import com.scheduler.app.backend.Messaging.Board.Models.ArraySerial.BoardTaskSerial;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInput;
 import com.scheduler.app.backend.Messaging.Board.Models.BoardInputTask;
@@ -47,6 +49,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     public final CommandService commandService;
     public final ScheduleService scheduleService;
     public final TaskService taskService;
+    public final LogService logService;
     public final BoardQueueService boardQueueService;
     private final ObjectMapper objectMapper = JacksonConfig.createObjectMapper();
     
@@ -57,11 +60,12 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
     // commands not to log
     private String[] banComs={"reset","resetboard"};
 
-    public WebSocketHandlerRaw(BoardService boardService, CommandService commandService, ScheduleService scheduleService, TaskService taskService, BoardQueueService boardQueueService) {
+    public WebSocketHandlerRaw(BoardService boardService, CommandService commandService, ScheduleService scheduleService, TaskService taskService, BoardQueueService boardQueueService, LogService logService) {
         this.boardService = boardService;
         this.commandService = commandService;
         this.scheduleService = scheduleService;
         this.taskService = taskService;
+        this.logService = logService;
         this.boardQueueService = boardQueueService;
     }
 
@@ -198,6 +202,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
                     // update global
                     Background.putGlobal("update|websocketid|"+sessionId,boardId);
                     Background.putGlobal("update|board|"+boardId,sessionId);
+                    logService.addResponseLog(board,String.valueOf(boardId),board.getName()+" - Update initiated","", Period.ofDays(30));
                 }
             }
             else
@@ -230,6 +235,7 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
             if(boardUpdate!=null){
                 String globSessId=String.class.cast(boardUpdate);
                 if(sessionId.equals(globSessId)){
+                    logService.addResponseLog(new Board(), String.valueOf(boardId), "Update progress: ", payload, Period.ofDays(30));
                     // update status of board
                 }
             }
@@ -270,9 +276,14 @@ public class WebSocketHandlerRaw extends TextWebSocketHandler{
             sessions.remove(session.getId());
             long boardId=Long.parseLong(boardIdStr);
             sentMessages.remove(boardId);
+            String boardName=boardService.getDataString("select name from board where id="+boardId);
+            String boardPrevVer=boardService.getDataString("select version from board where id="+boardId);
+            String latestFirmwareVer=boardService.getDataString("select version from firmware where where latest=true order by id desc limit 1");
             Background.removeGlobal("update|websocketid|"+session.getId());
             Background.removeGlobal("update|board|"+boardId);
+            logService.addResponseLog(new Board(), String.valueOf(boardId), boardName + " - update installation complete from version "+boardPrevVer+" to "+latestFirmwareVer, "", Period.ofDays(30));
             boardService.setWsConnection(boardId,"",0,true);
+
         }
     }
     // convert board task to json string

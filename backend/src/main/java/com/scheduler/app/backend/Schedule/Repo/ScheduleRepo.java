@@ -10,11 +10,11 @@ import com.scheduler.app.backend.Schedule.Models.Schedule;
 public interface ScheduleRepo extends JpaRepository<Schedule,Long>{
 
     // get startup and repeated schedule
-    @Query(value="select id\r\n" + //
-                "from schedule where schedule_device_id in (?1)\r\n" + //
-                "and repeat_task=true and status=true\r\n" + //
-                "or status=true and startup=true and schedule_device_id in (?1)",nativeQuery=true)
-    List<Long> getActiveRoutineSchedules(String ids);
+    @Query(value="select id from schedule " +
+                "where schedule_device_id in (:ids) " +
+                "and status=true " +
+                "and (repeat_task=true or startup=true)",nativeQuery=true)
+    List<Long> getActiveRoutineSchedules(List<Long> ids);
 
  
         

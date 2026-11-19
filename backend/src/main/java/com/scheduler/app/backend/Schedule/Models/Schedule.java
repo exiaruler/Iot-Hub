@@ -4,6 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.scheduler.Base.ModelBase.ModelBase;
+import com.scheduler.app.backend.Task.Model.Task;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
+import com.scheduler.app.backend.aREST.Models.Device;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,15 +22,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.Transient;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.scheduler.Base.ModelBase.ModelBase;
-import com.scheduler.app.backend.aREST.Models.Board;
-import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Function.Models.Mode;
-import com.scheduler.app.backend.aREST.Function.Models.Route;
-import com.scheduler.app.backend.Task.Model.Task;
 // schedule http request and device tasks
 @Entity
 public class Schedule extends ModelBase {
@@ -91,6 +90,9 @@ public class Schedule extends ModelBase {
     // mode id
     @Transient
     private long modeId;
+    // schedule task type
+    @Transient
+    private String taskType="";
     
     @PostLoad
     public void loadSchedule(){
@@ -106,6 +108,9 @@ public class Schedule extends ModelBase {
         if (this.nextSchedules != null) {
             this.nextSchedules.sort((a, b) -> Integer.compare(a.getScheduleOrder(), b.getScheduleOrder()));
         }
+        this.taskType="routine";
+        if(this.repeatTask) this.taskType="schedule";
+        if(this.startup) this.taskType="startup";
     }
 
     public void prepareNextSchedules() {

@@ -8,17 +8,18 @@ interface Props{
     boardId:string;
     submitHandle:CallableFunction;
     formLayout:ObjectRecord;
+    record:ObjectRecord;
     children?:React.ReactNode;
     formChildren?:React.ReactNode;
     ref?: React.Ref<Form>;
     hideClearBtn?:boolean;
 }
 // reuseable device form
-export default function DeviceForm({boardId,submitHandle,formLayout,children,ref,hideClearBtn,formChildren}:Props){
+export default function DeviceForm({boardId,submitHandle,formLayout,children,ref,hideClearBtn,formChildren,record}:Props){
     
     return (
         <>
-        <Form ref={ref} recordLayout={formLayout||{}} idKey={"id"} onSubmit={submitHandle} post={"/device/add-device/"+boardId} put={"/device/update-record/"}>
+        <Form ref={ref} record={record} recordLayout={formLayout||{}} idKey={"id"} onSubmit={submitHandle} post={"/device/add-device/"+boardId} put={"/device/update-record/"}>
         <TextInput md={4} formRef={ref} label={"Name"} required={true} name={"name"} type={"text"} rows={0}/>
         {
             formChildren

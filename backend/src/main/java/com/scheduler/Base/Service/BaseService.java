@@ -39,10 +39,16 @@ public abstract class BaseService<T,ID> extends Base{
 
     public final void delete(ID id) {
         beforeDelete(id);
-        
+
+        String entityName = repository().findById(id)
+            .map(entity -> entity.getClass().getSimpleName())
+            .orElse("");
+
         repository().deleteById(id);
 
         afterDelete(id);
+
+        logService.deleteLogsByEntityAndEntityId(entityName, String.valueOf(id));
     }
     // callback method to be overridden by subclasses to perform additional actions before deleting an entity. This can be useful for validation, logging, or any other pre-processing that needs to occur before the deletion of an entity.
     protected void verifyDelete(ID id, boolean verify) {}

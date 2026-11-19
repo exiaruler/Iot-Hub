@@ -142,6 +142,10 @@ public class BoardService extends BaseService<Board, Long> {
                         });
                     });
             }
+            String prevVer=getDataString("select firmware_version from board where id="+entity.getId());
+            if(!prevVer.equals(entity.getFirmwareVersion())){
+                logService.addResponseLogNoExpiry(entity,String.valueOf(entity.getId()),entity.getName()+" firmware updated from "+prevVer+" to "+entity.getFirmwareVersion(),entity.toString());
+            }
             // if in dev mode set status to inactive and do display display board except last connection
             if(entity.getDevMode()){
                 List <Long> devIds=new ArrayList<>();
@@ -241,8 +245,8 @@ public class BoardService extends BaseService<Board, Long> {
     }
     @Override
     protected void afterDelete(Long id) {
-        // TODO Auto-generated method stub
         Background.removeGlobal("board-next-op|"+id);
+        //logService.deleteLogsByEntityAndEntityId("Board", String.valueOf(id));
     }
     @Override
     protected void verifyDelete(Long id, boolean verify) {
@@ -272,7 +276,6 @@ public class BoardService extends BaseService<Board, Long> {
                 bo.setTransaction("offline");
                 this.save(bo);
             }
-            System.out.println("offline board size "+offline.size());
         }
     }
    
@@ -307,6 +310,7 @@ public class BoardService extends BaseService<Board, Long> {
             check.setTasks(taskLists);
             Background.removeGlobal("board-millis|"+boardExist.getId());
             Background.removeGlobal("http-check|"+id);
+            if(scheduledTasks.size()>0) logService.addResponseLog(boardExist,String.valueOf(boardExist.getId()),boardExist.getName()+" routine activity occured using http on board operation reference:"+tid+" ."+boardExist.getName()+" received "+scheduledTasks.size()+" tasks.",check.toString());
         }
         return check;
     }
@@ -480,6 +484,7 @@ public class BoardService extends BaseService<Board, Long> {
             Background.removeGlobal("board-millis|"+exist.getId());
             Background.removeGlobal("http-check|"+exist.getId());
             Background.removeGlobal("startup|"+exist.getId());
+            logService.addResponseLog(exist,String.valueOf(exist.getId()),exist.getName()+" startup occured using http."+exist.getName()+" received "+taskLists.size()+" tasks.",check.toString());
         }
         return check;
     }

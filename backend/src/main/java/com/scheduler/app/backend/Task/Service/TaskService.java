@@ -93,6 +93,7 @@ public class TaskService extends BaseService<Task,TaskEventId>{
         }
         // update route/function state 
         if(entity.getRoute()!=null&&(entity.getTransaction().equals("queue")||entity.getTransaction().equals("disable")||entity.getTransaction().equals("disable-end"))){
+            entity.getRoute().setTransaction("mode-change");
             routesService.save(entity.getRoute());
         }
         // disable task
@@ -211,6 +212,15 @@ public class TaskService extends BaseService<Task,TaskEventId>{
             taskRepo.save(entity);
             Background.removeGlobal("add-to-queue|"+entity.getId().toString());
             Background.removeGlobal("scheduler-out|"+entity.getId().toString());
+            String logMsg=entity.getApplication()+" added to queue";
+            // log task to device
+            if(entity.getSchedule()!=null){
+                logService.addResponseLog(entity.getSchedule().getDevice(),String.valueOf(entity.getDeviceId()),logMsg,entity.toString());
+            }
+            // log task to board
+            if(entity.getSchedule()==null&&entity.getBoard()>0){
+                logService.addResponseLog(new Board(),String.valueOf(entity.getBoard()),logMsg,entity.toString());
+            }
         }
          // if schedule has next tasks add to scheduler
         if(entity.getSchedule()!=null&&transaction.equals("queue")||transaction.equals("disable")){
@@ -405,6 +415,8 @@ public class TaskService extends BaseService<Task,TaskEventId>{
                     }
                 } catch (Exception e) {
                     // TODO: handle exception
+                    System.out.println("error occured on task "+tsk.getId().toString());
+                    e.printStackTrace();
                 }
             }
         return taskLists;

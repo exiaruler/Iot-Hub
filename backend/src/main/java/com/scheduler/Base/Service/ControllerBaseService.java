@@ -1,5 +1,7 @@
 package com.scheduler.Base.Service;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,14 +16,30 @@ import com.scheduler.Base.ControllerBase;
 public class ControllerBaseService<ID,T> extends ControllerBase {
     @Autowired
     BaseService<T,ID> service;
+    public boolean disableAdd=false;
+    public boolean disableUpdate=false;
+    public boolean disableDelete=false;
     
-    
+    @Override
+    @GetMapping("/new-record")
+    @SuppressWarnings("unchecked")
+    public T getNewRecord() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+        T obj = (T) super.getNewRecord();
+        return obj;
+    }
+
     @PostMapping(value="/add-record")
     public ResponseEntity<T> addRecord(@RequestBody T entity){
+        if (disableAdd) {
+            return ResponseEntity.status(403).build();
+        }
         return ResponseEntity.ok(service.save(entity));
     }
     @PutMapping(value="/update-record/{id}")
     public ResponseEntity<T> updateRecord(@PathVariable ID id,@RequestBody T entity){
+        if (disableUpdate) {
+            return ResponseEntity.status(403).build();
+        }
         T existing=service.findById(id);
         if(existing==null){
             return ResponseEntity.notFound().build();
@@ -30,6 +48,9 @@ public class ControllerBaseService<ID,T> extends ControllerBase {
     }
     @DeleteMapping(value = "/delete-record/{id}")
     public ResponseEntity<Void> deleteRecord(@PathVariable ID id){
+        if (disableDelete) {
+            return ResponseEntity.status(403).build();
+        }
         T existing=service.findById(id);
         if(existing==null){
             return ResponseEntity.notFound().build();
@@ -39,6 +60,9 @@ public class ControllerBaseService<ID,T> extends ControllerBase {
     }
     @DeleteMapping(value = "/delete-record-verify/{id}/{verify}")
     public ResponseEntity<Void> deleteRecordVerify(@PathVariable ID id, @PathVariable boolean verify){
+        if (disableDelete) {
+            return ResponseEntity.status(403).build();
+        }
         T existing=service.findById(id);
         if(existing==null){
             return ResponseEntity.notFound().build();

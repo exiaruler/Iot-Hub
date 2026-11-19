@@ -1,7 +1,6 @@
 package com.scheduler.app.backend.Schedule.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -197,11 +196,10 @@ public class ScheduleService extends BaseService<Schedule, Long> {
     @Transactional
     public boolean startStartupSchedule(Board board){
         boolean exist=false;
-        long [] devicesIds=deviceService.getDevicesById(board.getId());
+        List <Long> devicesIds=deviceService.getDevicesById(board.getId());
         List<Task> tasks=new ArrayList<>();
-        if(devicesIds.length>0){
-            String devIdList=Arrays.toString(devicesIds).replace("[", "").replace("]", "");
-            List<Long> activeStartups=scheRepo.getActiveRoutineSchedules(devIdList);
+        if(devicesIds.size()>0){
+            List<Long> activeStartups=scheRepo.getActiveRoutineSchedules(devicesIds);
             for(int i=0; i<activeStartups.size(); i++){
                 Long scheId=activeStartups.get(i);
                 Task task=startupTask(scheId,true);
@@ -215,11 +213,10 @@ public class ScheduleService extends BaseService<Schedule, Long> {
     @Transactional
     public boolean startRoutineSchedule(Board board){
         boolean exist=false;
-        long [] devicesIds=deviceService.getDevicesById(board.getId());
-        if(devicesIds.length>0){
-            String devIdList=Arrays.toString(devicesIds).replace("[", "").replace("]", "");
+        List <Long> devicesIds=deviceService.getDevicesById(board.getId());
+        if(devicesIds.size()>0){
             List<Long> activeStartups=new ArrayList<>();
-            List<Long> activeRoutine=scheRepo.getActiveRoutineSchedules(devIdList);
+            List<Long> activeRoutine=scheRepo.getActiveRoutineSchedules(devicesIds);
             activeStartups.addAll(activeRoutine);
             for(int i=0; i<activeStartups.size(); i++){
                 Long scheId=activeStartups.get(i);
@@ -240,6 +237,7 @@ public class ScheduleService extends BaseService<Schedule, Long> {
             task.setTransaction("queue-add");
             if(addToScheduler) task.setAddtoSchedule(true);
             taskService.save(task);
+            logService.addResponseLog(schedule.getDevice(),String.valueOf(schedule.getDevice().getId()),task.getApplication()+" startup occured", task.toString());
         }
         return task;
     }

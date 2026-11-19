@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import jakarta.transaction.Transactional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +15,15 @@ import com.scheduler.Base.ModelBase.TaskEventId;
 import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Messaging.Models.BoardTask;
 import com.scheduler.app.backend.Task.Model.Task;
+import com.scheduler.app.backend.aREST.Function.Models.Mode;
+import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.BoardQueue;
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Function.Models.Mode;
-import com.scheduler.app.backend.aREST.Function.Models.Route;
 import com.scheduler.app.backend.aREST.Repo.BoardQueueRepo;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
@@ -43,7 +43,7 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
     @Override
     protected void beforeSave(BoardQueue entity, Map<String, String> errors, Map<String, String> warnings) {
         // update next occurance if current date time is not null and id is not null
-        if(entity.getCurrentDateTime()!=null&&entity.getId()!=null){
+        if(entity.getCurrentDateTime()!=null&&entity.getId()!=null&&entity.getTaskRepeat()){
             entity.setNextOccurance(entity.getCurrentDateTime().plusMillis(entity.getDelay()));
         }
     }
@@ -63,12 +63,11 @@ public class BoardQueueService extends BaseService<BoardQueue,TaskEventId>{
             if(que.getTaskRepeat()&&que.getExpiredDateTime()==null){
                     if(que.getExpiredDateTime()==null&&que.getSystemTask()&&que.getTaskRepeat()&&que.getNextOccurance()!=null){
                         que.setCurrentDateTime(dataTimeNow);
-                        /* 
                         Instant curr=dataTimeNow.plusMillis(que.getDelay());
                         if(curr!=null){
                             que.setNextOccurance(curr);
                         }
-                        */
+                        
                 }
             }else
             {

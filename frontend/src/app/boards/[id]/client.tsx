@@ -17,6 +17,7 @@ import Dev from "@/app/next-components/user/dev"
 import DeleteModal from "@/app/next-components/modal/DeleteModal"
 import Device from "./device"
 import BackButton from "@/app/next-components/buttons/BackButton"
+import LogsButton from "@/app/next-components/buttons/LogsButton"
 
 interface Props{
     deviceForm:ObjectRecord;
@@ -238,6 +239,7 @@ export default function Client(props:Props){
         <Stack direction="horizontal" gap={2} className="mt-3">
         <RegularButton caption={"Operations"} size={undefined} onClick={goToQueue} disabled={!activated}/>
         <RegularButton caption={"Board Tasks"} disabled={!activated} onClick={goToTasks}/>
+        <LogsButton entity={"Board"} id={board?.id}/>
         <ModalButton disabled={!activated} buttonCaption={"More Details"} title={"Board Information"}>
         <Row>
         <Col md={6} xs={7}>
@@ -284,7 +286,7 @@ export default function Client(props:Props){
         {
             devices.map((dev:ObjectRecord,key:number)=>(
                 <TabComponent title={dev?.name} eventKey={key} disabled={!activated}>
-                <Device key={key} index={key} active={false} device={dev} board={board} deleteDeviceMethod={deviceDeleteHandle} deleteFunctionMethodAfter={deleteFunctionAfterHandle}/>                
+                <Device key={key} index={key} active={false} device={dev} board={board} deviceForm={props.deviceForm} deleteDeviceMethod={deviceDeleteHandle} deleteFunctionMethodAfter={deleteFunctionAfterHandle}/>                
                 </TabComponent>   
             ))
         }

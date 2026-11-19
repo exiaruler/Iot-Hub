@@ -127,6 +127,8 @@ public class BoardLogin extends DeviceCheck{
             ", devServerUrl='" + getDevServerUrl() + "'" +
             ", devWsUrl='" + getDevWsUrl() + "'" +
             ", loginServerFail='" + isLoginServerFail() + "'" +
+            ", tasks='" + getTasks() + "'" +
+            ", taskTotal='" + getTaskTotal() + "'" +
             "}";
     }
 

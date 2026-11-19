@@ -10,11 +10,11 @@ import java.util.Random;
 import jakarta.persistence.EntityManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.validation.Validator;
-
 import com.scheduler.Base.JsonObject.JsonObject;
 import com.scheduler.app.backend.HTTPHandle.HttpUtil;
+import com.scheduler.app.backend.Log.Service.LogService;
 import com.scheduler.app.backend.Messaging.MessageUtil;
 import com.scheduler.app.backend.Messaging.Models.InputCurrent;
 import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
@@ -24,6 +24,9 @@ public class Base{
     private boolean dev;
     @Autowired
     private EntityManager entityManager;
+    @Autowired
+    @Lazy
+    public LogService logService;
     protected HttpUtil httpUtil=new HttpUtil();
     public Background background=new Background();
     public MessageUtil messageUtil=new MessageUtil();

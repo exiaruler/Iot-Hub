@@ -4,6 +4,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.scheduler.Base.ModelBase.ModelBase;
+import com.scheduler.app.backend.Command.Models.Command;
+import com.scheduler.app.backend.Messaging.Models.BoardTask;
+import com.scheduler.app.backend.Messaging.Models.InputCurrent;
+import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
+import com.scheduler.app.backend.Schedule.Models.Schedule;
+import com.scheduler.app.backend.aREST.Models.BoardQueue;
+import com.scheduler.app.backend.aREST.Models.Device;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,19 +27,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.Transient;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.scheduler.Base.Background;
-import com.scheduler.Base.ModelBase.ModelBase;
-import com.scheduler.app.backend.Command.Models.Command;
-import com.scheduler.app.backend.Messaging.Models.BoardTask;
-import com.scheduler.app.backend.Messaging.Models.InputCurrent;
-import com.scheduler.app.backend.Messaging.Models.OutputCurrent;
-import com.scheduler.app.backend.Schedule.Models.Schedule;
-import com.scheduler.app.backend.aREST.Models.BoardQueue;
-import com.scheduler.app.backend.aREST.Models.Device;
 // device functions
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
@@ -91,6 +91,14 @@ public class Route extends ModelBase{
     @JsonManagedReference("queue-route")
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "route", cascade =CascadeType.ALL)
     private List<BoardQueue> boardOperations=new ArrayList<>();
+    // transaction process
+    @JsonIgnore
+    @Transient
+    private String transaction="";
+    // transaction selected mode
+    @JsonIgnore
+    @Transient
+    private long selectModeTransaction=0;
 
     @PostLoad
     private void loadRoute(){
@@ -117,15 +125,9 @@ public class Route extends ModelBase{
     // set mode for function
     public List<BoardTask> activateMode(long id){
         List<BoardTask> tasks=new ArrayList<>();
+        this.setSelectModeTransaction(id);
         this.setSelectedModeId(id);
         Mode mode=this.mode.stream().filter(rec->rec.getId()==id).findFirst().orElse(null);
-        /* 
-        if(mode!=null){
-            long boardId=this.getDevice().getBoard().getId();
-            long functionId=this.getId();
-            long deviceId=this.getDevice().getId();
-        }
-        */
         // if cycle back or forward not enable get board task normally
         if(!this.cycleBack&&!this.cycleForward){
             if(mode!=null){
@@ -557,6 +559,24 @@ public class Route extends ModelBase{
     public void setSelectedMode(Mode selectedMode) {
         this.selectedMode = selectedMode;
     }
+
+    public String getTransaction() {
+        return this.transaction;
+    }
+
+    public void setTransaction(String transaction) {
+        this.transaction = transaction;
+    }
+
+    public long getSelectModeTransaction() {
+        return this.selectModeTransaction;
+    }
+
+    public void setSelectModeTransaction(long selectModeTransaction) {
+        this.selectModeTransaction = selectModeTransaction;
+    }
+
+
 
     @Override
     public boolean equals(Object o) {

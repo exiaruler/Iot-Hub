@@ -16,4 +16,12 @@ public class BoardOutputSerial extends OutputCurrent{
         this.setOrderPosition(output.getOrderPosition());
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+            " current='" + getCurrent() + "'" +
+            ", orderPosition='" + getOrderPosition() + "'" +
+            "}";
+    }
+
 }

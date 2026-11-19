@@ -13,9 +13,11 @@ import ModalButton from "@/app/next-components/modal/modal-button/modal-button";
 import DeviceForm from "./device-form";
 import Form from "@/app/next-components/form/Form";
 import SaveButton from "@/app/next-components/buttons/SaveButton";
+import LogsButton from "@/app/next-components/buttons/LogsButton";
 interface Props{
     active:boolean;
     device:ObjectRecord;
+    deviceForm:ObjectRecord;
     board:ObjectRecord;
     index:number;
     deleteDeviceMethod:CallableFunction;
@@ -121,11 +123,12 @@ export default function Device(props:Props){
                 </Col>    
                 </Row>
                 <ModalButton buttonCaption={"Update Device"} title={""}>
-                <DeviceForm ref={formRef} boardId={props.device?.id} submitHandle={updateDevice} formLayout={null}>
+                <DeviceForm ref={formRef} record={device} boardId={props.device?.id} submitHandle={updateDevice} formLayout={props.deviceForm}>
                 <SaveButton caption={"Update"}/>
                 </DeviceForm>
                 </ModalButton>
                 <RegularButton caption={"Delete Device"} onClick={()=>props.deleteDeviceMethod(props.index)} size={undefined} type={undefined}/>
+                <LogsButton entity={"device"} id={props.device?.id}/>
                 </Col>
                 </Row>
                 </TabComponent>

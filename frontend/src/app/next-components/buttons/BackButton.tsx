@@ -6,7 +6,9 @@ interface Props{
 export default function BackButton(props:Props){
     const router = useRouter();
     const handleClick=()=>{
-        router.push(props.url);
+        if(props.url){
+            router.push(props.url);
+        }else router.back();
     }
     return(
         <RegularButton caption={"Back"} size={undefined} type={undefined} onClick={handleClick}/>

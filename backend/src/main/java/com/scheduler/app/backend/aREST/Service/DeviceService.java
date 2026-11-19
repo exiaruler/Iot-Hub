@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import com.scheduler.Base.Exception.ValidationException;
 import com.scheduler.Base.Service.BaseService;
 import com.scheduler.app.backend.Task.Model.CompletedTask;
+import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
 import com.scheduler.app.backend.aREST.Models.Board;
 import com.scheduler.app.backend.aREST.Models.Device;
-import com.scheduler.app.backend.aREST.Function.Service.RoutesService;
 import com.scheduler.app.backend.aREST.Repo.BoardRepo;
 import com.scheduler.app.backend.aREST.Repo.DeviceRepo;
 
@@ -70,6 +70,11 @@ public class DeviceService extends BaseService<Device, Long> {
             deviceRepo.save(entity);
         }
     }
+
+    @Override
+    protected void afterDelete(Long id) {
+        //logService.deleteLogsByEntityAndEntityId("Device", String.valueOf(id));
+    }
   
     public Device addDeviceSocket(Device entry,long boardId){
         Board board=boardRepo.getReferenceById(boardId);
@@ -99,7 +104,7 @@ public class DeviceService extends BaseService<Device, Long> {
     public List<Device> getAllDevicesWithRoutes(){
         return deviceRepo.getDevicesByRoutes();
     }
-    public long [] getDevicesById(long id){
+    public List<Long> getDevicesById(long id){
         return deviceRepo.findDevicesByBoard(id);
     }
     public Device getDevice(long id){
@@ -110,7 +115,7 @@ public class DeviceService extends BaseService<Device, Long> {
         String res="";
         Device device=deviceRepo.getReferenceById(id);
         if(device!=null){
-            deviceRepo.deleteById(id);
+            this.delete(id);
             res=device.getName()+" is deleted";
         }else res="Device does not exist";
         return res;

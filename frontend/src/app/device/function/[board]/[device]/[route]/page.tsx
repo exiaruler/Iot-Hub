@@ -15,7 +15,7 @@ async function getData(boardId:string,deviceId:string,route:string) {
   let fetchApis:any=await base.fetchGetApi([
     {api:'/board/get-board-id/'+boardId,key:'board'},
     {api:'/command/get-commands',key:'commands',result:[]},
-    {api:'/command-parameter/get-electodes',key:'electrodes',result:[]},
+    {api:'/command-parameter/get-electrodes',key:'electrodes',result:[]},
     {api:'/route/new-record',key:'newFunction'},
     {api: "/mode/new-record",key: "newMode"},
     {api:'/route/get-route/'+route,key:'function'},
